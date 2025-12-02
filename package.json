@@ -1,0 +1,47 @@
+{
+  "name": "fockey",
+  "version": "0.1.0",
+  "description": "Minimalist, distraction-free YouTube experience Chrome extension",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DiegoRomario/fockey.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "youtube",
+    "productivity",
+    "focus"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DiegoRomario/fockey/issues"
+  },
+  "homepage": "https://github.com/DiegoRomario/fockey#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/chrome": "^0.1.32",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "vite-plugin-web-extension": "^4.5.0"
+  }
+}
