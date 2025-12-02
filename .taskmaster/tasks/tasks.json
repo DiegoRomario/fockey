@@ -513,7 +513,7 @@
           "4",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -521,9 +521,10 @@
             "description": "Set up the home-page.ts module with TypeScript interfaces, selector constants for feed, sidebar, logo, hamburger, profile, and notifications elements, and basic module structure.",
             "dependencies": [],
             "details": "Create src/content/youtube/home-page.ts with TypeScript interfaces for HomePageSettings. Define selector constants using data-* attributes where available with CSS selector fallbacks: feed container (#contents.ytd-rich-grid-renderer), Shorts shelf (ytd-rich-shelf-renderer[is-shorts]), left sidebar (#guide-inner-content), YouTube logo (#logo), hamburger menu (#guide-button), profile avatar (#avatar-btn), notifications (ytd-notification-topbar-button-renderer), upload button (ytd-topbar-menu-button-renderer), and search bar (#search). Export these selectors as a typed constant object for reuse throughout the module.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Manually verify each selector matches the correct YouTube DOM element by using browser DevTools console. Test on both logged-in and logged-out states to ensure selectors are consistent across authentication states.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.769Z"
           },
           {
             "id": 2,
@@ -533,9 +534,10 @@
               1
             ],
             "details": "Implement applyHomePageSettings(settings: HomePageSettings): void function that reads settings object and generates CSS rules dynamically. For each setting (hideFeed, hideSidebar, hideNavElements, etc.), create corresponding CSS rules with display: none !important. Build a CSS string generator that outputs efficient, scoped CSS rules. The function should call injectCSS utility (to be created later) to apply the generated styles. Include logic to preserve search bar visibility regardless of other settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test with mock settings objects to verify correct CSS generation. Test with all combinations of show/hide settings. Manually verify in browser that generated CSS rules properly hide/show YouTube elements without affecting page layout or causing visual glitches.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.773Z"
           },
           {
             "id": 3,
@@ -545,9 +547,10 @@
               2
             ],
             "details": "Create injectHomePageCSS(css: string): void function that checks if style tag with ID 'fockey-home-styles' exists in document.head. If exists, update its textContent with new CSS. If not, create new style element, set id='fockey-home-styles', set textContent to CSS string, and append to document.head. Include removeHomePageCSS(): void function to remove the style tag when needed. Ensure style tag has high specificity to override YouTube's default styles using !important declarations where necessary.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test style tag creation on fresh YouTube page load. Verify style tag updates when settings change without creating duplicates. Test removal function clears all injected styles. Use DevTools Elements panel to inspect style tag presence and content matches generated CSS.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.776Z"
           },
           {
             "id": 4,
@@ -558,9 +561,10 @@
               3
             ],
             "details": "Implement setupMutationObserver(settings: HomePageSettings): void function that creates a MutationObserver watching document.body with { childList: true, subtree: true } options. When mutations occur, check if any added nodes match selectors that should be hidden. Re-apply CSS injection if new target elements are detected. Store observer instance in module-level variable for cleanup. Implement cleanup function to disconnect observer when leaving home page. Add debouncing (100-200ms) to observer callback to prevent excessive re-renders during rapid DOM changes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Navigate to YouTube home and scroll to trigger infinite scroll content loading. Verify MutationObserver detects new feed items and applies hiding rules. Monitor browser performance metrics to ensure observer doesn't cause lag or frame drops. Test with DevTools Performance profiler to verify debouncing works correctly.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.779Z"
           },
           {
             "id": 5,
@@ -571,9 +575,10 @@
               2
             ],
             "details": "Add search bar centering logic to applyHomePageSettings function. When sidebar or navigation elements are hidden, inject CSS to transform search bar position: use display: flex; justify-content: center; on parent container (#masthead-container or ytd-masthead), or apply custom positioning with margin: 0 auto; and width constraints on search form (#search). Include responsive CSS that maintains centering across different viewport widths (mobile, tablet, desktop). Ensure search bar remains fully functional (clickable, keyboard accessible) after repositioning. Add transition animations (0.2s ease) for smooth visual changes when toggling settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test search bar centering on various screen sizes using DevTools responsive mode (320px, 768px, 1024px, 1920px). Verify search bar remains clickable and keyboard accessible. Test that autocomplete dropdown appears in correct position. Verify smooth transitions when toggling settings in real-time.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.782Z"
           },
           {
             "id": 6,
@@ -585,19 +590,21 @@
               4
             ],
             "details": "Implement setupNavigationListener(settings: HomePageSettings): void function that listens for YouTube SPA navigation. Use a combination of: (1) History API monitoring by wrapping history.pushState and history.replaceState, (2) 'yt-navigate-finish' custom event listener (YouTube's internal navigation event), (3) URL change polling as fallback (setInterval checking window.location.href every 500ms). When navigation to home page is detected (URL === 'https://www.youtube.com/' or 'https://www.youtube.com'), re-run applyHomePageSettings. When navigating away from home, disconnect MutationObserver and clean up resources. Store cleanup functions in module-level array for proper disposal.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Navigate from home to watch page to search and back to home multiple times. Verify settings re-apply correctly after each navigation to home. Test with browser back/forward buttons. Monitor console for errors during navigation. Verify no memory leaks by checking DevTools Memory profiler after multiple navigations.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.785Z"
           },
           {
             "id": 7,
             "title": "Create dom-helpers utilities (waitForElement, injectCSS, removeCSS)",
             "description": "Build reusable DOM utility functions for element waiting, CSS injection, and CSS removal in src/content/youtube/utils/dom-helpers.ts.",
             "dependencies": [],
-            "details": "Create src/content/youtube/utils/dom-helpers.ts with three utility functions: (1) waitForElement(selector: string, timeout: number = 5000): Promise<Element> that uses MutationObserver to wait for element matching selector to appear in DOM, resolves with element or rejects after timeout, (2) injectCSS(css: string, id: string): void that creates/updates style tag with given ID and CSS content in document.head, (3) removeCSS(id: string): void that removes style tag with given ID from document.head if exists. Add TypeScript strict typing and JSDoc comments. Export all functions as named exports. These utilities should be generic and reusable across all YouTube content scripts (home, search, watch pages).",
-            "status": "pending",
+            "details": "Create src/content/youtube/utils/dom-helpers.ts with three utility functions: (1) waitForElement(selector: string, timeout: number = 5000): Promise<Element> that uses MutationObserver to wait for element matching selector to appear in DOM, resolves with element or rejects after timeout, (2) injectCSS(css: string, id: string): void that creates/updates style tag with given ID and CSS content in document.head, (3) removeCSS(id: string): void that removes style tag with given ID from document.head if exists. Add TypeScript strict typing and JSDoc comments. Export all functions as named exports. These utilities should be generic and reusable across all YouTube content scripts (home, search, watch pages).\n<info added on 2025-12-02T16:11:36.284Z>\nI'll analyze the codebase to understand the project structure and existing implementations before generating the subtask update.Implementation completed successfully as planned. File created at src/content/youtube/utils/dom-helpers.ts:1-121 with all four utility functions (waitForElement, injectCSS, removeCSS, debounce). Each function includes comprehensive JSDoc documentation with parameters, return types, and usage examples. The waitForElement implementation checks for existing elements before setting up MutationObserver to avoid unnecessary waiting. The injectCSS function intelligently updates existing style tags rather than creating duplicates. All functions use TypeScript strict typing with proper generic type constraints on the debounce utility. Validation performed via Chrome DevTools MCP confirms DOM manipulation utilities work correctly in browser environment. Ready for consumption by home-page.ts, search-page.ts, and watch-page.ts content scripts as needed.\n</info added on 2025-12-02T16:11:36.284Z>",
+            "status": "done",
             "testStrategy": "Unit test waitForElement with elements that exist, don't exist, and appear after delay. Test timeout rejection after specified duration. Test injectCSS creates style tag on first call and updates on subsequent calls. Test removeCSS properly removes style tag and handles non-existent IDs gracefully. Test all utilities in browser console on live YouTube page.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.788Z"
           },
           {
             "id": 8,
@@ -609,14 +616,16 @@
               3
             ],
             "details": "Implement debounce utility function: debounce<T extends (...args: any[]) => any>(func: T, delay: number): T that delays function execution until after delay milliseconds of inactivity. Apply debounce (200ms) to MutationObserver callback to prevent excessive CSS re-injection during rapid DOM changes. Ensure all element hiding uses CSS display: none !important or visibility: hidden instead of removing elements from DOM (preserves layout, faster toggling). Add lazy loading logic: only initialize home page content script when window.location.pathname === '/', avoid running on other YouTube pages. Implement requestIdleCallback for non-critical initialization tasks. Add performance.mark() calls at key points for profiling. Set up cleanup on page unload to prevent memory leaks (remove event listeners, disconnect observers, clear intervals).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Use Chrome DevTools Performance profiler to record 10-second session with scrolling and navigation. Verify MutationObserver callbacks are debounced (check call frequency in flame graph). Measure frame rate (should maintain 60fps during scrolling). Test memory usage over 5 minutes of active use (should remain stable, no leaks). Verify lazy loading only activates on home page. Test across different YouTube UI experiments by using multiple Google accounts.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T16:11:41.791Z"
           }
         ],
         "complexity": 6,
         "recommendedSubtasks": 7,
-        "expansionPrompt": "Divide search page module into: (1) create search-page.ts with selector mapping (video results, Shorts, community posts, mixes, sponsored content), (2) implement content type detection utilities (isShortContent, isCommunityPost, isLongFormVideo), (3) implement applySearchPageSettings with CSS-based filtering, (4) create thumbnail blur mode with CSS filter, (5) implement MutationObserver for infinite scroll result filtering, (6) preserve native YouTube filters (upload date, duration, type, sort), (7) implement performance optimizations (batch DOM updates, debounced scroll checks). Test with various search queries and filter combinations."
+        "expansionPrompt": "Divide search page module into: (1) create search-page.ts with selector mapping (video results, Shorts, community posts, mixes, sponsored content), (2) implement content type detection utilities (isShortContent, isCommunityPost, isLongFormVideo), (3) implement applySearchPageSettings with CSS-based filtering, (4) create thumbnail blur mode with CSS filter, (5) implement MutationObserver for infinite scroll result filtering, (6) preserve native YouTube filters (upload date, duration, type, sort), (7) implement performance optimizations (batch DOM updates, debounced scroll checks). Test with various search queries and filter combinations.",
+        "updatedAt": "2025-12-02T17:35:57.306Z"
       },
       {
         "id": 7,
@@ -1435,14 +1444,15 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-02T13:55:27.672Z",
+      "lastModified": "2025-12-02T17:35:57.307Z",
       "taskCount": 13,
-      "completedCount": 4,
+      "completedCount": 5,
       "tags": [
         "master"
       ],
-      "created": "2025-12-02T13:56:59.892Z",
-      "description": "Tasks for master context"
+      "created": "2025-12-02T17:37:29.674Z",
+      "description": "Tasks for master context",
+      "updated": "2025-12-02T17:37:29.674Z"
     }
   }
 }
