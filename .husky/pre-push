@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-push hook placeholder for test integration
+# Tests will be added in Task 12
+# For now, this hook is a no-op
+
+# Uncomment the following line once tests are implemented:
+# npm run test -- --run

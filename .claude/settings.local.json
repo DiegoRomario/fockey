@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(npx task-master-ai:*)",
-      "Bash(node:*)"
-    ],
+    "allow": ["Bash(npx task-master-ai:*)", "Bash(node:*)"],
     "deny": [],
     "ask": []
   }
