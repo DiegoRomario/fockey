@@ -101,7 +101,7 @@ export function removeCSS(id: string): void {
  * const debouncedResize = debounce(() => console.log('resized'), 200);
  * window.addEventListener('resize', debouncedResize);
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {

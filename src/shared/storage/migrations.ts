@@ -85,7 +85,9 @@ export async function runMigrations(
 
   // If target version is older, no migration needed (downgrade not supported)
   if (compareVersions(fromVersion, toVersion) > 0) {
-    console.warn(`Settings version ${fromVersion} is newer than current ${toVersion}, no migration performed`);
+    console.warn(
+      `Settings version ${fromVersion} is newer than current ${toVersion}, no migration performed`
+    );
     return settings;
   }
 
@@ -94,7 +96,10 @@ export async function runMigrations(
   // Find migrations that need to run
   const migrationsToRun = MIGRATIONS.filter((migration) => {
     const migrationVersion = migration.version;
-    return compareVersions(fromVersion, migrationVersion) < 0 && compareVersions(migrationVersion, toVersion) <= 0;
+    return (
+      compareVersions(fromVersion, migrationVersion) < 0 &&
+      compareVersions(migrationVersion, toVersion) <= 0
+    );
   });
 
   if (migrationsToRun.length === 0) {

@@ -24,7 +24,8 @@ export const HOME_PAGE_SELECTORS = {
   HAMBURGER_MENU: '#guide-button',
   PROFILE_AVATAR: '#avatar-btn',
   NOTIFICATIONS: 'ytd-notification-topbar-button-renderer',
-  UPLOAD_BUTTON: 'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
+  UPLOAD_BUTTON:
+    'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
   TOPBAR_BUTTONS: '#buttons ytd-button-renderer',
 
   // Search bar and header
@@ -56,8 +57,9 @@ let navigationCleanup: (() => void) | null = null;
 
 /**
  * Current settings state
+ * Reserved for future use when implementing real-time settings updates
  */
-let currentSettings: HomePageSettings | null = null;
+// let currentSettings: HomePageSettings | null = null;
 
 /**
  * Generates CSS rules based on home page settings
@@ -189,7 +191,7 @@ function generateHomePageCSS(settings: HomePageSettings): string {
  * @param settings - Home page settings object
  */
 export function applyHomePageSettings(settings: HomePageSettings): void {
-  currentSettings = settings;
+  // currentSettings = settings; // Reserved for future real-time updates
   const css = generateHomePageCSS(settings);
   injectCSS(css, STYLE_TAG_ID);
 }
@@ -200,7 +202,7 @@ export function applyHomePageSettings(settings: HomePageSettings): void {
  */
 export function removeHomePageStyles(): void {
   removeCSS(STYLE_TAG_ID);
-  currentSettings = null;
+  // currentSettings = null; // Reserved for future real-time updates
 }
 
 /**

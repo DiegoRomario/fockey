@@ -43,7 +43,11 @@ async function initialize(): Promise<void> {
 
       // Re-initialize with updated settings
       const currentPath = window.location.pathname;
-      if (currentPath === '/' || currentPath === '/feed/explore' || currentPath === '/feed/trending') {
+      if (
+        currentPath === '/' ||
+        currentPath === '/feed/explore' ||
+        currentPath === '/feed/trending'
+      ) {
         initHomePageModule(updatedSettings.youtube.homePage);
       }
     });

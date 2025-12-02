@@ -5,7 +5,13 @@
 
 import { getSettings, updateSettings, resetToDefaults, checkAndMigrate } from '../shared/storage';
 import { DEFAULT_SETTINGS, ExtensionSettings } from '../shared/types/settings';
-import type { Message, MessageResponse, GetSettingsResponse, UpdateSettingsResponse, ResetSettingsResponse } from '../shared/types/messages';
+import type {
+  Message,
+  MessageResponse,
+  GetSettingsResponse,
+  UpdateSettingsResponse,
+  ResetSettingsResponse,
+} from '../shared/types/messages';
 
 /**
  * Debug mode flag - set to true to enable detailed logging
@@ -49,7 +55,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
       // Log version for debugging
       logger.info('Extension version:', EXTENSION_VERSION);
-
     } else if (details.reason === 'update') {
       // Extension update - run migration if needed
       const previousVersion = details.previousVersion || 'unknown';
@@ -222,7 +227,9 @@ async function handleGetSettings(): Promise<GetSettingsResponse> {
 /**
  * Handle UPDATE_SETTINGS message
  */
-async function handleUpdateSettings(partial: Partial<ExtensionSettings>): Promise<UpdateSettingsResponse> {
+async function handleUpdateSettings(
+  partial: Partial<ExtensionSettings>
+): Promise<UpdateSettingsResponse> {
   await updateSettings(partial);
 
   // Broadcast updated settings to all YouTube tabs
@@ -261,7 +268,9 @@ async function handleReloadContentScript(tabId?: number): Promise<MessageRespons
     } else {
       // Reload all YouTube tabs
       const tabs = await chrome.tabs.query({ url: '*://*.youtube.com/*' });
-      await Promise.all(tabs.map((tab) => tab.id ? chrome.tabs.reload(tab.id) : Promise.resolve()));
+      await Promise.all(
+        tabs.map((tab) => (tab.id ? chrome.tabs.reload(tab.id) : Promise.resolve()))
+      );
       logger.info(`Reloaded ${tabs.length} YouTube tab(s)`);
     }
 

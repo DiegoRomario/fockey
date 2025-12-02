@@ -31,7 +31,10 @@ function deepMerge<T extends object>(target: T, source: Partial<T>): T {
         typeof targetValue === 'object' &&
         !Array.isArray(targetValue)
       ) {
-        result[key] = deepMerge(targetValue as object, sourceValue as object) as T[Extract<keyof T, string>];
+        result[key] = deepMerge(targetValue as object, sourceValue as object) as T[Extract<
+          keyof T,
+          string
+        >];
       } else if (sourceValue !== undefined) {
         result[key] = sourceValue as T[Extract<keyof T, string>];
       }
@@ -64,7 +67,9 @@ export async function getSettings(): Promise<ExtensionSettings> {
       // Check if migration is needed
       let settingsToUse = storedSettings as ExtensionSettings;
       if (storedSettings.version !== DEFAULT_SETTINGS.version) {
-        console.log(`Settings version mismatch: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`);
+        console.log(
+          `Settings version mismatch: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`
+        );
         try {
           settingsToUse = await checkAndMigrate(storedSettings);
           // Persist migrated settings
@@ -81,7 +86,10 @@ export async function getSettings(): Promise<ExtensionSettings> {
     // No settings found, return defaults
     return { ...DEFAULT_SETTINGS };
   } catch (syncError) {
-    console.warn('Failed to retrieve settings from chrome.storage.sync, trying local storage:', syncError);
+    console.warn(
+      'Failed to retrieve settings from chrome.storage.sync, trying local storage:',
+      syncError
+    );
 
     try {
       // Fallback to local storage
@@ -99,13 +107,18 @@ export async function getSettings(): Promise<ExtensionSettings> {
         // Check if migration is needed
         let settingsToUse = storedSettings as ExtensionSettings;
         if (storedSettings.version !== DEFAULT_SETTINGS.version) {
-          console.log(`Settings version mismatch in local: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`);
+          console.log(
+            `Settings version mismatch in local: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`
+          );
           try {
             settingsToUse = await checkAndMigrate(storedSettings);
             // Persist migrated settings
             await chrome.storage.local.set({ [SETTINGS_KEY]: settingsToUse });
           } catch (migrationError) {
-            console.error('Migration failed in local storage, using stored settings as-is:', migrationError);
+            console.error(
+              'Migration failed in local storage, using stored settings as-is:',
+              migrationError
+            );
           }
         }
 
@@ -115,7 +128,10 @@ export async function getSettings(): Promise<ExtensionSettings> {
       // No settings found in local storage either, return defaults
       return { ...DEFAULT_SETTINGS };
     } catch (localError) {
-      console.error('Failed to retrieve settings from chrome.storage.local, using defaults:', localError);
+      console.error(
+        'Failed to retrieve settings from chrome.storage.local, using defaults:',
+        localError
+      );
       return { ...DEFAULT_SETTINGS };
     }
   }
@@ -204,7 +220,10 @@ export async function resetToDefaults(): Promise<ExtensionSettings> {
     await chrome.storage.sync.set({ [SETTINGS_KEY]: DEFAULT_SETTINGS });
     return { ...DEFAULT_SETTINGS };
   } catch (syncError) {
-    console.warn('Failed to reset settings in chrome.storage.sync, trying local storage:', syncError);
+    console.warn(
+      'Failed to reset settings in chrome.storage.sync, trying local storage:',
+      syncError
+    );
 
     try {
       // Fallback to local storage
