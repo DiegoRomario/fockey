@@ -362,7 +362,7 @@
         "dependencies": [
           "4"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -370,9 +370,10 @@
             "description": "Set up the foundational service worker file with proper Manifest V3 imports and module structure",
             "dependencies": [],
             "details": "Create src/background/service-worker.ts as the main entry point. Import necessary Chrome APIs (chrome.runtime, chrome.storage, chrome.tabs, chrome.alarms). Set up TypeScript types for Chrome extension APIs. Ensure module structure is compatible with Manifest V3 requirements (no persistent background pages). Add basic console logging to verify service worker loads successfully.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Load extension in chrome://extensions and verify service worker appears in the Inspect views. Check console logs confirm successful initialization. Verify no errors in service worker registration.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:53:55.999Z"
           },
           {
             "id": 2,
@@ -381,10 +382,11 @@
             "dependencies": [
               1
             ],
-            "details": "Implement chrome.runtime.onInstalled.addListener with reason check ('install' vs 'update'). Define default settings object with all configuration options (hideShorts: true, hideComments: true, hideSidebar: true, etc.). Use chrome.storage.sync.set() to persist default settings. Log extension version and install timestamp for debugging. Set up initial chrome.alarms if needed for cleanup tasks.",
-            "status": "pending",
+            "details": "Implement chrome.runtime.onInstalled.addListener with reason check ('install' vs 'update'). Define default settings object with all configuration options (hideShorts: true, hideComments: true, hideSidebar: true, etc.). Use chrome.storage.sync.set() to persist default settings. Log extension version and install timestamp for debugging. Set up initial chrome.alarms if needed for cleanup tasks.\n<info added on 2025-12-02T13:57:32.153Z>\nI'll analyze the codebase to understand the current implementation of the onInstall handler before generating the update text.Based on my analysis of the codebase, here's the update text:\n\nImplementation completed in src/background/service-worker.ts:41-74. The handler distinguishes between 'install' and 'update' events. On fresh install, it initializes chrome.storage.sync with DEFAULT_SETTINGS from src/shared/types/settings.ts (version 1.0.0 with all distraction features disabled by default). On update, it retrieves existing settings via getSettings(), invokes checkAndMigrate() from src/shared/storage/migrations.ts to run any necessary schema migrations based on version comparison, and persists migrated settings if version changed. Includes cleanupDeprecatedStorage() call to remove obsolete storage keys. Error handling with try-catch logs failures via centralized logger utility that includes extension version and DEBUG_MODE flag. Version logging uses chrome.runtime.getManifest().version constant. Migration system in migrations.ts supports semver comparison and sequential migration execution with rollback on failure.\n</info added on 2025-12-02T13:57:32.153Z>",
+            "status": "done",
             "testStrategy": "Install extension fresh and verify chrome.storage.sync contains default settings. Check console logs show correct version and install reason. Reinstall extension and confirm settings reset to defaults.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:03.482Z"
           },
           {
             "id": 3,
@@ -395,9 +397,10 @@
               2
             ],
             "details": "Implement chrome.runtime.onStartup.addListener to run on browser restart. Read current settings from chrome.storage.sync. Create validation function to check settings object has all required fields with correct types. If validation fails, merge with defaults to fill missing fields. Log startup event and any schema corrections made. This ensures robustness against corrupted or incomplete settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Restart browser with extension installed and verify onStartup fires. Manually corrupt settings in chrome.storage.sync, restart browser, verify settings auto-correct. Check console logs show validation results.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:06.965Z"
           },
           {
             "id": 4,
@@ -407,9 +410,10 @@
               1
             ],
             "details": "Create src/shared/types/messages.ts file. Define message type enums: GET_SETTINGS, UPDATE_SETTINGS, RESET_SETTINGS, RELOAD_CONTENT_SCRIPT. Create TypeScript interfaces for each message type with required fields (type, payload, sender). Define response types for each message. Use discriminated unions for type safety. Export all types for use in service worker, popup, and content scripts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Import message types in service worker, popup, and content script files. Verify TypeScript compiler catches type mismatches. Create test messages and verify they match expected interfaces.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:53:44.456Z"
           },
           {
             "id": 5,
@@ -419,9 +423,10 @@
               4
             ],
             "details": "Implement chrome.runtime.onMessage.addListener in service-worker.ts. Create switch statement or handler map to route messages by type. Implement handler functions: handleGetSettings() to return current settings, handleUpdateSettings() to update and persist settings, handleResetSettings() to restore defaults, handleReloadContentScript() to notify content scripts. Each handler should return Promise for async operations. Add sender validation to ensure messages come from extension context.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Send test messages from popup and content scripts to service worker. Verify each message type routes to correct handler. Check responses match expected format. Test error cases with invalid message types.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:10.394Z"
           },
           {
             "id": 6,
@@ -432,9 +437,10 @@
               5
             ],
             "details": "Create broadcastSettingsUpdate() function in service-worker.ts. When settings change via handleUpdateSettings(), trigger broadcast to all tabs. Function should accept updated settings object as parameter. Use chrome.tabs.query() to find all tabs (will be connected to next subtask). Send message to each tab using chrome.tabs.sendMessage(). Include error handling for tabs that may not have content script loaded. Log broadcast success/failure for debugging.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Open multiple YouTube tabs. Change settings from popup. Verify all tabs receive settings update message. Check console logs in each tab show message received. Test with non-YouTube tabs open to verify they're ignored.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:13.824Z"
           },
           {
             "id": 7,
@@ -444,9 +450,10 @@
               6
             ],
             "details": "Implement getYouTubeTabs() function using chrome.tabs.query() with url pattern matching ['*://www.youtube.com/*', '*://youtube.com/*']. Filter results to only active/loaded tabs. Create sendMessageToTab() wrapper around chrome.tabs.sendMessage() with proper error handling for unresponsive tabs. Implement retry logic for tabs that may be loading. Add timeout handling to avoid hanging on dead tabs. Use this in broadcastSettingsUpdate() from previous subtask.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Open YouTube tabs in various states (loading, loaded, background). Trigger settings broadcast and verify only YouTube tabs receive messages. Test with YouTube embedded in iframes. Check error handling for closed tabs.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:17.278Z"
           },
           {
             "id": 8,
@@ -456,9 +463,10 @@
               1
             ],
             "details": "Create src/background/utils/logger.ts with log levels (debug, info, warn, error). Implement debug mode toggle stored in chrome.storage.sync. Create error reporter function that logs errors with context (message type, timestamp, stack trace). Add performance.now() timing for message handling. Wrap all message handlers in try-catch blocks. Log all chrome.runtime.lastError occurrences. Create logMessageHandling() to track all incoming/outgoing messages when debug mode enabled.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Enable debug mode and verify detailed logs appear in service worker console. Trigger various error conditions and verify errors are logged with context. Check performance timings are reasonable. Test log level filtering works correctly.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:20.739Z"
           },
           {
             "id": 9,
@@ -469,9 +477,10 @@
               3
             ],
             "details": "Add version field to settings schema. In onInstalled handler, check for 'update' reason and compare previousVersion to current. Create migrations object mapping version ranges to migration functions. Each migration function transforms old settings format to new format. Implement runMigrations() that applies all necessary migrations in sequence. Clean up deprecated storage keys after successful migration. Log migration results for debugging. Store current version in settings after migration completes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Mock old settings format in chrome.storage.sync. Update extension and verify migration runs. Check settings transformed to new format. Verify deprecated keys removed. Test skip migrations when already on current version.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:24.142Z"
           },
           {
             "id": 10,
@@ -482,14 +491,16 @@
               5
             ],
             "details": "Implement keep-alive alarm using chrome.alarms.create() with periodic interval (every 20 seconds recommended). Create chrome.alarms.onAlarm listener that performs lightweight task (check settings, log heartbeat). For long-lived connections from popup, implement chrome.runtime.connect() port management. Store active ports in Map, clean up on disconnect. Implement port message forwarding to maintain connection during popup interactions. Add port reconnection logic for popup if disconnected. This ensures service worker stays active during critical operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Monitor service worker in chrome://serviceworker-internals and verify it doesn't terminate during idle periods. Open popup and verify port connection established. Close and reopen popup multiple times, check for connection issues. Let extension sit idle and verify alarms fire consistently.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:55:27.671Z"
           }
         ],
         "complexity": 7,
         "recommendedSubtasks": 8,
-        "expansionPrompt": "Break down home page content script into: (1) create home-page.ts module structure and element selector mapping (feed, sidebar, logo, hamburger, profile, notifications), (2) implement applyHomePageSettings function with CSS injection logic, (3) create style tag injection system with fockey-home-styles identifier, (4) implement MutationObserver to detect dynamic YouTube content loading, (5) create search bar centering CSS with custom positioning, (6) implement YouTube SPA navigation detection (History API / pushState monitoring), (7) create dom-helpers utilities (waitForElement, injectCSS, removeCSS), (8) implement performance optimizations (debounced callbacks, CSS-only visibility toggling). Test across different YouTube UI experiments and logged-in/out states."
+        "expansionPrompt": "Break down home page content script into: (1) create home-page.ts module structure and element selector mapping (feed, sidebar, logo, hamburger, profile, notifications), (2) implement applyHomePageSettings function with CSS injection logic, (3) create style tag injection system with fockey-home-styles identifier, (4) implement MutationObserver to detect dynamic YouTube content loading, (5) create search bar centering CSS with custom positioning, (6) implement YouTube SPA navigation detection (History API / pushState monitoring), (7) create dom-helpers utilities (waitForElement, injectCSS, removeCSS), (8) implement performance optimizations (debounced callbacks, CSS-only visibility toggling). Test across different YouTube UI experiments and logged-in/out states.",
+        "updatedAt": "2025-12-02T13:55:27.671Z"
       },
       {
         "id": 6,
@@ -1424,15 +1435,14 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-02T13:42:45.307Z",
+      "lastModified": "2025-12-02T13:55:27.672Z",
       "taskCount": 13,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ],
-      "created": "2025-12-02T13:46:45.590Z",
-      "description": "Tasks for master context",
-      "updated": "2025-12-02T13:46:45.590Z"
+      "created": "2025-12-02T13:56:59.892Z",
+      "description": "Tasks for master context"
     }
   }
 }

@@ -3,7 +3,7 @@
   "name": "Fockey",
   "version": "0.1.0",
   "description": "Minimalist, distraction-free YouTube experience",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "alarms", "tabs"],
   "host_permissions": ["*://*.youtube.com/*"],
   "background": {
     "service_worker": "src/background/service-worker.ts",
