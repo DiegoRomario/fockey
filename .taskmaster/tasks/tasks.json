@@ -2,7 +2,7 @@
   "master": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Initialize Project Structure and Build Configuration",
         "description": "Set up the foundational project structure with Vite, TypeScript, React 18, and Tailwind CSS. Configure Chrome Extension Manifest V3 build pipeline.",
         "details": "1. Initialize npm/pnpm project with package.json\n2. Install core dependencies: react@18, react-dom@18, typescript, vite, tailwindcss\n3. Install dev dependencies: @vitejs/plugin-react, @types/chrome, @types/react, @types/react-dom, vite-plugin-web-extension\n4. Create tsconfig.json with strict mode and Chrome types\n5. Create vite.config.ts with web extension plugin configuration\n6. Set up Tailwind CSS with postcss.config.js and tailwind.config.js\n7. Create directory structure:\n   - src/\n     - background/ (service worker)\n     - content/ (content scripts)\n     - popup/ (extension popup UI)\n     - options/ (settings page UI)\n     - shared/ (shared utilities, types, constants)\n   - public/ (static assets, icons)\n8. Create manifest.json in public/ with Manifest V3 structure:\n   - manifest_version: 3\n   - permissions: [\"storage\", \"activeTab\"]\n   - host_permissions: [\"*://*.youtube.com/*\"]\n   - background: { service_worker: \"background.js\", type: \"module\" }\n   - content_scripts for youtube.com\n   - action: { default_popup: \"popup.html\" }\n   - options_page: \"options.html\"\n9. Add build scripts to package.json: dev, build, preview\n10. Create .gitignore entries for node_modules, dist, build artifacts",
@@ -120,7 +120,7 @@
         "updatedAt": "2025-12-02T13:16:14.369Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Implement shadcn/ui Component Library Setup",
         "description": "Install and configure shadcn/ui with Radix UI primitives for accessible, headless UI components used throughout the extension.",
         "details": "1. Install shadcn/ui CLI: npx shadcn@latest init\n2. Configure components.json with:\n   - style: default\n   - baseColor: slate\n   - cssVariables: true\n   - tailwind config path\n   - aliases for @/components, @/lib, @/utils\n3. Install core shadcn/ui components needed for settings UI:\n   - button\n   - switch (for toggles)\n   - label\n   - card\n   - tabs\n   - accordion (for grouped settings)\n   - separator\n   - dialog (for modals if needed)\n4. Set up path aliases in tsconfig.json and vite.config.ts:\n   - @/components -> src/components\n   - @/lib -> src/lib\n   - @/utils -> src/utils\n5. Create src/lib/utils.ts with cn() helper for class merging\n6. Install dependencies: clsx, tailwind-merge, class-variance-authority\n7. Configure Tailwind with shadcn/ui theme variables in globals.css\n8. Create component barrel exports for easy imports",
@@ -202,7 +202,7 @@
         "updatedAt": "2025-12-02T13:31:22.827Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Set up Husky, Automated Formatting/Testing, and Git Hooks",
         "description": "Configure development workflow automation with Husky for Git hooks, Prettier for code formatting, ESLint for linting, and lint-staged for pre-commit checks following TypeScript/React 18 best practices.",
         "details": "1. Install and configure Husky for Git hooks management:\n   - npm install --save-dev husky\n   - npx husky install\n   - Add \"prepare\": \"husky install\" to package.json scripts\n   - Create .husky directory structure\n   - Set up husky hooks to work with Windows and Unix environments\n\n2. Install and configure Prettier:\n   - npm install --save-dev prettier\n   - Create .prettierrc.json with recommended settings:\n     - printWidth: 100\n     - semi: true\n     - singleQuote: true\n     - trailingComma: 'es5'\n     - tabWidth: 2\n     - arrowParens: 'always'\n     - endOfLine: 'auto' (for cross-platform compatibility)\n   - Create .prettierignore (exclude dist/, node_modules/, .git/, *.md)\n   - Add \"format\": \"prettier --write .\" to package.json scripts\n   - Add \"format:check\": \"prettier --check .\" for CI/CD\n\n3. Install and configure ESLint for TypeScript + React 18:\n   - npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin\n   - npm install --save-dev eslint-plugin-react eslint-plugin-react-hooks\n   - npm install --save-dev eslint-config-prettier (to prevent conflicts)\n   - Create .eslintrc.json with:\n     - parser: '@typescript-eslint/parser'\n     - parserOptions: { ecmaVersion: 'latest', sourceType: 'module', ecmaFeatures: { jsx: true } }\n     - extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended', 'plugin:react-hooks/recommended', 'prettier']\n     - plugins: ['@typescript-eslint', 'react', 'react-hooks']\n     - rules: { 'react/react-in-jsx-scope': 'off' (React 18), 'react-hooks/rules-of-hooks': 'error', 'react-hooks/exhaustive-deps': 'warn' }\n     - settings: { react: { version: '18.0' } }\n   - Create .eslintignore (dist/, node_modules/, vite.config.ts initially)\n   - Add \"lint\": \"eslint . --ext .ts,.tsx\" to package.json scripts\n   - Add \"lint:fix\": \"eslint . --ext .ts,.tsx --fix\" to package.json scripts\n\n4. Install and configure lint-staged:\n   - npm install --save-dev lint-staged\n   - Add lint-staged config to package.json:\n     {\n       \"lint-staged\": {\n         \"*.{ts,tsx}\": [\n           \"eslint --fix\",\n           \"prettier --write\"\n         ],\n         \"*.{json,css,md}\": [\n           \"prettier --write\"\n         ]\n       }\n     }\n\n5. Set up pre-commit hook with Husky:\n   - npx husky add .husky/pre-commit \"npx lint-staged\"\n   - Ensure hook runs linting and formatting on staged files only\n   - Add error handling to prevent commits with unfixable lint errors\n   - Test with both clean and dirty code to verify hook execution\n\n6. Set up pre-push hook (for future test integration):\n   - npx husky add .husky/pre-push \"npm run test -- --run\"\n   - Initially this will be a placeholder until Task 12 implements tests\n   - Add conditional check: if test script exists, run it; otherwise skip\n   - Add comment explaining test integration happens in Task 12\n\n7. Configure TypeScript-specific linting rules:\n   - Enable strict type checking rules\n   - Add rules for consistent import ordering\n   - Configure rules for Chrome Extension APIs (no-undef exceptions)\n   - Set up path aliases support if using @ imports\n\n8. Add helpful npm scripts to package.json:\n   - \"check\": \"npm run lint && npm run format:check\" (for CI)\n   - \"fix\": \"npm run lint:fix && npm run format\" (quick local fix)\n   - \"prepare\": \"husky install\" (auto-install hooks after npm install)\n\n9. Create CONTRIBUTING.md with:\n   - Pre-commit hook behavior explanation\n   - How to bypass hooks (--no-verify) for emergencies only\n   - Formatting and linting standards\n   - How to run checks manually before committing\n\n10. Verify cross-platform compatibility:\n    - Test hooks on Windows (MSYS_NT per env)\n    - Ensure line endings work correctly (LF for hooks, auto for code)\n    - Add executable permissions to hook files if needed\n    - Document any platform-specific setup requirements",
@@ -218,7 +218,7 @@
         "expansionPrompt": "Break down into type-safe storage implementation: (1) Define TypeScript interfaces for all settings (HomePageSettings, SearchPageSettings, WatchPageSettings, YouTubeModuleSettings, ExtensionSettings), (2) create DEFAULT_SETTINGS constant with minimalist defaults, (3) implement getSettings with chrome.storage.sync wrapper, (4) implement updateSettings with partial update support, (5) implement resetToDefaults functionality, (6) implement watchSettings with storage change listeners, (7) add validation logic for settings integrity, (8) implement storage quota handling and local storage fallback, (9) create migration system for future schema updates. Each subtask should include unit tests."
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Create Chrome Storage API Abstraction and Settings Schema",
         "description": "Build a type-safe settings management system using Chrome Storage API with sync support. Define the complete settings schema for all YouTube module features.",
         "details": "1. Create src/shared/types/settings.ts with TypeScript interfaces:\n   - HomePageSettings: { showLogo, showHamburger, showSidebar, showProfile, showNotifications }\n   - SearchPageSettings: { showShorts, showCommunityPosts, blurThumbnails }\n   - WatchPageSettings: { showLikeDislike, showShare, showSave, showDownload, showClip, showSubscribe, showJoin, showComments, showLiveChat, showRelated, showPlaylists, showEndScreen }\n   - YouTubeModuleSettings: { enabled: boolean, homePage, searchPage, watchPage }\n   - ExtensionSettings: { version: string, youtube: YouTubeModuleSettings }\n\n2. Create src/shared/storage/settings-manager.ts:\n   - getSettings(): Promise<ExtensionSettings>\n   - updateSettings(partial: Partial<ExtensionSettings>): Promise<void>\n   - resetToDefaults(): Promise<ExtensionSettings>\n   - watchSettings(callback: (settings: ExtensionSettings) => void): void\n\n3. Define DEFAULT_SETTINGS constant with minimalist mode defaults (all hidden by default)\n\n4. Implement Chrome Storage sync API wrapper:\n   - Use chrome.storage.sync for cross-device sync\n   - Handle storage quota limits\n   - Implement error handling and fallback to local storage\n   - Add migration logic for future schema updates\n\n5. Create settings validation logic to ensure data integrity\n\n6. Add storage change listener for real-time updates across extension components",
@@ -227,7 +227,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -235,9 +235,10 @@
             "description": "Create src/shared/types/settings.ts with complete TypeScript interfaces for HomePageSettings, SearchPageSettings, WatchPageSettings, YouTubeModuleSettings, and ExtensionSettings.",
             "dependencies": [],
             "details": "Define HomePageSettings interface with showLogo, showHamburger, showSidebar, showProfile, showNotifications (all boolean). Define SearchPageSettings with showShorts, showCommunityPosts, blurThumbnails (all boolean). Define WatchPageSettings with 12 boolean properties: showLikeDislike, showShare, showSave, showDownload, showClip, showSubscribe, showJoin, showComments, showLiveChat, showRelated, showPlaylists, showEndScreen. Define YouTubeModuleSettings with enabled boolean and nested homePage, searchPage, watchPage objects. Define ExtensionSettings with version string and youtube YouTubeModuleSettings. Export all interfaces for use across the extension.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "TypeScript compilation tests to ensure interfaces are correctly defined. Create test file that imports all interfaces and verifies type checking works correctly. Test that nested types are properly inferred.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:37:45.943Z"
           },
           {
             "id": 2,
@@ -247,9 +248,10 @@
               1
             ],
             "details": "Create DEFAULT_SETTINGS constant of type ExtensionSettings. Set version to '1.0.0'. Set youtube.enabled to true. For homePage: set all properties (showLogo, showHamburger, showSidebar, showProfile, showNotifications) to false. For searchPage: set all properties (showShorts, showCommunityPosts, blurThumbnails) to false for showShorts and showCommunityPosts, true for blurThumbnails. For watchPage: set all 12 properties to false (hiding all engagement buttons, comments, chat, recommendations). This creates the minimalist YouTube experience by default. Export DEFAULT_SETTINGS as a const.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test to verify DEFAULT_SETTINGS matches ExtensionSettings type. Test that all boolean properties are set correctly. Verify the constant is deeply frozen to prevent accidental mutation.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:38:03.991Z"
           },
           {
             "id": 3,
@@ -259,9 +261,10 @@
               2
             ],
             "details": "Create settings-manager.ts file. Implement async getSettings(): Promise<ExtensionSettings> that calls chrome.storage.sync.get() to retrieve stored settings. Merge retrieved settings with DEFAULT_SETTINGS using deep merge to handle partial settings or missing keys. Add try-catch error handling. If chrome.storage.sync fails, log error and fall back to chrome.storage.local. If both fail, return DEFAULT_SETTINGS. Add TypeScript type guards to validate retrieved data structure matches ExtensionSettings interface before returning.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests with mocked chrome.storage.sync API. Test successful retrieval returns correct settings. Test partial settings merge with defaults correctly. Test sync API failure falls back to local storage. Test complete failure returns DEFAULT_SETTINGS. Test type validation rejects malformed data.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:38:39.622Z"
           },
           {
             "id": 4,
@@ -271,9 +274,10 @@
               3
             ],
             "details": "Implement async updateSettings(partial: Partial<ExtensionSettings>): Promise<void> function. First call getSettings() to retrieve current settings. Deep merge the partial update object with current settings using a recursive merge utility. Validate the merged result matches ExtensionSettings schema. Call chrome.storage.sync.set() with the merged settings. Add quota exceeded error handling (chrome.storage.sync has 100KB limit). If quota exceeded, try chrome.storage.local as fallback. Throw descriptive error if both storage methods fail. Add debouncing to prevent rapid successive writes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for partial updates merging correctly. Test updating single nested property preserves other properties. Test quota exceeded error triggers fallback. Test validation rejects invalid partial updates. Test debouncing prevents rapid writes. Integration test verifies settings persist to storage.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:39:36.964Z"
           },
           {
             "id": 5,
@@ -284,9 +288,10 @@
               3
             ],
             "details": "Implement async resetToDefaults(): Promise<ExtensionSettings> function in settings-manager.ts. Call chrome.storage.sync.clear() to remove all stored settings. Then call chrome.storage.sync.set() with DEFAULT_SETTINGS to initialize fresh defaults. Return DEFAULT_SETTINGS after successful reset. Add error handling with fallback to chrome.storage.local if sync fails. If both storage methods fail, throw descriptive error. Optionally add confirmation parameter to prevent accidental resets.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test verifies storage is cleared and defaults are restored. Test that resetToDefaults returns DEFAULT_SETTINGS. Test sync failure falls back to local storage. Integration test verifies settings are actually reset in storage and can be retrieved.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:39:57.161Z"
           },
           {
             "id": 6,
@@ -296,9 +301,10 @@
               3
             ],
             "details": "Implement watchSettings(callback: (settings: ExtensionSettings) => void): () => void function. Create chrome.storage.onChanged.addListener() that listens for storage changes. When changes occur, call getSettings() to retrieve updated full settings object. Call the provided callback with the updated settings. Filter changes to only trigger on settings-related keys to avoid unnecessary callbacks. Return cleanup function that calls chrome.storage.onChanged.removeListener() to unregister the listener. Handle both sync and local storage change events. Add error handling to prevent listener crashes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test with mocked chrome.storage.onChanged API. Test listener is registered correctly. Test callback fires when settings change. Test callback receives correct updated settings. Test cleanup function removes listener. Test listener handles both sync and local storage changes.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:40:27.078Z"
           },
           {
             "id": 7,
@@ -308,9 +314,10 @@
               1
             ],
             "details": "Create validateSettings(settings: unknown): settings is ExtensionSettings type guard function. Check that settings is an object with required properties (version, youtube). Validate youtube.enabled is boolean. Recursively validate homePage, searchPage, watchPage objects contain all required boolean properties. Validate version is a valid semver string. Create helper function validateBooleanObject(obj: unknown, requiredKeys: string[]): boolean. Return false if any validation fails, true if all checks pass. Add detailed error logging for validation failures to aid debugging. Use this validation in getSettings() before returning settings.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for validation function with valid and invalid inputs. Test missing required properties are rejected. Test wrong types are rejected. Test extra properties are allowed (forward compatibility). Test nested object validation works correctly. Test validation error messages are descriptive.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:41:30.208Z"
           },
           {
             "id": 8,
@@ -320,9 +327,10 @@
               4
             ],
             "details": "Create helper function getStorageSize(data: any): number that calculates byte size of serialized JSON. Create isQuotaExceeded(error: any): boolean helper that checks if error is QUOTA_EXCEEDED_ERR. In updateSettings(), check storage size before writing. Chrome.storage.sync has 100KB total and 8KB per item limits. If quota would be exceeded, automatically use chrome.storage.local instead (5MB limit). Add getActiveStorageArea(): 'sync' | 'local' function that returns which storage is currently in use. Store storage area preference in a flag. Update getSettings() to check both sync and local storage. Log warnings when falling back to local storage.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for quota calculation functions. Test quota exceeded detection works correctly. Test automatic fallback to local storage when sync quota exceeded. Test getActiveStorageArea returns correct value. Integration test with large settings object exceeding 100KB quota.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:41:30.277Z"
           },
           {
             "id": 9,
@@ -333,17 +341,19 @@
               7
             ],
             "details": "Create src/shared/storage/migrations.ts file. Define Migration interface with version string, up() function, and description. Create migrations array to hold all migration functions. Implement runMigrations(currentSettings: any, fromVersion: string, toVersion: string): Promise<ExtensionSettings> function. Compare semantic versions to determine which migrations to run. Each migration transforms settings from one schema version to next. Create example migration from v1.0.0 to v1.1.0 that adds new properties with defaults. In getSettings(), check stored version against DEFAULT_SETTINGS.version. If versions differ, run migrations automatically. Update version in settings after successful migration. Add rollback support for failed migrations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for migration runner with mock migrations. Test migrations run in correct order. Test version comparison logic. Test migration skips if already at current version. Test failed migration triggers rollback. Create integration test that simulates upgrading from old schema version.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-12-02T13:42:45.306Z"
           }
         ],
         "complexity": 8,
         "recommendedSubtasks": 10,
-        "expansionPrompt": "Divide service worker implementation into: (1) create service-worker.ts entry point with Manifest V3 module structure, (2) implement onInstall handler with default settings initialization, (3) implement onStartup handler with schema validation, (4) define message types schema (GET_SETTINGS, UPDATE_SETTINGS, RESET_SETTINGS, RELOAD_CONTENT_SCRIPT), (5) implement chrome.runtime.onMessage listener with message routing, (6) create settings broadcast system to notify active YouTube tabs, (7) implement tab querying and targeted messaging, (8) add centralized error handling and debug logging, (9) implement extension update migration logic, (10) implement service worker keep-alive strategies with alarms. Test each messaging pathway independently."
+        "expansionPrompt": "Divide service worker implementation into: (1) create service-worker.ts entry point with Manifest V3 module structure, (2) implement onInstall handler with default settings initialization, (3) implement onStartup handler with schema validation, (4) define message types schema (GET_SETTINGS, UPDATE_SETTINGS, RESET_SETTINGS, RELOAD_CONTENT_SCRIPT), (5) implement chrome.runtime.onMessage listener with message routing, (6) create settings broadcast system to notify active YouTube tabs, (7) implement tab querying and targeted messaging, (8) add centralized error handling and debug logging, (9) implement extension update migration logic, (10) implement service worker keep-alive strategies with alarms. Test each messaging pathway independently.",
+        "updatedAt": "2025-12-02T13:42:45.306Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Implement Service Worker (Background Script)",
         "description": "Create the Manifest V3 service worker to manage extension lifecycle, coordinate content scripts, and handle cross-component messaging.",
         "details": "1. Create src/background/service-worker.ts as main entry point\n\n2. Implement onInstall handler:\n   - Initialize default settings in Chrome Storage on first install\n   - Set up alarm for periodic cleanup if needed\n   - Log extension version for debugging\n\n3. Implement onStartup handler:\n   - Validate settings schema\n   - Perform any necessary migrations\n\n4. Create messaging system:\n   - Define message types in src/shared/types/messages.ts:\n     - GET_SETTINGS, UPDATE_SETTINGS, RESET_SETTINGS\n     - RELOAD_CONTENT_SCRIPT\n   - Implement chrome.runtime.onMessage listener\n   - Route messages to appropriate handlers\n\n5. Implement settings broadcast system:\n   - When settings change, notify all active YouTube tabs\n   - Use chrome.tabs.query to find YouTube tabs\n   - Send updates via chrome.tabs.sendMessage\n\n6. Add error handling and logging:\n   - Centralized error reporter\n   - Debug mode toggle\n   - Performance monitoring\n\n7. Handle extension update scenarios:\n   - Migrate old settings to new schema\n   - Clean up deprecated storage keys\n\n8. Keep service worker alive strategies:\n   - Use chrome.alarms for periodic keep-alive if needed\n   - Implement message port connections for long-lived connections",
@@ -482,7 +492,7 @@
         "expansionPrompt": "Break down home page content script into: (1) create home-page.ts module structure and element selector mapping (feed, sidebar, logo, hamburger, profile, notifications), (2) implement applyHomePageSettings function with CSS injection logic, (3) create style tag injection system with fockey-home-styles identifier, (4) implement MutationObserver to detect dynamic YouTube content loading, (5) create search bar centering CSS with custom positioning, (6) implement YouTube SPA navigation detection (History API / pushState monitoring), (7) create dom-helpers utilities (waitForElement, injectCSS, removeCSS), (8) implement performance optimizations (debounced callbacks, CSS-only visibility toggling). Test across different YouTube UI experiments and logged-in/out states."
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Build YouTube Home Page Content Script Module",
         "description": "Implement content script for youtube.com home page that hides feed, sidebar, and navigation elements while preserving the search bar.",
         "details": "1. Create src/content/youtube/home-page.ts\n\n2. Implement DOM selectors (use data-* attributes where possible, fallback to CSS selectors):\n   - Feed container: #contents.ytd-rich-grid-renderer\n   - Shorts shelf: ytd-rich-shelf-renderer[is-shorts]\n   - Left sidebar: #guide-inner-content\n   - YouTube logo: #logo\n   - Hamburger menu: #guide-button\n   - Profile avatar: #avatar-btn\n   - Notifications: ytd-notification-topbar-button-renderer\n   - Upload button: ytd-topbar-menu-button-renderer\n   - Search bar: #search (keep visible, center align)\n\n3. Create element visibility controller:\n   - applyHomePageSettings(settings: HomePageSettings): void\n   - Hide elements by setting display: none !important via CSS injection\n   - Use MutationObserver to re-apply rules if YouTube dynamically loads content\n\n4. Implement CSS injection:\n   - Create style tag with id 'fockey-home-styles'\n   - Generate CSS rules based on settings\n   - Inject into document head\n   - Re-center search bar with custom CSS\n\n5. Handle YouTube SPA navigation:\n   - Listen for URL changes (use History API / pushState detection)\n   - Re-apply settings when navigating back to home\n\n6. Performance optimization:\n   - Debounce MutationObserver callbacks\n   - Use CSS visibility instead of DOM removal for faster toggling\n   - Lazy load settings only when on home page\n\n7. Create src/content/youtube/utils/dom-helpers.ts:\n   - waitForElement(selector: string, timeout: number): Promise<Element>\n   - injectCSS(css: string, id: string): void\n   - removeCSS(id: string): void",
@@ -598,7 +608,7 @@
         "expansionPrompt": "Divide search page module into: (1) create search-page.ts with selector mapping (video results, Shorts, community posts, mixes, sponsored content), (2) implement content type detection utilities (isShortContent, isCommunityPost, isLongFormVideo), (3) implement applySearchPageSettings with CSS-based filtering, (4) create thumbnail blur mode with CSS filter, (5) implement MutationObserver for infinite scroll result filtering, (6) preserve native YouTube filters (upload date, duration, type, sort), (7) implement performance optimizations (batch DOM updates, debounced scroll checks). Test with various search queries and filter combinations."
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Build YouTube Search Page Content Script Module",
         "description": "Implement content script for YouTube search results page that filters out Shorts, community posts, and irrelevant content while preserving long-form videos and filters.",
         "details": "1. Create src/content/youtube/search-page.ts\n\n2. Implement DOM selectors for search results:\n   - Video results container: #contents.ytd-section-list-renderer\n   - Individual video: ytd-video-renderer\n   - Shorts results: ytd-reel-shelf-renderer, ytd-short-renderer\n   - Community posts: ytd-backstage-post-thread-renderer\n   - Mixes: ytd-radio-renderer\n   - Sponsored content: ytd-ad-slot-renderer\n   - Filters button: #filter-button (keep visible)\n\n3. Create content filter system:\n   - applySearchPageSettings(settings: SearchPageSettings): void\n   - Hide unwanted elements using CSS display: none\n   - Keep long-form video results (ytd-video-renderer) visible\n   - Implement thumbnail blur with CSS filter: blur(10px) when enabled\n\n4. Implement result observer:\n   - Use MutationObserver to detect new results loading (infinite scroll)\n   - Re-apply filters when new content appears\n   - Handle YouTube's lazy loading mechanism\n\n5. Preserve native filters:\n   - Ensure all filter buttons remain functional\n   - Don't interfere with upload date, duration, quality, type filters\n   - Preserve sort order functionality\n\n6. Handle edge cases:\n   - No results scenarios\n   - Very long search queries\n   - Filter combinations\n   - Search suggestions\n\n7. Performance optimization:\n   - Use CSS-based hiding for instant application\n   - Batch DOM updates\n   - Debounce scroll-triggered checks\n\n8. Create src/content/youtube/utils/content-filter.ts:\n   - isShortContent(element: Element): boolean\n   - isCommunityPost(element: Element): boolean\n   - isLongFormVideo(element: Element): boolean",
@@ -700,7 +710,7 @@
         "expansionPrompt": "Break down watch page module into: (1) create watch-page.ts with comprehensive selector mapping (11 engagement elements: like, dislike, share, save, download, clip, subscribe, join, comments, chat, related videos, playlists, end-screen), (2) implement applyWatchPageSettings with granular element control, (3) create CSS injection system with fockey-watch-styles, (4) preserve all video player native controls (play, seek, volume, quality, captions, fullscreen), (5) implement video navigation detection (same page, different video ID), (6) implement end-screen override with pointer-events blocking, (7) ensure theater mode and fullscreen compatibility, (8) handle live stream chat hiding separately, (9) preserve video title and description visibility, (10) implement performance optimizations to avoid reflow. Test across video types (regular, live, premiere, playlist)."
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Build YouTube Watch Page Content Script Module",
         "description": "Implement content script for YouTube video watch page that hides engagement buttons, comments, and recommendations while preserving video player and essential controls.",
         "details": "1. Create src/content/youtube/watch-page.ts\n\n2. Implement DOM selectors:\n   - Video player: #movie_player (keep visible, never hide)\n   - Player controls: .ytp-chrome-controls (keep visible)\n   - Video title: #title h1 (keep visible)\n   - Video description: #description (keep visible)\n   - Like/dislike: #segmented-like-button, #segmented-dislike-button\n   - Share button: #share-button\n   - Save button: #save-button\n   - Download button: ytd-download-button-renderer\n   - Clip button: #clip-button\n   - Thanks/Join buttons: #sponsor-button, ytd-button-renderer[is-join-action]\n   - Subscribe button: #subscribe-button\n   - Comments section: #comments\n   - Live chat: #chat-container\n   - Channel info: #owner\n   - Related videos: #related (right sidebar)\n   - Playlists: ytd-playlist-panel-renderer\n   - End screen recommendations: .ytp-endscreen-content\n\n3. Create watch page controller:\n   - applyWatchPageSettings(settings: WatchPageSettings): void\n   - Granular control for each toggleable element\n   - Preserve all video player native controls (play/pause, seek, volume, quality, captions, fullscreen)\n\n4. Implement CSS injection strategy:\n   - Create fockey-watch-styles stylesheet\n   - Use !important to override YouTube's styles\n   - Maintain video player aspect ratio and positioning\n\n5. Handle video navigation:\n   - Detect video changes (same page, different video ID)\n   - Re-apply settings on video change\n   - Handle playlist autoplay scenarios\n\n6. End-screen override:\n   - Hide creator-recommended end-screen videos when configured\n   - Use .ytp-endscreen-content selector\n   - Apply CSS pointer-events: none to prevent clicks\n\n7. Theater/Fullscreen mode compatibility:\n   - Ensure settings apply in all view modes\n   - Don't break fullscreen behavior\n   - Test with theater mode active\n\n8. Performance considerations:\n   - Minimal reflow/repaint\n   - Use CSS visibility for instant hiding\n   - Debounce mutation observer callbacks",
@@ -848,7 +858,7 @@
         "expansionPrompt": "Divide orchestrator into: (1) create index.ts main entry point structure, (2) implement detectYouTubePage function using URL pathname analysis (home, search, watch, other), (3) create module loader with lazy loading and error handling, (4) implement YouTube SPA navigation listener (yt-navigate-finish event), (5) add History API monitoring (pushState/replaceState), (6) create settings synchronization from Chrome Storage on init, (7) implement chrome.runtime.onMessage listener for settings updates, (8) create module lifecycle management (init, destroy, cleanup), (9) implement error boundaries and service worker reconnection logic. Define ModuleInterface type with init, destroy, updateSettings methods."
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Create Content Script Orchestrator and YouTube Page Detector",
         "description": "Build the main content script entry point that detects current YouTube page type and loads the appropriate sub-module.",
         "details": "1. Create src/content/youtube/index.ts as main content script entry\n\n2. Implement page type detection:\n   - detectYouTubePage(): 'home' | 'search' | 'watch' | 'other'\n   - Check URL pathname and search params:\n     - Home: pathname === '/' or pathname === '/feed/subscriptions'\n     - Search: pathname === '/results'\n     - Watch: pathname === '/watch'\n   - Use window.location for initial detection\n   - Set up navigation observer for SPA route changes\n\n3. Create module loader:\n   - loadModule(pageType: string, settings: ExtensionSettings): void\n   - Lazy load appropriate sub-module based on page type\n   - Clean up previous module when navigating away\n   - Handle module initialization errors gracefully\n\n4. Implement YouTube SPA navigation handling:\n   - Listen for yt-navigate-finish custom event (YouTube's SPA event)\n   - Also monitor History API (pushState/replaceState)\n   - Re-detect page type on navigation\n   - Reload appropriate module\n\n5. Create settings synchronization:\n   - Load settings from Chrome Storage on init\n   - Listen for chrome.runtime.onMessage for settings updates from popup/background\n   - Pass updated settings to active module\n   - Implement hot reload without page refresh\n\n6. Add extension lifecycle management:\n   - Initialize on DOM ready\n   - Clean up on extension disable/unload\n   - Handle extension updates gracefully\n   - Implement reconnection logic if service worker restarts\n\n7. Create src/content/youtube/types.ts:\n   - PageType enum\n   - ModuleInterface (init, destroy, updateSettings methods)\n\n8. Implement error boundaries:\n   - Catch and log module errors\n   - Don't break YouTube functionality on errors\n   - Report errors to service worker for debugging",
@@ -978,7 +988,7 @@
         "expansionPrompt": "Break down popup UI into: (1) create Popup.tsx component structure with header, footer, and toggle sections, (2) implement module-level master toggle using shadcn Switch, (3) create quick access toggles for 6 common settings (home: sidebar/profile, search: Shorts/blur, watch: comments/related), (4) implement Chrome Storage integration with optimistic UI updates, (5) create debounced settings update handlers with loading states, (6) implement keyboard navigation and accessibility (Tab, Enter, Space). Build reusable ModuleToggle and SettingsSection components. Style with Tailwind for 320px max-width and dark mode support."
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Build Extension Popup UI with Quick Toggles",
         "description": "Create the popup interface using React 18, TypeScript, shadcn/ui components for quick access to module enable/disable and key settings.",
         "details": "1. Create src/popup/Popup.tsx as main React component\n\n2. Implement popup layout:\n   - Header with Fockey logo and extension name\n   - YouTube module toggle (master enable/disable switch)\n   - Quick access toggles for most common settings:\n     - Home page: Show sidebar, Show profile\n     - Search page: Show Shorts, Blur thumbnails\n     - Watch page: Show comments, Show related videos\n   - \"Open Settings\" button to launch full options page\n   - Footer with version number\n\n3. Use shadcn/ui components:\n   - Switch for all toggles\n   - Button for \"Open Settings\" action\n   - Card for grouped sections\n   - Label for accessibility\n\n4. Implement state management:\n   - Load settings from Chrome Storage on mount\n   - Use React hooks (useState, useEffect) for local state\n   - Optimistic UI updates (update UI immediately, sync in background)\n   - Handle loading and error states\n\n5. Create settings update handlers:\n   - Update Chrome Storage via settings manager\n   - Send message to service worker to broadcast updates\n   - Implement debouncing for rapid toggle changes\n\n6. Style with Tailwind CSS:\n   - Compact layout (max width 320px)\n   - Dark mode support using Tailwind dark: variants\n   - Smooth animations for toggles\n   - Responsive to different popup heights\n\n7. Create src/popup/index.tsx:\n   - React 18 root rendering\n   - Import globals.css for Tailwind\n\n8. Create src/popup/components/:\n   - ModuleToggle.tsx (reusable toggle component)\n   - SettingsSection.tsx (grouped settings)\n   - LoadingState.tsx\n\n9. Add keyboard shortcuts:\n   - Tab navigation between toggles\n   - Enter/Space to toggle switches\n   - Full keyboard accessibility",
@@ -1068,7 +1078,7 @@
         "expansionPrompt": "Divide options page into: (1) create Options.tsx main component with tab navigation structure, (2) implement accordion sections for three page types (Home with 5 toggles, Search with 3 toggles, Watch with 11 toggles), (3) create SettingToggle component with label, description, and tooltip, (4) implement auto-save with debouncing and save indicator, (5) create reset to defaults with confirmation dialog, (6) implement export settings to JSON file using chrome.downloads API, (7) implement import settings from JSON with validation, (8) build responsive layout with Tailwind and dark mode. Create reusable SettingsSection, ImportExportButtons, and ResetButton components."
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Build Full Settings/Options Page with Advanced Configuration",
         "description": "Create the comprehensive options page using React 18 and shadcn/ui with organized sections for all YouTube module settings.",
         "details": "1. Create src/options/Options.tsx as main React component\n\n2. Implement full settings layout:\n   - Navigation tabs for future modules (YouTube active, others grayed out)\n   - YouTube module section with three sub-sections:\n     - Home Page Settings (accordion)\n     - Search Page Settings (accordion)\n     - Watch Page Settings (accordion)\n   - Each setting with descriptive label and tooltip\n   - Reset to defaults button (with confirmation dialog)\n   - Import/Export settings functionality (JSON)\n\n3. Use shadcn/ui components:\n   - Tabs for module selection\n   - Accordion for collapsible sections\n   - Switch for all toggles\n   - Dialog for confirmations\n   - Button for actions (reset, import, export)\n   - Separator for visual grouping\n\n4. Create granular settings controls:\n   - Home Page (5 toggles): Logo, Hamburger, Sidebar, Profile, Notifications\n   - Search Page (3 toggles): Shorts, Community Posts, Blur Thumbnails\n   - Watch Page (11 toggles): Like/Dislike, Share, Save, Download, Clip, Subscribe, Join, Comments, Live Chat, Related Videos, Playlists, End Screen\n\n5. Implement settings management:\n   - Load from Chrome Storage on mount\n   - Auto-save on change (debounced)\n   - Show save indicator (\"Saved\" checkmark)\n   - Handle batch updates efficiently\n\n6. Add advanced features:\n   - Reset to defaults with confirmation dialog\n   - Export settings as JSON file (chrome.downloads API)\n   - Import settings from JSON file (file input)\n   - Settings validation on import\n   - Keyboard shortcuts (Ctrl+S to save manually if needed)\n\n7. Create src/options/components/:\n   - SettingsSection.tsx (reusable section component)\n   - SettingToggle.tsx (individual toggle with label and description)\n   - ImportExportButtons.tsx\n   - ResetButton.tsx\n\n8. Style with Tailwind CSS:\n   - Full-page layout with proper spacing\n   - Responsive design (desktop optimized)\n   - Dark mode support\n   - Smooth animations\n   - Professional settings page aesthetic\n\n9. Create src/options/index.tsx:\n   - React 18 root rendering\n   - Import globals.css",
@@ -1185,7 +1195,7 @@
         "expansionPrompt": "Break down branding and finalization into: (1) verify existing icons (icon16.png, icon48.png, icon128.png) meet quality standards and update manifest icon paths, (2) complete manifest.json with all metadata (name, description, version, permissions, content_scripts, background service worker), (3) create promotional materials (screenshots of before/after for home/search/watch pages, popup, settings), (4) write README.md, store listing content, privacy policy, and CHANGELOG.md. Ensure all Chrome Web Store submission requirements are met."
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Implement Extension Icons, Branding, and Manifest Finalization",
         "description": "Finalize extension branding with professional icons, update manifest with complete metadata, and prepare for Chrome Web Store submission.",
         "details": "1. Verify existing icons in icons/ directory:\n   - icon16.png (toolbar icon)\n   - icon48.png (extension management page)\n   - icon128.png (Chrome Web Store, installation)\n   - Ensure icons are high quality and represent Fockey brand\n   - If placeholder icons, replace with final designs\n\n2. Update manifest.json with complete metadata:\n   - name: \"Fockey\"\n   - description: \"Transform YouTube into a distraction-free, intent-driven experience. Remove algorithmic clutter and focus on what matters.\"\n   - version: \"1.0.0\"\n   - author: [appropriate value]\n   - homepage_url: (if applicable)\n   - icons: { \"16\": \"icons/icon16.png\", \"48\": \"icons/icon48.png\", \"128\": \"icons/icon128.png\" }\n\n3. Add optional manifest fields:\n   - short_name: \"Fockey\"\n   - action: { default_title: \"Fockey - Focus Mode\" }\n   - commands: (optional keyboard shortcuts)\n\n4. Create promotional materials:\n   - Screenshot guidelines for Chrome Web Store (1280x800 or 640x400)\n   - Take screenshots of:\n     - YouTube home (before/after)\n     - YouTube search (before/after)\n     - YouTube watch (before/after)\n     - Extension popup\n     - Settings page\n   - Save to docs/screenshots/\n\n5. Write store listing content:\n   - Create docs/store-listing.md with:\n     - Detailed description (focus on benefits, features, privacy)\n     - Feature list\n     - Privacy policy statement (no data collection)\n     - Support/contact information\n\n6. Add privacy-focused manifest declarations:\n   - No external API calls\n   - No analytics/tracking\n   - Minimal permissions (only storage and YouTube host access)\n\n7. Create README.md:\n   - Installation instructions (for users and developers)\n   - Feature overview\n   - Building from source\n   - Contributing guidelines\n   - License (MIT or appropriate)\n\n8. Add LICENSE file (if open source)\n\n9. Create CHANGELOG.md:\n   - Version 1.0.0 release notes",
@@ -1253,7 +1263,7 @@
         "expansionPrompt": "Divide testing and optimization into: (1) comprehensive functional testing across all YouTube page types (home, search, watch), (2) cross-browser testing (Chrome stable/beta/dev, Windows/macOS/Linux), (3) content script performance profiling with DevTools (target <50ms execution), (4) CSS injection optimization to minimize reflows, (5) bundle size optimization (code splitting, tree shaking), (6) accessibility audit (keyboard navigation, screen readers, ARIA labels, color contrast), (7) security audit (XSS prevention, CSP compliance, input validation), (8) bug triage and high/medium priority fixes, (9) production build creation and testing, (10) memory leak detection and prevention, (11) edge case testing (slow connections, YouTube A/B tests, Premium vs free accounts), (12) Chrome Web Store submission preparation (final validation, assets, privacy policy)."
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "End-to-End Testing, Performance Optimization, and Release Preparation",
         "description": "Conduct comprehensive testing across all YouTube pages, optimize performance, fix bugs, and prepare production build for Chrome Web Store release.",
         "details": "1. Comprehensive functional testing:\n   - Test all features on YouTube home, search, and watch pages\n   - Test with various YouTube UI experiments (A/B tests)\n   - Test with YouTube Premium and non-Premium accounts\n   - Test with logged in and logged out states\n   - Test with different browser languages/locales\n   - Test edge cases (slow connections, ad blockers active, other extensions)\n\n2. Cross-browser compatibility:\n   - Test on Chrome stable, beta, dev channels\n   - Test on different OS (Windows, macOS, Linux)\n   - Verify Manifest V3 compatibility\n\n3. Performance optimization:\n   - Measure content script execution time (< 50ms)\n   - Optimize CSS injection (minimize reflows)\n   - Reduce bundle size (code splitting, tree shaking)\n   - Lazy load non-critical components\n   - Profile with Chrome DevTools Performance tab\n   - Test memory usage (no memory leaks)\n\n4. Accessibility audit:\n   - Test keyboard navigation in popup and options page\n   - Verify ARIA labels on all interactive elements\n   - Test with screen readers (if possible)\n   - Check color contrast ratios\n   - Ensure focus indicators are visible\n\n5. Security audit:\n   - Review for XSS vulnerabilities\n   - Validate all user inputs (import settings JSON)\n   - Check Content Security Policy (CSP) compliance\n   - Ensure no eval() or unsafe inline scripts\n   - Review permissions (principle of least privilege)\n\n6. Bug fixing:\n   - Create bug tracking list\n   - Prioritize critical bugs (blocking release)\n   - Fix all high and medium priority issues\n   - Document known minor issues for future releases\n\n7. Production build preparation:\n   - Update version in manifest.json and package.json\n   - Build production bundle: npm run build\n   - Minify and optimize output\n   - Test production build in Chrome\n   - Create release ZIP for Chrome Web Store\n\n8. Create submission checklist:\n   - Verify manifest.json completeness\n   - Prepare store assets (icons, screenshots, descriptions)\n   - Write privacy policy\n   - Prepare promo video (optional)\n   - Test installation flow\n\n9. Documentation:\n   - Update README with final installation instructions\n   - Document known issues\n   - Create user guide (if needed)\n   - Add troubleshooting section",
@@ -1414,12 +1424,15 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-02T13:31:22.828Z",
+      "lastModified": "2025-12-02T13:42:45.307Z",
       "taskCount": 13,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
-      ]
+      ],
+      "created": "2025-12-02T13:46:45.590Z",
+      "description": "Tasks for master context",
+      "updated": "2025-12-02T13:46:45.590Z"
     }
   }
 }
