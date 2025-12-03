@@ -58,7 +58,36 @@ Claude **must not**:
 
 ---
 
-## 4. Architecture
+## 4. Serena MCP — Mandatory Codebase Operations
+
+**Serena MCP is the default tool for all codebase navigation, search, and refactoring operations.**
+
+### Required Usage
+
+Claude **must use Serena MCP** for:
+
+* Searching files, directories, symbols, exports, imports, and references
+* Navigating unfamiliar code or large codebases
+* Performing safe, precise bulk changes using regular expressions
+* Refactoring repeated or structurally similar code
+* Renaming symbols or identifiers across multiple files
+* Applying mechanical transformations (format changes, API updates, migrations)
+
+### Operational Rules
+
+* **Always evaluate Serena MCP first** before manual search, grep, or free-form edits
+* Use Serena MCP to **locate source of truth** instead of guessing file locations
+* **Preview matches** before applying modifications
+* **Regex-based edits must use Serena MCP** for consistency and safety
+* **Cross-file changes require Serena MCP** to confirm scope first
+
+### Fallback Only When Necessary
+
+Skip Serena MCP **only if** it cannot accomplish the task, and briefly state why.
+
+---
+
+## 5. Architecture
 
 ### Extension Structure
 
@@ -82,11 +111,11 @@ src/
 
 ---
 
-## 5. Mandatory Development Flow
+## 6. Mandatory Development Flow
 
 Claude must **always** follow this workflow.
 
-### 5.1 Initial Context
+### 6.1 Initial Context
 
 * Task may be:
 
@@ -97,7 +126,7 @@ Claude must **always** follow this workflow.
 
 ---
 
-### 5.2 Step 1 — Analysis & Planning
+### 6.2 Step 1 — Analysis & Planning
 
 Claude must:
 
@@ -111,7 +140,7 @@ Claude must **present the plan before coding**, unless explicitly instructed oth
 
 ---
 
-### 5.3 Step 2 — Task Start (Taskmaster)
+### 6.3 Step 2 — Task Start (Taskmaster)
 
 Before writing production code, Claude must mark the task as **in-progress**.
 
@@ -131,7 +160,7 @@ Claude must verify task dependencies before proceeding.
 
 ---
 
-### 5.4 Step 3 — Pre-Development Quality Assurance
+### 6.4 Step 3 — Pre-Development Quality Assurance
 
 Claude must:
 
@@ -143,7 +172,7 @@ If issues are found, Claude must stop and report them.
 
 ---
 
-### 5.5 Step 4 — Development
+### 6.5 Step 4 — Development
 
 Claude must:
 
@@ -156,7 +185,7 @@ For long-running tasks, Claude should periodically update progress.
 
 ---
 
-### 5.6 Step 5 — Post-Development Quality Assurance
+### 6.6 Step 5 — Post-Development Quality Assurance
 
 Claude must validate:
 
@@ -166,7 +195,7 @@ Claude must validate:
 
 ---
 
-### 5.7 Mandatory Testing for Chrome Extension Changes
+### 6.7 Mandatory Testing for Chrome Extension Changes
 
 ⚠️ **Critical Rule**
 
@@ -185,13 +214,13 @@ Unverified DOM changes are **not acceptable**.
 
 ---
 
-### 5.8 Step 6 — Task Completion (Taskmaster)
+### 6.8 Step 6 — Task Completion (Taskmaster)
 
 After successful validation, Claude must mark the task as **done** and summarize changes.
 
 ---
 
-## 6. Documentation & Knowledge Retrieval
+## 7. Documentation & Knowledge Retrieval
 
 When searching for **technical documentation, APIs, or best practices** (e.g., React, TypeScript, Tailwind, Chrome Extensions):
 
@@ -203,7 +232,7 @@ Context7 should be used **before making architectural or implementation decision
 
 ---
 
-## 7. Quality Bar / Definition of Done
+## 8. Quality Bar / Definition of Done
 
 A task is considered **DONE** only if:
 
@@ -216,7 +245,7 @@ A task is considered **DONE** only if:
 
 ---
 
-## 8. Design-First Philosophy
+## 9. Design-First Philosophy
 
 UI/UX is not optional — it is **fundamental**.
 
@@ -263,7 +292,7 @@ Every interface must include:
 
 ---
 
-## 9. Claude’s Role Summary
+## 10. Claude's Role Summary
 
 Claude acts as:
 
@@ -279,7 +308,7 @@ Decisions must prioritize:
 
 ---
 
-## 10. Final Instruction
+## 11. Final Instruction
 
 * If instructions are ambiguous → **ask before coding**
 * If instructions conflict with the PRD or this document → **this document takes precedence**
