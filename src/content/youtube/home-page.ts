@@ -38,6 +38,9 @@ export const HOME_PAGE_SELECTORS = {
   // Scoped to home browse container so search page filters remain intact
   HOME_FILTERS_BAR:
     'ytd-browse[page-subtype="home"] ytd-feed-filter-chip-bar-renderer, ytd-browse[page-subtype="home"] #chips',
+
+  // Skip navigation button (hide and remove from tab order)
+  SKIP_NAVIGATION: 'button[aria-label="Skip navigation"]',
 } as const;
 
 /**
@@ -154,6 +157,15 @@ function generateHomePageCSS(settings: HomePageSettings): string {
     /* Also hide topbar menu buttons */
     ytd-topbar-menu-button-renderer {
       display: none !important;
+    }
+
+    /* Hide skip navigation button and remove from tab order */
+    ${HOME_PAGE_SELECTORS.SKIP_NAVIGATION} {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      left: -9999px !important;
     }
   `);
 

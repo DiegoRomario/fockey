@@ -48,6 +48,9 @@ export const SEARCH_PAGE_SELECTORS = {
   SEARCH_FORM: '#search-form',
   MASTHEAD: '#masthead',
   MASTHEAD_CONTAINER: '#masthead-container',
+
+  // Skip navigation button (hide and remove from tab order)
+  SKIP_NAVIGATION: 'button[aria-label="Skip navigation"]',
 } as const;
 
 /**
@@ -175,6 +178,15 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     /* Also hide topbar menu buttons */
     ytd-topbar-menu-button-renderer {
       display: none !important;
+    }
+
+    /* Hide skip navigation button and remove from tab order */
+    ${SEARCH_PAGE_SELECTORS.SKIP_NAVIGATION} {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      left: -9999px !important;
     }
   `);
 
