@@ -146,58 +146,165 @@ Each option is independent and toggleable via settings.
 
 ### 2. Search Page Sub‑Module
 
-The Search Page is displayed after submitting a query via the search bar.
+The Search Page is displayed after submitting a query via the search bar. It transforms YouTube's search results into a **clean, focused, results-only experience** while maintaining **complete visual consistency** with the Home Page's minimalist design language.
+
+#### Design Philosophy
+
+The Search Page follows the **same visual language and layout style as the Home Page**, ensuring UI and design consistency across all Fockey-managed YouTube pages. However, unlike the Home Page (which shows only the search bar), the Search Page is a **focused, results-oriented view** that displays search results in a distraction-free format.
+
+---
 
 #### Default (Minimalist Mode)
 
+When a user performs a search on YouTube, the Search Page is simplified into a clean, results-focused interface.
+
 **Visible Elements (Default):**
 
-- ✅ Search bar
-- ✅ Filters button
-- ✅ Video search results (long‑form videos only)
+- ✅ **Search bar** (positioned at top-center, maintaining spatial consistency with Home Page)
+- ✅ **Filters button** (positioned directly below or adjacent to the search bar)
+- ✅ **Video search results** (long-form videos only, displayed in YouTube's native grid/list format)
 
 **Hidden Elements (Default):**
 
+The following elements **must be hidden** to maintain the minimalist, distraction-free experience:
+
+**Navigation & Chrome:**
+- YouTube logo
+- Hamburger menu / menu button
+- Left sidebar (Home, Subscriptions, Library, etc.)
+- Profile avatar / account button
+- Notifications button
+- Upload / Create button
+- Any global navigation elements
+- Any secondary navigation toolbars
+
+**Content Distractions:**
 - Shorts in search results
 - Community posts
-- Mixes
+- Mixes / playlists (unless explicitly searched for)
+- Channel recommendations
 - Sponsored content (where technically possible)
-- Irrelevant suggestion blocks
+- "People also watched" sections
+- "For you" or algorithmic suggestion blocks
+- Promotional banners or cards
 
-**Behavior Details:**
+**Engagement Prompts:**
+- "New to you" labels
+- View count badges (optional, can be preserved if non-intrusive)
+- Upload date overlays (optional, can be preserved if non-intrusive)
 
-- Only traditional long‑form videos are rendered
-- Layout remains identical to YouTube’s native search UX, minus removed elements
+---
+
+#### Layout & Visual Structure
+
+**Page Header:**
+- Search bar centered horizontally at the top
+- Filters button positioned immediately below the search bar or to its right
+- No branding, navigation, or account elements visible
+- Clean, empty top bar similar to Home Page design
+
+**Search Results Area:**
+- Begins directly below the search bar + filters section
+- Uses YouTube's native results grid/list layout
+- Only long-form video thumbnails and metadata are shown
+- Vertical scroll enabled for browsing results
+- No horizontal scrolling shelves (e.g., Shorts carousel)
 
 **Observed from images:**
+- Extremely clean header with only functional search elements
+- No visible navigation chrome (sidebar, logo, profile, etc.)
+- Results appear immediately below search controls
+- Visual consistency with the minimalist Home Page design
+- Focus entirely on search intent and results
 
-- Filters remain fully functional
-- Shorts and posts do not appear between video results
-- Summary overlays can remain visible when attached to videos
+---
+
+#### Behavior Details
+
+**Search Functionality:**
+- Native YouTube search logic is preserved
+- Search bar remains fully functional
+- Auto-suggest / autocomplete preserved (if YouTube provides it natively)
+- Query history unaffected
+
+**Result Filtering:**
+- Only **traditional long-form videos** are rendered by default
+- Shorts, posts, mixes, and non-video content are hidden
+- Layout remains identical to YouTube's native search UX, **minus removed elements**
 
 ---
 
 #### Filters (Native YouTube)
 
-Fockey preserves all native filters, including:
+Fockey preserves all native YouTube filters, including:
+- **Upload date** (Last hour, Today, This week, This month, This year)
+- **Type** (Video, Channel, Playlist, Movie)
+- **Duration** (Under 4 minutes, 4-20 minutes, Over 20 minutes)
+- **Features** (Live, 4K, HD, Subtitles/CC, Creative Commons, 360°, VR180, 3D, HDR, Location, Purchased)
+- **Sort by** (Relevance, Upload date, View count, Rating)
 
-- Upload date
-- Video duration
-- Quality (HD / 4K)
-- Type (Video / Channel / Playlist)
-- Sort order
+All filter controls remain accessible via the **Filters button**.
 
 ---
 
 #### Configurable Options (Search Page)
 
-Users can enable:
+Users can selectively re-enable hidden elements via the extension settings:
 
-- Shorts
-- Community posts
-- Thumbnail blur (instead of hide)
+**Content Options:**
+- ☑️ Show Shorts in search results
+- ☑️ Show Community posts
+- ☑️ Show Mixes / Playlists
+- ☑️ Show sponsored content (if detectable)
 
-Thumbnail blur helps reduce visual stimulation while keeping structural awareness.
+**Visual Adjustments:**
+- ☑️ **Thumbnail blur** (instead of hide) — reduces visual stimulation while keeping structural awareness of thumbnails
+
+**Navigation Options (Advanced):**
+- ☑️ Show YouTube logo
+- ☑️ Show hamburger menu
+- ☑️ Show left sidebar
+- ☑️ Show profile avatar
+- ☑️ Show notifications button
+
+**Important:** By default, **all navigation and chrome elements are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements.
+
+---
+
+#### Technical Implementation Notes
+
+**DOM Manipulation Strategy:**
+- Hide elements using `display: none` or `visibility: hidden`
+- Avoid altering YouTube's native search logic or API calls
+- Use mutation observers to handle dynamic result loading
+- Preserve accessibility attributes where possible
+
+**Element Selectors (Indicative):**
+- Search results: `ytd-video-renderer`
+- Shorts: `ytd-reel-shelf-renderer`, `ytd-short-shelf-renderer`
+- Community posts: `ytd-post-renderer`
+- Sidebar: `#guide`, `ytd-guide-renderer`
+- Header chrome: `ytd-topbar-logo-renderer`, `ytd-masthead`
+
+**Performance Considerations:**
+- Minimize reflows during DOM manipulation
+- Use CSS-based hiding where possible
+- Debounce mutation observer callbacks
+
+---
+
+#### Success Criteria
+
+The Search Page is considered **successfully implemented** when:
+
+- ✅ Only the search bar, filters button, and long-form video results are visible by default
+- ✅ All navigation chrome (logo, sidebar, profile, etc.) is hidden
+- ✅ Shorts, posts, and algorithmic suggestions are removed from results
+- ✅ Native YouTube search functionality remains intact
+- ✅ Filters button works correctly and all filter options are accessible
+- ✅ Visual design matches the minimalist style of the Home Page
+- ✅ Settings allow granular control over re-enabling hidden elements
+- ✅ No performance degradation or flickering during page load
 
 ---
 

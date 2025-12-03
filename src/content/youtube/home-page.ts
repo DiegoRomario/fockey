@@ -51,11 +51,6 @@ const STYLE_TAG_ID = 'fockey-home-styles';
 let mutationObserver: MutationObserver | null = null;
 
 /**
- * Navigation listener cleanup function
- */
-let navigationCleanup: (() => void) | null = null;
-
-/**
  * Current settings state
  * Reserved for future use when implementing real-time settings updates
  */
@@ -264,85 +259,12 @@ function setupMutationObserver(settings: HomePageSettings): void {
 }
 
 /**
- * Checks if current URL is YouTube home page
- *
- * @returns True if on home page, false otherwise
- */
-function isHomePage(): boolean {
-  const path = window.location.pathname;
-  return path === '/' || path === '/feed/explore' || path === '/feed/trending';
-}
-
-/**
- * Sets up YouTube SPA navigation detection
- * Re-applies settings when user navigates back to home page
- *
- * @param settings - Home page settings object
- */
-function setupNavigationListener(settings: HomePageSettings): void {
-  // Clean up existing listener if any
-  if (navigationCleanup) {
-    navigationCleanup();
-    navigationCleanup = null;
-  }
-
-  // Store original pushState and replaceState
-  const originalPushState = history.pushState;
-  const originalReplaceState = history.replaceState;
-
-  // Handler for navigation events
-  const handleNavigation = () => {
-    if (isHomePage()) {
-      // Re-apply settings on home page
-      applyHomePageSettings(settings);
-      setupMutationObserver(settings);
-    } else {
-      // Clean up when leaving home page
-      if (mutationObserver) {
-        mutationObserver.disconnect();
-      }
-    }
-  };
-
-  // Wrap history.pushState
-  history.pushState = function (...args) {
-    originalPushState.apply(this, args);
-    handleNavigation();
-  };
-
-  // Wrap history.replaceState
-  history.replaceState = function (...args) {
-    originalReplaceState.apply(this, args);
-    handleNavigation();
-  };
-
-  // Listen for YouTube's custom navigation event
-  window.addEventListener('yt-navigate-finish', handleNavigation);
-
-  // Listen for popstate (back/forward buttons)
-  window.addEventListener('popstate', handleNavigation);
-
-  // Cleanup function
-  navigationCleanup = () => {
-    history.pushState = originalPushState;
-    history.replaceState = originalReplaceState;
-    window.removeEventListener('yt-navigate-finish', handleNavigation);
-    window.removeEventListener('popstate', handleNavigation);
-  };
-}
-
-/**
  * Initializes the home page content script
  * Main entry point for home page module
  *
  * @param settings - Home page settings object
  */
 export async function initHomePageModule(settings: HomePageSettings): Promise<void> {
-  // Only run on home page
-  if (!isHomePage()) {
-    return;
-  }
-
   try {
     // Wait for essential elements to load
     await waitForElement(HOME_PAGE_SELECTORS.MASTHEAD, 5000);
@@ -352,9 +274,6 @@ export async function initHomePageModule(settings: HomePageSettings): Promise<vo
 
     // Set up mutation observer for dynamic content
     setupMutationObserver(settings);
-
-    // Set up navigation detection
-    setupNavigationListener(settings);
 
     console.log('[Fockey] Home page module initialized');
   } catch (error) {
@@ -374,12 +293,6 @@ export function cleanupHomePageModule(): void {
   if (mutationObserver) {
     mutationObserver.disconnect();
     mutationObserver = null;
-  }
-
-  // Clean up navigation listener
-  if (navigationCleanup) {
-    navigationCleanup();
-    navigationCleanup = null;
   }
 
   console.log('[Fockey] Home page module cleaned up');

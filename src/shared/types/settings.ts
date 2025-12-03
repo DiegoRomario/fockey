@@ -25,10 +25,29 @@ export interface HomePageSettings {
  * Controls visibility of UI elements in search results
  */
 export interface SearchPageSettings {
+  // Navigation chrome controls (matching HomePageSettings)
+  /** Show/hide YouTube logo */
+  showLogo: boolean;
+  /** Show/hide hamburger menu */
+  showHamburger: boolean;
+  /** Show/hide left sidebar (Home, Subscriptions, etc.) */
+  showSidebar: boolean;
+  /** Show/hide profile avatar */
+  showProfile: boolean;
+  /** Show/hide notifications button */
+  showNotifications: boolean;
+
+  // Content controls
   /** Show/hide Shorts in search results */
   showShorts: boolean;
   /** Show/hide Community posts in search results */
   showCommunityPosts: boolean;
+  /** Show/hide Mixes/Playlists in search results */
+  showMixes: boolean;
+  /** Show/hide Sponsored content in search results */
+  showSponsored: boolean;
+
+  // Visual adjustments
   /** Blur thumbnails instead of hiding them */
   blurThumbnails: boolean;
 }
@@ -109,8 +128,18 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showNotifications: false,
     },
     searchPage: {
+      // Navigation chrome (hidden by default - minimalist principle)
+      showLogo: false,
+      showHamburger: false,
+      showSidebar: false,
+      showProfile: false,
+      showNotifications: false,
+      // Content (hidden by default - minimalist principle)
       showShorts: false,
       showCommunityPosts: false,
+      showMixes: false,
+      showSponsored: false,
+      // Visual adjustments
       blurThumbnails: false,
     },
     watchPage: {
