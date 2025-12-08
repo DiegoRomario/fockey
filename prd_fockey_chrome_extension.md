@@ -91,6 +91,7 @@ These elements reduce focus and often lead to unintentional consumption.
 - YouTube Module (v1)
   - Home Page Sub‑Module
   - Search Page Sub‑Module
+  - Creator Profile Page Sub‑Module
   - Watch Page Sub‑Module
 
 Each sub‑module manages DOM manipulation, visibility toggles, and UI overrides for its specific YouTube page type.
@@ -308,7 +309,216 @@ The Search Page is considered **successfully implemented** when:
 
 ---
 
-### 3. Watch Page Sub‑Module
+### 3. Creator Profile Page Sub‑Module
+
+The Creator Profile Page is displayed when a user navigates to a creator's channel (e.g., `youtube.com/@MrBeast`). It follows the **same minimalist design language as the Home and Search pages**, ensuring visual and behavioral consistency across all Fockey-managed YouTube surfaces.
+
+#### Design Philosophy
+
+The Creator Profile Page maintains the **same navigation chrome visibility rules as the Home and Search pages** while preserving full access to creator information and channel content. Unlike the Home Page (which shows only the search bar) or the Search Page (which shows search results), the Creator Profile Page is a **creator-focused view** that displays channel metadata and content tabs in a distraction-free format.
+
+---
+
+#### Default (Minimalist Mode)
+
+When a user navigates to a creator's channel page, the interface is simplified into a clean, creator-focused experience.
+
+**Visible Elements (Default):**
+
+- ✅ **Search bar** (positioned at top-center, maintaining spatial consistency with Home and Search pages)
+- ✅ **Channel banner / cover image**
+- ✅ **Channel profile image / avatar**
+- ✅ **Channel name and verified badge** (if applicable)
+- ✅ **Basic channel metadata** (subscriber count, video count, etc.)
+- ✅ **Channel description / about section** (when applicable)
+- ✅ **Content tabs** (Videos, Playlists, Podcasts, etc. — see Tab Visibility Rules below)
+- ✅ **Video content** (long-form videos only, displayed in YouTube's native grid/list format)
+
+**Hidden Elements (Default):**
+
+The following elements **must be hidden** to maintain the minimalist, distraction-free experience:
+
+**Navigation & Chrome:**
+- YouTube logo
+- Hamburger menu / menu button
+- Left sidebar (Home, Subscriptions, Library, etc.)
+- Profile avatar / account button
+- Notifications button
+- Upload / Create button
+- Any global navigation elements
+- Any secondary navigation toolbars
+
+**Content Tabs (Hidden by Default):**
+- **Shorts tab** — Hidden completely
+- **Posts / Community tab** — Hidden completely
+
+**Content Distractions (Within Visible Tabs):**
+- Shorts-type content in the Videos tab or any other tab
+- Community posts
+- Promotional banners or cards
+- "Featured" or algorithmic suggestion blocks
+
+**Engagement Prompts:**
+- Subscribe button on channel header
+- Notifications (bell) button
+- Join / Membership buttons
+- Any channel action buttons in the header area
+
+---
+
+#### Layout & Visual Structure
+
+**Page Header:**
+- Search bar centered horizontally at the top
+- No branding, navigation, or account elements visible
+- Clean, empty top bar identical to Home and Search page design
+
+**Channel Header Area:**
+- Channel banner displayed full-width below the search bar
+- Channel avatar positioned according to YouTube's native layout
+- Channel name, verification badge, and basic metadata visible
+- Channel description accessible (typically in About section or below header)
+- **All channel action buttons hidden** (Subscribe, Join, Notifications, etc.)
+
+**Content Tabs Area:**
+- Standard YouTube channel tabs displayed (Videos, Playlists, Podcasts, etc.)
+- **Shorts and Posts tabs are hidden by default**
+- Tab bar follows YouTube's native styling and behavior
+- Active tab state preserved
+
+**Content Area:**
+- Begins directly below the channel tabs
+- Uses YouTube's native content grid/list layout
+- Only long-form videos and non-Shorts content are shown
+- Vertical scroll enabled for browsing content
+- No horizontal scrolling shelves (e.g., Shorts carousel)
+
+**Observed Design Principles:**
+- Extremely clean header with only functional search elements
+- No visible navigation chrome (sidebar, logo, profile, etc.)
+- Channel branding and metadata remain fully accessible
+- Content appears immediately below tabs
+- Visual consistency with the minimalist Home and Search page design
+- Focus entirely on creator content and intentional browsing
+
+---
+
+#### Tab Visibility Rules
+
+**Default Visible Tabs:**
+- **Home** (if present on the channel)
+- **Videos** — Always visible, shows only long-form videos
+- **Playlists** — Always visible
+- **Podcasts** — Always visible (if present on the channel)
+- **Live** — Always visible (if present on the channel)
+- **About** — Always visible
+
+**Hidden Tabs (Default):**
+- **Shorts** — Hidden completely by default
+- **Posts / Community** — Hidden completely by default
+
+**Content Filtering Within Tabs:**
+- In the **Videos** tab, any Shorts-type content is hidden
+- In the **Home** tab, Shorts shelves and Community posts are hidden
+- In the **Playlists** tab, playlists containing only Shorts are hidden (or Shorts within mixed playlists are filtered out)
+
+---
+
+#### Behavior Details
+
+**Channel Navigation:**
+- Native YouTube channel navigation logic is preserved
+- All tabs remain fully functional
+- Switching between tabs works as expected
+- URL structure and routing unaffected
+
+**Content Filtering:**
+- Only **traditional long-form videos** are rendered in the Videos tab
+- Shorts and posts are hidden across all visible tabs
+- Layout remains identical to YouTube's native channel UX, **minus removed elements**
+
+**Channel Information:**
+- All creator metadata remains accessible
+- Channel description, links, and contact info preserved
+- About section fully functional
+
+---
+
+#### Configurable Options (Creator Profile Page)
+
+Users can selectively re-enable hidden elements via the extension settings:
+
+**Tab Visibility Options:**
+- ☑️ Show Shorts tab
+- ☑️ Show Posts / Community tab
+
+**Content Options:**
+- ☑️ Show Shorts-type content in Videos tab
+- ☑️ Show Community posts in Home tab
+- ☑️ Show Shorts in Playlists
+
+**Channel Action Buttons:**
+- ☑️ Show Subscribe button
+- ☑️ Show Notifications (bell) button
+- ☑️ Show Join / Membership buttons
+
+**Navigation Options (Advanced):**
+- ☑️ Show YouTube logo
+- ☑️ Show hamburger menu
+- ☑️ Show left sidebar
+- ☑️ Show profile avatar
+- ☑️ Show notifications button
+
+**Important:** By default, **all navigation chrome, action buttons, and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements.
+
+---
+
+#### Technical Implementation Notes
+
+**DOM Manipulation Strategy:**
+- Hide elements using `display: none` or `visibility: hidden`
+- Avoid altering YouTube's native channel navigation logic or API calls
+- Use mutation observers to handle dynamic content loading
+- Preserve accessibility attributes where possible
+
+**Element Selectors (Indicative):**
+- Channel header: `ytd-c4-tabbed-header-renderer`, `ytd-page-header-renderer`
+- Channel tabs: `tp-yt-paper-tab`, `ytd-tab-renderer`
+- Shorts tab: `tp-yt-paper-tab[title="Shorts"]`, `ytd-tab-renderer[tab-title="Shorts"]`
+- Posts tab: `tp-yt-paper-tab[title="Community"]`, `ytd-tab-renderer[tab-title="Posts"]`
+- Videos content: `ytd-grid-video-renderer`, `ytd-rich-item-renderer`
+- Shorts content: `ytd-reel-shelf-renderer`, `ytd-short-shelf-renderer`, `ytd-rich-shelf-renderer[is-shorts]`
+- Subscribe button: `ytd-subscribe-button-renderer`
+- Channel actions: `ytd-button-renderer` (within channel header context)
+- Sidebar: `#guide`, `ytd-guide-renderer`
+- Header chrome: `ytd-topbar-logo-renderer`, `ytd-masthead`
+
+**Performance Considerations:**
+- Minimize reflows during DOM manipulation
+- Use CSS-based hiding where possible
+- Debounce mutation observer callbacks
+- Handle tab switching efficiently without re-running expensive DOM queries
+
+---
+
+#### Success Criteria
+
+The Creator Profile Page is considered **successfully implemented** when:
+
+- ✅ Only the search bar, channel header (banner, avatar, name, metadata), and allowed tabs are visible by default
+- ✅ All navigation chrome (logo, sidebar, profile, etc.) is hidden
+- ✅ Shorts and Posts tabs are hidden by default
+- ✅ Shorts-type content is filtered out of the Videos tab and other visible tabs
+- ✅ Channel action buttons (Subscribe, Join, Notifications) are hidden by default
+- ✅ Native YouTube channel navigation and tab switching remain intact
+- ✅ Channel metadata and creator information remain fully accessible
+- ✅ Visual design matches the minimalist style of the Home and Search pages
+- ✅ Settings allow granular control over re-enabling hidden tabs, content types, and action buttons
+- ✅ No performance degradation or flickering during page load or tab switching
+
+---
+
+### 4. Watch Page Sub‑Module
 
 The Watch Page is where the user watches a selected video.
 
@@ -320,24 +530,44 @@ The Watch Page is where the user watches a selected video.
 - ✅ Video player
 - ✅ Video title
 - ✅ Video description
+- ✅ Channel avatar (profile picture)
+- ✅ Channel name and subscriber count
 
 **Hidden Elements (Default):**
 
+**Engagement Action Buttons:**
 - Like button
 - Dislike button
 - Share button
 - Save button
-- Download button
+- Download button (appears only when user is logged in)
 - Clip button
-- Thanks / Join / Membership buttons
+- Thanks button (appears only when user is logged in)
+- Report button (may be grouped in three-dots overflow menu)
+- Ask button (YouTube AI assistant feature)
+
+**Channel-Related Buttons:**
 - Subscribe button
+- Notifications (bell) button (appears only when subscribed to channel)
+- Join button (channel membership — appears when channel offers memberships and user is not a member)
+- See Perks button (appears only when user has active channel membership)
+
+**Social & Discovery Elements:**
 - Comments section
 - Live chat (if applicable)
-- Channel avatar
-- Channel name block
 - Related / recommended videos (right sidebar)
-- Creator‑recommended end‑screen videos
 - Playlists sidebar
+
+**End-of-Video Elements:**
+- End cards / end-screen thumbnails (non-configurable, always hidden)
+
+**Important Notes on Button Visibility:**
+
+- **Conditional Appearance:** Some buttons (Download, Thanks, Notifications, See Perks) appear conditionally based on user authentication status, subscription state, or channel membership status. The extension must handle these cases gracefully.
+- **Three-Dots Overflow Menu:** YouTube may group certain action buttons (e.g., Report, Save, Clip) inside a three-dots overflow menu to save screen space, especially on smaller viewports. The extension must:
+  - Detect and hide the overflow menu itself by default
+  - Allow re-enabling the overflow menu via settings (or individual buttons within it)
+  - Ensure that hidden buttons remain hidden whether they appear inline or within the overflow menu
 
 **Observed from images:**
 
@@ -363,34 +593,50 @@ The following **must always remain available**:
 
 #### Configurable Options (Watch Page)
 
-Users can enable:
+Users can selectively re-enable hidden elements via extension settings. Each element is individually toggleable.
 
-**Engagement Controls**
+**Engagement Action Buttons**
 
-- Like / Dislike
-- Share
-- Save
-- Download
-- Clip
+- ☑️ Like button
+- ☑️ Dislike button
+- ☑️ Share button
+- ☑️ Save button
+- ☑️ Download button
+- ☑️ Clip button
+- ☑️ Thanks button
+- ☑️ Report button
+- ☑️ Ask button (YouTube AI assistant)
+- ☑️ Three-dots overflow menu (enables all grouped buttons)
 
-**Channel Controls**
+**Channel-Related Buttons**
 
-- Subscribe button
-- Join / Membership button
-- Channel info section
+- ☑️ Subscribe button
+- ☑️ Notifications (bell) button
+- ☑️ Join button
+- ☑️ See Perks button
+- ☑️ Hide channel info section (avatar + channel name) — **Visible by default, can be hidden via settings**
 
 **Social Elements**
 
-- Comments section
-- Live chat
+- ☑️ Comments section
+- ☑️ Live chat
 
 **Discovery Elements**
 
-- Related videos sidebar
-- Playlists
-- Creator‑recommended end‑screen videos
+- ☑️ Related videos sidebar
+- ☑️ Playlists
+- ☑️ Creator‑recommended end‑screen videos
 
-Each element is individually toggleable.
+**Note:** End cards and end-screen thumbnails are **always hidden** and cannot be re-enabled. This is a core minimalist design decision.
+
+**Default Behavior & Conditional Rules:**
+
+- **All listed engagement and social elements are hidden by default** in minimalist mode
+- **Channel info (avatar + name) is visible by default** because users need to know which channel they're watching
+- **Conditional buttons** (e.g., Notifications, See Perks, Download, Thanks) are hidden regardless of their native visibility state
+- **If a button is enabled in settings** but YouTube doesn't render it (e.g., Join button when channel has no memberships), the extension does nothing — it simply doesn't hide the button if/when YouTube decides to show it
+- **Three-dots overflow menu toggle:** When enabled, all buttons within the overflow menu become visible; when disabled, the overflow menu itself is hidden
+- **Per-button granularity:** Users can choose to enable specific buttons (e.g., Like/Dislike only) without enabling the entire overflow menu
 
 ---
 
@@ -419,15 +665,18 @@ Each element is individually toggleable.
 
 ## Functional Requirements Summary
 
-| Page   | Feature                    | Default | Configurable |
-| ------ | -------------------------- | ------- | ------------ |
-| Home   | Search bar                 | On      | No           |
-| Home   | Feed, Shorts, Sidebar      | Off     | Yes          |
-| Search | Long‑form videos           | On      | No           |
-| Search | Shorts / Posts             | Off     | Yes          |
-| Watch  | Video                      | On      | No           |
-| Watch  | Engagement buttons         | Off     | Yes          |
-| Watch  | Comments / Recommendations | Off     | Yes          |
+| Page           | Feature                    | Default | Configurable |
+| -------------- | -------------------------- | ------- | ------------ |
+| Home           | Search bar                 | On      | No           |
+| Home           | Feed, Shorts, Sidebar      | Off     | Yes          |
+| Search         | Long‑form videos           | On      | No           |
+| Search         | Shorts / Posts             | Off     | Yes          |
+| Creator Profile| Channel info & tabs        | On      | No           |
+| Creator Profile| Shorts / Posts tabs        | Off     | Yes          |
+| Creator Profile| Channel action buttons     | Off     | Yes          |
+| Watch          | Video                      | On      | No           |
+| Watch          | Engagement buttons         | Off     | Yes          |
+| Watch          | Comments / Recommendations | Off     | Yes          |
 
 ---
 
