@@ -63,14 +63,28 @@ export interface WatchPageSettings {
   showShare: boolean;
   /** Show/hide Save button */
   showSave: boolean;
-  /** Show/hide Download button */
+  /** Show/hide Download button (appears only when logged in) */
   showDownload: boolean;
   /** Show/hide Clip button */
   showClip: boolean;
+  /** Show/hide Thanks button (appears only when logged in) */
+  showThanks: boolean;
+  /** Show/hide Report button */
+  showReport: boolean;
+  /** Show/hide Ask (AI assistant) button */
+  showAskButton: boolean;
   /** Show/hide Subscribe button */
   showSubscribe: boolean;
-  /** Show/hide Join/Membership button */
+  /** Show/hide Join/Membership button (appears when channel offers memberships) */
   showJoin: boolean;
+  /** Show/hide Notifications (bell) button (appears only when subscribed) */
+  showNotifications: boolean;
+  /** Show/hide See Perks button (appears only when user has active membership) */
+  showSeePerks: boolean;
+  /** Show/hide channel info section (avatar + channel name as one unit) */
+  showChannelInfo: boolean;
+  /** Show/hide three-dots overflow menu */
+  showOverflowMenu: boolean;
   /** Show/hide Comments section */
   showComments: boolean;
   /** Show/hide Live chat */
@@ -148,8 +162,15 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showSave: false,
       showDownload: false,
       showClip: false,
+      showThanks: false,
+      showReport: false,
+      showAskButton: false,
       showSubscribe: false,
       showJoin: false,
+      showNotifications: false,
+      showSeePerks: false,
+      showChannelInfo: true, // Channel avatar + name visible by default (users need to know which channel they're watching)
+      showOverflowMenu: false,
       showComments: false,
       showLiveChat: false,
       showRelated: false,

@@ -7,6 +7,7 @@ import { getSettings, watchSettings } from '../shared/storage/settings-manager';
 import type { ExtensionSettings } from '../shared/types/settings';
 import { initHomePageModule, cleanupHomePageModule } from './youtube/home-page';
 import { initSearchPageModule, cleanupSearchPageModule } from './youtube/search-page';
+import { initWatchPageModule, cleanupWatchPageModule } from './youtube/watch-page';
 
 /**
  * Page types for YouTube navigation
@@ -56,7 +57,7 @@ async function handlePageChange(settings: ExtensionSettings): Promise<void> {
   } else if (currentPageType === 'search') {
     cleanupSearchPageModule();
   } else if (currentPageType === 'watch') {
-    // cleanupWatchPageModule(); // Future
+    cleanupWatchPageModule();
   }
 
   // Update current page type
@@ -73,8 +74,7 @@ async function handlePageChange(settings: ExtensionSettings): Promise<void> {
   } else if (newPageType === 'search') {
     await initSearchPageModule(settings.youtube.searchPage);
   } else if (newPageType === 'watch') {
-    // await initWatchPageModule(settings.youtube.watchPage); // Future
-    console.log('[Fockey] Watch page detected - module not yet implemented');
+    await initWatchPageModule(settings.youtube.watchPage);
   }
 }
 
@@ -131,6 +131,7 @@ async function initialize(): Promise<void> {
       if (!updatedSettings.youtube.enabled) {
         cleanupHomePageModule();
         cleanupSearchPageModule();
+        cleanupWatchPageModule();
         currentPageType = null;
         return;
       }
