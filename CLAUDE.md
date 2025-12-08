@@ -210,6 +210,23 @@ Claude must:
 * Validate page-specific behavior (Home vs Search vs Watch)
 * Confirm settings propagate correctly
 
+**Authentication-Dependent Testing:**
+
+When testing the extension, certain DOM elements and behaviors are conditional on user authentication status. For example:
+
+* Download, Thanks, and Report buttons appear only when logged in
+* Subscribe, Notifications (bell), Join, and See Perks buttons depend on subscription/membership state
+* The DOM structure may differ between logged-in and logged-out states
+
+**When using Playwright MCP or Chrome DevTools MCP**, Claude must:
+
+* ✅ Pause test execution and **wait for the user to complete manual login** when authentication is required
+* ✅ Verify the authenticated state is confirmed before proceeding with DOM assertions
+* ✅ Document in test output which elements require authentication to appear
+* ✅ Test both logged-out and logged-in states where behavior differs significantly
+
+**Do not attempt to automate login flows** — wait for user intervention to complete authentication manually.
+
 Unverified DOM changes are **not acceptable**.
 
 ---
