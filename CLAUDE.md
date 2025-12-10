@@ -201,8 +201,8 @@ Claude must validate:
 
 For **any task related to the Chrome Extension itself** (content scripts, popup UI, options page, service worker, or DOM behavior), Claude **must validate behavior using at least one**:
 
-* ✅ **Playwright MCP** (preferred)
-* ✅ **Chrome DevTools MCP**
+* ✅ **Playwright MCP** (for testing behavior)
+* ✅ **Chrome DevTools MCP** (for logs)
 
 Claude must:
 
@@ -218,7 +218,7 @@ When testing the extension, certain DOM elements and behaviors are conditional o
 * Subscribe, Notifications (bell), Join, and See Perks buttons depend on subscription/membership state
 * The DOM structure may differ between logged-in and logged-out states
 
-**When using Playwright MCP or Chrome DevTools MCP**, Claude must:
+**When using Playwright MCP**, Claude must:
 
 * ✅ Pause test execution and **wait for the user to complete manual login** when authentication is required
 * ✅ Verify the authenticated state is confirmed before proceeding with DOM assertions
