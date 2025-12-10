@@ -1,96 +1,340 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { getSettings, updateSettings } from '@/shared/storage/settings-manager';
+import { ExtensionSettings } from '@/shared/types/settings';
+import LoadingState from './components/LoadingState';
+import ModuleToggle from './components/ModuleToggle';
+import SettingsSection from './components/SettingsSection';
 
+/**
+ * Extension popup component
+ * Provides quick access to most common settings with optimistic UI updates
+ */
 const Popup: React.FC = () => {
-  const [homePageHidden, setHomePageHidden] = useState(true);
-  const [shortsHidden, setShortsHidden] = useState(true);
+  const [settings, setSettings] = useState<ExtensionSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Debounce timer ref for batching rapid toggle changes
+  const debounceTimerRef = useRef<number | null>(null);
+  // Pending updates that will be written to storage
+  const pendingUpdatesRef = useRef<Partial<ExtensionSettings>>({});
+
+  /**
+   * Load settings from Chrome Storage on mount
+   */
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoading(true);
+        const loadedSettings = await getSettings();
+        setSettings(loadedSettings);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+        setError('Failed to load settings. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+
+    // Listen for storage changes from other extension components
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === 'sync' || areaName === 'local') {
+        // Reload settings when they change externally
+        loadSettings();
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+      // Flush any pending updates before unmounting
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      // Immediately apply any pending updates
+      if (Object.keys(pendingUpdatesRef.current).length > 0) {
+        updateSettings(pendingUpdatesRef.current).catch((err) => {
+          console.error('Failed to flush pending settings on unmount:', err);
+        });
+      }
+    };
+  }, []);
+
+  /**
+   * Debounced update to Chrome Storage
+   * Batches rapid changes to prevent excessive writes
+   */
+  const debouncedUpdate = useCallback((updates: Partial<ExtensionSettings>) => {
+    // Merge new updates with pending updates
+    pendingUpdatesRef.current = {
+      ...pendingUpdatesRef.current,
+      ...updates,
+    };
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new timer (100ms debounce for responsive UI)
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        // Capture updates before clearing
+        const updates = { ...pendingUpdatesRef.current };
+        await updateSettings(updates);
+
+        // Clear pending updates after successful write
+        pendingUpdatesRef.current = {};
+
+        // Note: Chrome Storage change will automatically trigger watchSettings in content scripts
+        // No need to manually broadcast via messages
+      } catch (err) {
+        console.error('Failed to update settings:', err);
+        setError('Failed to save settings. Please try again.');
+      }
+    }, 100);
+  }, []);
+
+  /**
+   * Handle settings change with optimistic UI update
+   */
+  const handleSettingsChange = useCallback(
+    (updates: Partial<ExtensionSettings>) => {
+      if (!settings) return;
+
+      // Optimistic UI update (instant feedback)
+      setSettings((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          ...updates,
+          youtube: {
+            ...prev.youtube,
+            ...(updates.youtube || {}),
+            homePage: {
+              ...prev.youtube.homePage,
+              ...(updates.youtube?.homePage || {}),
+            },
+            searchPage: {
+              ...prev.youtube.searchPage,
+              ...(updates.youtube?.searchPage || {}),
+            },
+            watchPage: {
+              ...prev.youtube.watchPage,
+              ...(updates.youtube?.watchPage || {}),
+            },
+          },
+        };
+      });
+
+      // Debounced write to Chrome Storage
+      debouncedUpdate(updates);
+    },
+    [settings, debouncedUpdate]
+  );
+
+  /**
+   * Handle master YouTube module toggle
+   */
+  const handleModuleToggle = useCallback(
+    (enabled: boolean) => {
+      handleSettingsChange({
+        youtube: {
+          ...settings!.youtube,
+          enabled,
+        },
+      });
+    },
+    [settings, handleSettingsChange]
+  );
+
+  /**
+   * Handle individual page setting toggles
+   */
+  const handleHomePageToggle = useCallback(
+    (key: string, value: boolean) => {
+      if (!settings) return;
+      handleSettingsChange({
+        youtube: {
+          ...settings.youtube,
+          homePage: {
+            ...settings.youtube.homePage,
+            [key]: value,
+          },
+        },
+      });
+    },
+    [settings, handleSettingsChange]
+  );
+
+  const handleSearchPageToggle = useCallback(
+    (key: string, value: boolean) => {
+      if (!settings) return;
+      handleSettingsChange({
+        youtube: {
+          ...settings.youtube,
+          searchPage: {
+            ...settings.youtube.searchPage,
+            [key]: value,
+          },
+        },
+      });
+    },
+    [settings, handleSettingsChange]
+  );
+
+  const handleWatchPageToggle = useCallback(
+    (key: string, value: boolean) => {
+      if (!settings) return;
+      handleSettingsChange({
+        youtube: {
+          ...settings.youtube,
+          watchPage: {
+            ...settings.youtube.watchPage,
+            [key]: value,
+          },
+        },
+      });
+    },
+    [settings, handleSettingsChange]
+  );
+
+  /**
+   * Open full settings page
+   */
+  const handleOpenSettings = useCallback(() => {
+    chrome.runtime.openOptionsPage();
+  }, []);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-80">
+        <LoadingState />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !settings) {
+    return (
+      <div className="w-80 p-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-destructive">{error || 'Failed to load settings'}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="mt-4 w-full"
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-96 p-4">
+    <div className="w-80">
       <Card>
-        <CardHeader>
-          <CardTitle>Fockey</CardTitle>
+        {/* Header */}
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Fockey</CardTitle>
           <CardDescription>Minimalist YouTube Experience</CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
-          <Tabs defaultValue="home" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="home">Home</TabsTrigger>
-              <TabsTrigger value="search">Search</TabsTrigger>
-              <TabsTrigger value="watch">Watch</TabsTrigger>
-            </TabsList>
-            <TabsContent value="home" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="home-feed">Hide Home Feed</Label>
-                <Switch
-                  id="home-feed"
-                  checked={homePageHidden}
-                  onCheckedChange={setHomePageHidden}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="shorts">Hide Shorts</Label>
-                <Switch id="shorts" checked={shortsHidden} onCheckedChange={setShortsHidden} />
-              </div>
-            </TabsContent>
-            <TabsContent value="search" className="space-y-4">
-              <p className="text-sm text-muted-foreground">Configure search page settings</p>
-            </TabsContent>
-            <TabsContent value="watch" className="space-y-4">
-              <p className="text-sm text-muted-foreground">Configure watch page settings</p>
-            </TabsContent>
-          </Tabs>
+          {/* Master YouTube Module Toggle */}
+          <SettingsSection title="YouTube Module">
+            <ModuleToggle
+              id="youtube-enabled"
+              label="Enable Extension"
+              description="Turn the YouTube module on or off"
+              checked={settings.youtube.enabled}
+              onChange={handleModuleToggle}
+            />
+          </SettingsSection>
 
           <Separator />
 
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="advanced">
-              <AccordionTrigger>Advanced Settings</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground">
-                  Advanced customization options will appear here.
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {/* Quick Access Toggles */}
+          <div className="space-y-3">
+            {/* Home Page Settings */}
+            <SettingsSection title="Home Page">
+              <ModuleToggle
+                id="home-sidebar"
+                label="Show Sidebar"
+                checked={settings.youtube.homePage.showSidebar}
+                onChange={(checked) => handleHomePageToggle('showSidebar', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+              <ModuleToggle
+                id="home-profile"
+                label="Show Profile"
+                checked={settings.youtube.homePage.showProfile}
+                onChange={(checked) => handleHomePageToggle('showProfile', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+            </SettingsSection>
 
-          <div className="flex gap-2">
-            <Button variant="default" className="flex-1">
-              Save Settings
-            </Button>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">About</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>About Fockey</DialogTitle>
-                  <DialogDescription>
-                    Fockey transforms YouTube into a minimalist, distraction-free experience. Hide
-                    thumbnails, recommendations, and UI elements to stay focused on what matters.
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+            {/* Search Page Settings */}
+            <SettingsSection title="Search Page">
+              <ModuleToggle
+                id="search-shorts"
+                label="Show Shorts"
+                checked={settings.youtube.searchPage.showShorts}
+                onChange={(checked) => handleSearchPageToggle('showShorts', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+              <ModuleToggle
+                id="search-blur"
+                label="Blur Thumbnails"
+                checked={settings.youtube.searchPage.blurThumbnails}
+                onChange={(checked) => handleSearchPageToggle('blurThumbnails', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+            </SettingsSection>
+
+            {/* Watch Page Settings */}
+            <SettingsSection title="Watch Page">
+              <ModuleToggle
+                id="watch-comments"
+                label="Show Comments"
+                checked={settings.youtube.watchPage.showComments}
+                onChange={(checked) => handleWatchPageToggle('showComments', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+              <ModuleToggle
+                id="watch-related"
+                label="Show Related Videos"
+                checked={settings.youtube.watchPage.showRelated}
+                onChange={(checked) => handleWatchPageToggle('showRelated', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+            </SettingsSection>
+          </div>
+
+          <Separator />
+
+          {/* Open Settings Button */}
+          <Button onClick={handleOpenSettings} variant="outline" className="w-full">
+            Open Settings
+          </Button>
+
+          {/* Footer with Version */}
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">v{chrome.runtime.getManifest().version}</p>
           </div>
         </CardContent>
       </Card>
