@@ -189,9 +189,18 @@ For long-running tasks, Claude should periodically update progress.
 
 Claude must validate:
 
-* Code formatting
-* Type safety
+* **Linting** — All code must pass ESLint checks (`npm run lint`)
+* **Code formatting** — All code must be properly formatted (`npm run format:check`)
+* **Type safety** — All code must pass TypeScript compilation (`tsc`)
 * No regressions in minimalist-by-default behavior
+
+**Before completing any task**, Claude must run:
+
+```bash
+npm run check
+```
+
+This command runs both linting and formatting checks. If any issues are found, Claude must fix them before proceeding.
 
 ---
 
@@ -255,6 +264,9 @@ A task is considered **DONE** only if:
 
 * ✅ Task was set to *in-progress* before development
 * ✅ Code follows the defined tech stack
+* ✅ **All lint checks pass** (`npm run lint` returns no errors)
+* ✅ **All formatting checks pass** (`npm run format:check` returns no errors)
+* ✅ **TypeScript compilation succeeds** (no type errors)
 * ✅ Minimalist default behavior is preserved
 * ✅ DOM changes are verified via MCP tools
 * ✅ No broken UX flows
