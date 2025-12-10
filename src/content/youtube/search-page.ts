@@ -73,18 +73,44 @@ let mutationObserver: MutationObserver | null = null;
 function generateSearchPageCSS(settings: SearchPageSettings): string {
   const rules: string[] = [];
 
-  // Always hide Shorts, community posts, algorithmic suggestions, and promotional banners by default
+  // Conditionally hide or show Shorts based on settings
+  if (!settings.showShorts) {
+    rules.push(`
+      /* Hide Shorts in search results */
+      ${SEARCH_PAGE_SELECTORS.SHORTS} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly ensure Shorts are visible when enabled
+    rules.push(`
+      /* Ensure Shorts are visible in search results */
+      ${SEARCH_PAGE_SELECTORS.SHORTS} {
+        display: block !important;
+      }
+    `);
+  }
+
+  // Conditionally hide or show Community posts based on settings
+  if (!settings.showCommunityPosts) {
+    rules.push(`
+      /* Hide Community posts in search results */
+      ${SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly ensure Community posts are visible when enabled
+    rules.push(`
+      /* Ensure Community posts are visible in search results */
+      ${SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS} {
+        display: block !important;
+      }
+    `);
+  }
+
+  // Always hide algorithmic suggestions and promotional banners
   rules.push(`
-    /* Hide Shorts in search results */
-    ${SEARCH_PAGE_SELECTORS.SHORTS} {
-      display: none !important;
-    }
-
-    /* Hide Community posts in search results */
-    ${SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS} {
-      display: none !important;
-    }
-
     /* Hide algorithmic suggestions */
     ${SEARCH_PAGE_SELECTORS.ALGORITHMIC_SUGGESTIONS} {
       display: none !important;
@@ -175,8 +201,8 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
       display: none !important;
     }
 
-    /* Also hide topbar menu buttons */
-    ytd-topbar-menu-button-renderer {
+    /* Hide topbar menu buttons except profile and notifications (conditionally controlled) */
+    ytd-topbar-menu-button-renderer:not(:has(${SEARCH_PAGE_SELECTORS.PROFILE_AVATAR})):not(:has(${SEARCH_PAGE_SELECTORS.NOTIFICATIONS})) {
       display: none !important;
     }
 
@@ -193,9 +219,11 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
   // Apply thumbnail blur if enabled
   if (settings.blurThumbnails) {
     rules.push(`
-      /* Blur video thumbnails */
+      /* Blur video thumbnails including Shorts */
       ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} img,
-      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} yt-image {
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} yt-image,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} yt-image {
         filter: blur(10px) !important;
       }
     `);

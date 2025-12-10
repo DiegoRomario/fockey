@@ -154,8 +154,8 @@ function generateHomePageCSS(settings: HomePageSettings): string {
       display: none !important;
     }
 
-    /* Also hide topbar menu buttons */
-    ytd-topbar-menu-button-renderer {
+    /* Hide topbar menu buttons except profile and notifications (conditionally controlled) */
+    ytd-topbar-menu-button-renderer:not(:has(${HOME_PAGE_SELECTORS.PROFILE_AVATAR})):not(:has(${HOME_PAGE_SELECTORS.NOTIFICATIONS})) {
       display: none !important;
     }
 
