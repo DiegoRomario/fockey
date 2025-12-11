@@ -5,6 +5,7 @@
 
 import type {
   ExtensionSettings,
+  GlobalNavigationSettings,
   HomePageSettings,
   SearchPageSettings,
   WatchPageSettings,
@@ -32,6 +33,17 @@ export enum PageType {
 export type PageSettings = HomePageSettings | SearchPageSettings | WatchPageSettings;
 
 /**
+ * Complete module settings including both page-specific and global navigation
+ * Passed to modules during initialization and updates
+ */
+export interface ModuleSettings {
+  /** Page-specific settings */
+  pageSettings: PageSettings;
+  /** Global navigation settings (applies to all pages) */
+  globalNavigation: GlobalNavigationSettings;
+}
+
+/**
  * Module interface that all page-specific modules must implement
  * Provides a consistent lifecycle API for initialization, updates, and cleanup
  */
@@ -40,20 +52,20 @@ export interface ModuleInterface {
    * Initializes the module with the given settings
    * Called when the user navigates to a page this module handles
    *
-   * @param settings - Page-specific settings object
+   * @param settings - Module settings including page-specific and global navigation settings
    * @returns Promise that resolves when initialization is complete
    * @throws Should handle errors gracefully and not break YouTube functionality
    */
-  init(settings: PageSettings): Promise<void>;
+  init(settings: ModuleSettings): Promise<void>;
 
   /**
    * Updates the module with new settings without full re-initialization
    * Called when settings change while the module is active
    * Enables hot-reload without page refresh
    *
-   * @param settings - Updated page-specific settings object
+   * @param settings - Updated module settings including page-specific and global navigation settings
    */
-  updateSettings(settings: PageSettings): void;
+  updateSettings(settings: ModuleSettings): void;
 
   /**
    * Cleans up all resources used by the module

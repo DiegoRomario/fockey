@@ -4,7 +4,7 @@
  * Hides navigation chrome, Shorts, community posts while preserving search functionality
  */
 
-import { SearchPageSettings } from '../../shared/types/settings';
+import { SearchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 
 /**
@@ -64,17 +64,21 @@ const STYLE_TAG_ID = 'fockey-search-styles';
 let mutationObserver: MutationObserver | null = null;
 
 /**
- * Generates CSS rules based on search page settings
+ * Generates CSS rules based on search page and global navigation settings
  * Returns CSS string with display: none rules for hidden elements
  *
- * @param settings - Search page settings object
+ * @param pageSettings - Search page specific settings object
+ * @param globalNavigation - Global navigation settings object
  * @returns CSS string with rules for hiding/showing elements
  */
-function generateSearchPageCSS(settings: SearchPageSettings): string {
+function generateSearchPageCSS(
+  pageSettings: SearchPageSettings,
+  globalNavigation: GlobalNavigationSettings
+): string {
   const rules: string[] = [];
 
   // Conditionally hide or show Shorts based on settings
-  if (!settings.showShorts) {
+  if (!pageSettings.showShorts) {
     rules.push(`
       /* Hide Shorts in search results */
       ${SEARCH_PAGE_SELECTORS.SHORTS} {
@@ -92,7 +96,7 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
   }
 
   // Conditionally hide or show Community posts based on settings
-  if (!settings.showCommunityPosts) {
+  if (!pageSettings.showCommunityPosts) {
     rules.push(`
       /* Hide Community posts in search results */
       ${SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS} {
@@ -127,8 +131,8 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     }
   `);
 
-  // Conditionally hide navigation chrome based on settings (default: hidden)
-  if (!settings.showLogo) {
+  // Conditionally hide global navigation elements based on global settings (default: hidden)
+  if (!globalNavigation.showLogo) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
@@ -136,16 +140,13 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     `);
   }
 
-  if (!settings.showHamburger) {
+  if (!globalNavigation.showSidebar) {
+    // Unified: hide both hamburger menu and sidebar with single setting
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.HAMBURGER_MENU} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showSidebar) {
-    rules.push(`
       ${SEARCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
         display: none !important;
       }
@@ -157,7 +158,7 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     `);
   }
 
-  if (!settings.showProfile) {
+  if (!globalNavigation.showProfile) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.PROFILE_AVATAR} {
         display: none !important;
@@ -165,7 +166,7 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     `);
   }
 
-  if (!settings.showNotifications) {
+  if (!globalNavigation.showNotifications) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.NOTIFICATIONS} {
         display: none !important;
@@ -173,8 +174,8 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     `);
   }
 
-  // Conditionally hide content types based on settings
-  if (!settings.showMixes) {
+  // Conditionally hide content types based on page settings
+  if (!pageSettings.showMixes) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.MIXES} {
         display: none !important;
@@ -182,7 +183,7 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
     `);
   }
 
-  if (!settings.showSponsored) {
+  if (!pageSettings.showSponsored) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
         display: none !important;
@@ -217,7 +218,7 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
   `);
 
   // Apply thumbnail blur if enabled
-  if (settings.blurThumbnails) {
+  if (pageSettings.blurThumbnails) {
     rules.push(`
       /* Blur video thumbnails including Shorts */
       ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} img,
@@ -255,10 +256,14 @@ function generateSearchPageCSS(settings: SearchPageSettings): string {
  * Applies search page settings by injecting CSS
  * Main function that controls element visibility based on user preferences
  *
- * @param settings - Search page settings object
+ * @param pageSettings - Search page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-export function applySearchPageSettings(settings: SearchPageSettings): void {
-  const css = generateSearchPageCSS(settings);
+export function applySearchPageSettings(
+  pageSettings: SearchPageSettings,
+  globalNavigation: GlobalNavigationSettings
+): void {
+  const css = generateSearchPageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 }
 
@@ -274,9 +279,13 @@ export function removeSearchPageStyles(): void {
  * Sets up MutationObserver to detect dynamic YouTube content loading
  * Re-applies CSS when new elements are added (e.g., infinite scroll)
  *
- * @param settings - Search page settings object
+ * @param pageSettings - Search page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-function setupMutationObserver(settings: SearchPageSettings): void {
+function setupMutationObserver(
+  pageSettings: SearchPageSettings,
+  globalNavigation: GlobalNavigationSettings
+): void {
   // Disconnect existing observer if any
   if (mutationObserver) {
     mutationObserver.disconnect();
@@ -284,7 +293,7 @@ function setupMutationObserver(settings: SearchPageSettings): void {
 
   // Create debounced re-apply function
   const debouncedReapply = debounce(() => {
-    applySearchPageSettings(settings);
+    applySearchPageSettings(pageSettings, globalNavigation);
   }, 200);
 
   // Create observer
@@ -337,18 +346,22 @@ function setupMutationObserver(settings: SearchPageSettings): void {
  * Main entry point for search page module
  * Works with both SPA navigation and direct URL navigation
  *
- * @param settings - Search page settings object
+ * @param pageSettings - Search page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-export async function initSearchPageModule(settings: SearchPageSettings): Promise<void> {
+export async function initSearchPageModule(
+  pageSettings: SearchPageSettings,
+  globalNavigation: GlobalNavigationSettings
+): Promise<void> {
   try {
     // Wait for essential elements to load
     await waitForElement(SEARCH_PAGE_SELECTORS.MASTHEAD, 5000);
 
     // Apply initial settings
-    applySearchPageSettings(settings);
+    applySearchPageSettings(pageSettings, globalNavigation);
 
     // Set up mutation observer for dynamic content
-    setupMutationObserver(settings);
+    setupMutationObserver(pageSettings, globalNavigation);
 
     console.log('[Fockey] Search page module initialized');
   } catch (error) {

@@ -4,8 +4,8 @@
  * Wraps existing search page functionality with standardized lifecycle
  */
 
-import type { ModuleInterface, PageSettings } from '../types';
-import type { SearchPageSettings } from '../../../shared/types/settings';
+import type { ModuleInterface, ModuleSettings } from '../types';
+import type { SearchPageSettings, GlobalNavigationSettings } from '../../../shared/types/settings';
 import {
   initSearchPageModule,
   cleanupSearchPageModule,
@@ -16,27 +16,30 @@ import {
  * Search page module instance implementing ModuleInterface
  */
 class SearchPageModule implements ModuleInterface {
-  private settings: SearchPageSettings | null = null;
+  private pageSettings: SearchPageSettings | null = null;
+  private globalNavigation: GlobalNavigationSettings | null = null;
   private isInitialized = false;
 
   /**
    * Initializes the search page module
    */
-  async init(settings: PageSettings): Promise<void> {
-    this.settings = settings as SearchPageSettings;
+  async init(settings: ModuleSettings): Promise<void> {
+    this.pageSettings = settings.pageSettings as SearchPageSettings;
+    this.globalNavigation = settings.globalNavigation;
     this.isInitialized = true;
-    await initSearchPageModule(this.settings);
+    await initSearchPageModule(this.pageSettings, this.globalNavigation);
   }
 
   /**
    * Updates settings without full re-initialization
    * Enables hot reload when settings change
    */
-  updateSettings(settings: PageSettings): void {
-    this.settings = settings as SearchPageSettings;
-    if (this.isInitialized) {
+  updateSettings(settings: ModuleSettings): void {
+    this.pageSettings = settings.pageSettings as SearchPageSettings;
+    this.globalNavigation = settings.globalNavigation;
+    if (this.isInitialized && this.globalNavigation) {
       // Re-apply settings using existing functionality
-      applySearchPageSettings(this.settings);
+      applySearchPageSettings(this.pageSettings, this.globalNavigation);
     }
   }
 
@@ -45,7 +48,8 @@ class SearchPageModule implements ModuleInterface {
    */
   destroy(): void {
     cleanupSearchPageModule();
-    this.settings = null;
+    this.pageSettings = null;
+    this.globalNavigation = null;
     this.isInitialized = false;
   }
 }

@@ -6,7 +6,12 @@
 
 import { getSettings, watchSettings } from '../../shared/storage/settings-manager';
 import type { ExtensionSettings } from '../../shared/types/settings';
-import { PageType, type ModuleInterface, type PageSettings, type OrchestratorState } from './types';
+import {
+  PageType,
+  type ModuleInterface,
+  type ModuleSettings,
+  type OrchestratorState,
+} from './types';
 
 /**
  * Orchestrator state
@@ -95,23 +100,35 @@ async function loadModule(pageType: PageType): Promise<ModuleInterface | null> {
 }
 
 /**
- * Gets page-specific settings from extension settings
+ * Gets module settings from extension settings
+ * Combines page-specific settings with global navigation settings
  *
  * @param pageType - The page type to get settings for
  * @param settings - Full extension settings object
- * @returns Page-specific settings or null if page type not supported
+ * @returns Module settings (page-specific + global navigation) or null if page type not supported
  */
-function getPageSettings(pageType: PageType, settings: ExtensionSettings): PageSettings | null {
+function getPageSettings(pageType: PageType, settings: ExtensionSettings): ModuleSettings | null {
+  let pageSettings;
+
   switch (pageType) {
     case PageType.HOME:
-      return settings.youtube.homePage;
+      pageSettings = settings.youtube.homePage;
+      break;
     case PageType.SEARCH:
-      return settings.youtube.searchPage;
+      pageSettings = settings.youtube.searchPage;
+      break;
     case PageType.WATCH:
-      return settings.youtube.watchPage;
+      pageSettings = settings.youtube.watchPage;
+      break;
     default:
       return null;
   }
+
+  // Combine page-specific settings with global navigation settings
+  return {
+    pageSettings,
+    globalNavigation: settings.youtube.globalNavigation,
+  };
 }
 
 /**

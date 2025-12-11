@@ -4,7 +4,7 @@
  * Hides feed, sidebar, and navigation elements while preserving search bar
  */
 
-import { HomePageSettings } from '../../shared/types/settings';
+import { HomePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 
 /**
@@ -60,13 +60,17 @@ let mutationObserver: MutationObserver | null = null;
 // let currentSettings: HomePageSettings | null = null;
 
 /**
- * Generates CSS rules based on home page settings
+ * Generates CSS rules based on home page and global navigation settings
  * Returns CSS string with display: none rules for hidden elements
  *
- * @param settings - Home page settings object
+ * @param pageSettings - Home page specific settings object (empty for now)
+ * @param globalNavigation - Global navigation settings object
  * @returns CSS string with rules for hiding/showing elements
  */
-function generateHomePageCSS(settings: HomePageSettings): string {
+function generateHomePageCSS(
+  pageSettings: HomePageSettings,
+  globalNavigation: GlobalNavigationSettings
+): string {
   const rules: string[] = [];
 
   // Always hide feed, shorts, and filters (core minimalist mode)
@@ -87,8 +91,8 @@ function generateHomePageCSS(settings: HomePageSettings): string {
     }
   `);
 
-  // Conditionally hide navigation elements based on settings
-  if (!settings.showLogo) {
+  // Conditionally hide global navigation elements based on global settings
+  if (!globalNavigation.showLogo) {
     rules.push(`
       ${HOME_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
@@ -96,16 +100,13 @@ function generateHomePageCSS(settings: HomePageSettings): string {
     `);
   }
 
-  if (!settings.showHamburger) {
+  if (!globalNavigation.showSidebar) {
+    // Unified: hide both hamburger menu and sidebar with single setting
     rules.push(`
       ${HOME_PAGE_SELECTORS.HAMBURGER_MENU} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showSidebar) {
-    rules.push(`
       ${HOME_PAGE_SELECTORS.LEFT_SIDEBAR} {
         display: none !important;
       }
@@ -127,7 +128,7 @@ function generateHomePageCSS(settings: HomePageSettings): string {
     `);
   }
 
-  if (!settings.showProfile) {
+  if (!globalNavigation.showProfile) {
     rules.push(`
       ${HOME_PAGE_SELECTORS.PROFILE_AVATAR} {
         display: none !important;
@@ -135,7 +136,7 @@ function generateHomePageCSS(settings: HomePageSettings): string {
     `);
   }
 
-  if (!settings.showNotifications) {
+  if (!globalNavigation.showNotifications) {
     rules.push(`
       ${HOME_PAGE_SELECTORS.NOTIFICATIONS} {
         display: none !important;
@@ -195,11 +196,15 @@ function generateHomePageCSS(settings: HomePageSettings): string {
  * Applies home page settings by injecting CSS
  * Main function that controls element visibility based on user preferences
  *
- * @param settings - Home page settings object
+ * @param pageSettings - Home page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-export function applyHomePageSettings(settings: HomePageSettings): void {
+export function applyHomePageSettings(
+  pageSettings: HomePageSettings,
+  globalNavigation: GlobalNavigationSettings
+): void {
   // currentSettings = settings; // Reserved for future real-time updates
-  const css = generateHomePageCSS(settings);
+  const css = generateHomePageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 }
 
@@ -216,9 +221,13 @@ export function removeHomePageStyles(): void {
  * Sets up MutationObserver to detect dynamic YouTube content loading
  * Re-applies CSS when new elements are added (e.g., infinite scroll)
  *
- * @param settings - Home page settings object
+ * @param pageSettings - Home page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-function setupMutationObserver(settings: HomePageSettings): void {
+function setupMutationObserver(
+  pageSettings: HomePageSettings,
+  globalNavigation: GlobalNavigationSettings
+): void {
   // Disconnect existing observer if any
   if (mutationObserver) {
     mutationObserver.disconnect();
@@ -226,7 +235,7 @@ function setupMutationObserver(settings: HomePageSettings): void {
 
   // Create debounced re-apply function
   const debouncedReapply = debounce(() => {
-    applyHomePageSettings(settings);
+    applyHomePageSettings(pageSettings, globalNavigation);
   }, 200);
 
   // Create observer
@@ -274,18 +283,22 @@ function setupMutationObserver(settings: HomePageSettings): void {
  * Initializes the home page content script
  * Main entry point for home page module
  *
- * @param settings - Home page settings object
+ * @param pageSettings - Home page specific settings object
+ * @param globalNavigation - Global navigation settings object
  */
-export async function initHomePageModule(settings: HomePageSettings): Promise<void> {
+export async function initHomePageModule(
+  pageSettings: HomePageSettings,
+  globalNavigation: GlobalNavigationSettings
+): Promise<void> {
   try {
     // Wait for essential elements to load
     await waitForElement(HOME_PAGE_SELECTORS.MASTHEAD, 5000);
 
     // Apply initial settings
-    applyHomePageSettings(settings);
+    applyHomePageSettings(pageSettings, globalNavigation);
 
     // Set up mutation observer for dynamic content
-    setupMutationObserver(settings);
+    setupMutationObserver(pageSettings, globalNavigation);
 
     console.log('[Fockey] Home page module initialized');
   } catch (error) {

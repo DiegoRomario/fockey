@@ -23,23 +23,60 @@ export interface Migration {
  * New migrations should be added to the end of this array
  */
 export const MIGRATIONS: Migration[] = [
-  // Example migration from v1.0.0 to v1.1.0
-  // {
-  //   version: '1.1.0',
-  //   description: 'Add new feature X settings',
-  //   up: (settings) => {
-  //     return {
-  //       ...settings,
-  //       youtube: {
-  //         ...settings.youtube,
-  //         homePage: {
-  //           ...settings.youtube.homePage,
-  //           showNewFeature: false, // New property with default value
-  //         },
-  //       },
-  //     };
-  //   },
-  // },
+  {
+    version: '1.1.0',
+    description: 'Unify global navigation elements across all YouTube pages',
+    up: (settings) => {
+      // Migration needs to access old v1.0.0 structure which differs from current types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oldSettings = settings as any;
+
+      // Extract global navigation settings from old structure using OR logic (most permissive)
+      // If ANY page had a navigation element shown, enable it globally
+      const globalNavigation = {
+        showLogo:
+          oldSettings.youtube?.homePage?.showLogo ||
+          oldSettings.youtube?.searchPage?.showLogo ||
+          false,
+        showSidebar:
+          oldSettings.youtube?.homePage?.showSidebar ||
+          oldSettings.youtube?.homePage?.showHamburger ||
+          oldSettings.youtube?.searchPage?.showSidebar ||
+          oldSettings.youtube?.searchPage?.showHamburger ||
+          false,
+        showProfile:
+          oldSettings.youtube?.homePage?.showProfile ||
+          oldSettings.youtube?.searchPage?.showProfile ||
+          false,
+        showNotifications:
+          oldSettings.youtube?.homePage?.showNotifications ||
+          oldSettings.youtube?.searchPage?.showNotifications ||
+          false,
+      };
+
+      // Remove global navigation fields from page-specific settings
+      const homePage = {}; // Empty after extraction
+
+      const searchPage = {
+        showShorts: oldSettings.youtube?.searchPage?.showShorts ?? false,
+        showCommunityPosts: oldSettings.youtube?.searchPage?.showCommunityPosts ?? false,
+        showMixes: oldSettings.youtube?.searchPage?.showMixes ?? false,
+        showSponsored: oldSettings.youtube?.searchPage?.showSponsored ?? false,
+        blurThumbnails: oldSettings.youtube?.searchPage?.blurThumbnails ?? false,
+      };
+
+      return {
+        version: '1.1.0',
+        youtube: {
+          enabled: oldSettings.youtube?.enabled ?? true,
+          globalNavigation,
+          homePage,
+          searchPage,
+          watchPage: oldSettings.youtube?.watchPage || DEFAULT_SETTINGS.youtube.watchPage,
+        },
+      };
+    },
+  },
 ];
 
 /**

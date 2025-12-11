@@ -98,6 +98,74 @@ Each sub‑module manages DOM manipulation, visibility toggles, and UI overrides
 
 ---
 
+## Global Navigation Elements
+
+### Overview
+
+YouTube's persistent navigation elements appear consistently across all pages. These include:
+
+- **YouTube logo** (top-left corner)
+- **Left sidebar** (navigation menu with Home, Subscriptions, Library, etc.)
+- **Hamburger menu** (button that toggles the sidebar)
+- **Profile avatar** (account button in top-right)
+- **Notifications bell** (notification icon in top-right)
+
+### Unified Control
+
+All global navigation elements are controlled by a **single, shared settings section** that applies to **all YouTube pages simultaneously** (Home, Search, Watch, Creator Profile).
+
+**Benefits:**
+- ✅ **Consistency** - Navigation behavior is identical across all pages
+- ✅ **Simplicity** - Users configure navigation once, not per-page
+- ✅ **Clarity** - Clear separation between global navigation and page-specific content
+
+### Sidebar & Hamburger Menu Unification
+
+**Important Design Decision:**
+
+The **left sidebar** and **hamburger menu** are treated as a **single, unified component**:
+
+- The hamburger menu button toggles the sidebar open/closed (native YouTube behavior)
+- If the sidebar is hidden, the hamburger menu serves no purpose
+- Therefore, **both elements share the same visibility state**
+- There is **no separate toggle** for the hamburger menu
+
+**Behavior:**
+- When sidebar is **enabled** → Both sidebar AND hamburger are visible
+- When sidebar is **disabled** → Both sidebar AND hamburger are hidden
+
+### Default Behavior (Minimalist Mode)
+
+By default, **all global navigation elements are hidden** to create a distraction-free, content-focused experience:
+
+- YouTube logo: **Hidden**
+- Left sidebar: **Hidden**
+- Hamburger menu: **Hidden** (unified with sidebar)
+- Profile avatar: **Hidden**
+- Notifications bell: **Hidden**
+
+Users can selectively re-enable any element via the extension settings.
+
+### Settings Scope
+
+**Global Navigation Settings:**
+- Apply to **all YouTube pages** simultaneously
+- Control persistent navigation elements
+- Examples: Logo, sidebar, profile avatar, notifications bell
+
+**Page-Specific Settings:**
+- Apply to **individual page types** only
+- Control page-specific content and features
+- Examples: Shorts visibility (Search page), engagement buttons (Watch page)
+
+### User Interface Organization
+
+In the extension settings, global navigation controls appear in a dedicated section positioned **above** page-specific settings to emphasize their global scope.
+
+The section is clearly labeled to indicate these controls affect all YouTube pages, not just one page type.
+
+---
+
 ## YouTube Module — Detailed Requirements
 
 ### 1. Home Page Sub‑Module
@@ -133,15 +201,15 @@ When the user lands on **youtube.com (Home Page)**, the page is transformed into
 
 #### Configurable Options (Home Page)
 
-Users can selectively enable:
+**Global Navigation Elements:**
 
-- YouTube logo
-- Hamburger menu
-- Left sidebar
-- Profile avatar
-- Notifications button
+All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
 
-Each option is independent and toggleable via settings.
+These settings apply globally across all YouTube pages, not just the Home page.
+
+**Page-Specific Options:**
+
+Currently, the Home Page has no page-specific configurable options beyond the global navigation elements. Future versions may add Home-specific features.
 
 ---
 
@@ -250,25 +318,22 @@ All filter controls remain accessible via the **Filters button**.
 
 #### Configurable Options (Search Page)
 
-Users can selectively re-enable hidden elements via the extension settings:
+**Global Navigation Elements:**
 
-**Content Options:**
+All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
+
+These settings apply globally across all YouTube pages, not just the Search page.
+
+**Page-Specific Content Options:**
 - ☑️ Show Shorts in search results
 - ☑️ Show Community posts
 - ☑️ Show Mixes / Playlists
 - ☑️ Show sponsored content (if detectable)
 
-**Visual Adjustments:**
+**Page-Specific Visual Adjustments:**
 - ☑️ **Thumbnail blur** (instead of hide) — reduces visual stimulation while keeping structural awareness of thumbnails
 
-**Navigation Options (Advanced):**
-- ☑️ Show YouTube logo
-- ☑️ Show hamburger menu
-- ☑️ Show left sidebar
-- ☑️ Show profile avatar
-- ☑️ Show notifications button
-
-**Important:** By default, **all navigation and chrome elements are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements.
+**Important:** By default, **all header/sidebar elements and distracting content are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings.
 
 ---
 
@@ -446,30 +511,27 @@ The following elements **must be hidden** to maintain the minimalist, distractio
 
 #### Configurable Options (Creator Profile Page)
 
-Users can selectively re-enable hidden elements via the extension settings:
+**Global Navigation Elements:**
 
-**Tab Visibility Options:**
+All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
+
+These settings apply globally across all YouTube pages, not just the Creator Profile page.
+
+**Page-Specific Tab Visibility Options:**
 - ☑️ Show Shorts tab
 - ☑️ Show Posts / Community tab
 
-**Content Options:**
+**Page-Specific Content Options:**
 - ☑️ Show Shorts-type content in Videos tab
 - ☑️ Show Community posts in Home tab
 - ☑️ Show Shorts in Playlists
 
-**Channel Action Buttons:**
+**Page-Specific Channel Action Buttons:**
 - ☑️ Show Subscribe button
 - ☑️ Show Notifications (bell) button
 - ☑️ Show Join / Membership buttons
 
-**Navigation Options (Advanced):**
-- ☑️ Show YouTube logo
-- ☑️ Show hamburger menu
-- ☑️ Show left sidebar
-- ☑️ Show profile avatar
-- ☑️ Show notifications button
-
-**Important:** By default, **all navigation chrome, action buttons, and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements.
+**Important:** By default, **all header/sidebar elements, action buttons, and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings.
 
 ---
 
@@ -665,18 +727,24 @@ Users can selectively re-enable hidden elements via extension settings. Each ele
 
 ## Functional Requirements Summary
 
-| Page           | Feature                    | Default | Configurable |
-| -------------- | -------------------------- | ------- | ------------ |
-| Home           | Search bar                 | On      | No           |
-| Home           | Feed, Shorts, Sidebar      | Off     | Yes          |
-| Search         | Long‑form videos           | On      | No           |
-| Search         | Shorts / Posts             | Off     | Yes          |
-| Creator Profile| Channel info & tabs        | On      | No           |
-| Creator Profile| Shorts / Posts tabs        | Off     | Yes          |
-| Creator Profile| Channel action buttons     | Off     | Yes          |
-| Watch          | Video                      | On      | No           |
-| Watch          | Engagement buttons         | Off     | Yes          |
-| Watch          | Comments / Recommendations | Off     | Yes          |
+| Category                   | Feature                    | Default | Configurable | Scope          |
+| -------------------------- | -------------------------- | ------- | ------------ | -------------- |
+| **Global Navigation**      | YouTube Logo               | Off     | Yes          | All pages      |
+| **Global Navigation**      | Left Sidebar (+ Hamburger) | Off     | Yes          | All pages      |
+| **Global Navigation**      | Profile Avatar             | Off     | Yes          | All pages      |
+| **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
+| **Home**            | Search bar                 | On      | No           | Home only      |
+| **Home**            | Feed, Shorts               | Off     | N/A          | Home only      |
+| **Search**          | Search bar, Results        | On      | No           | Search only    |
+| **Search**          | Shorts / Posts             | Off     | Yes          | Search only    |
+| **Search**          | Thumbnail blur             | Off     | Yes          | Search only    |
+| **Creator**         | Channel info & tabs        | On      | No           | Creator only   |
+| **Creator**         | Shorts / Posts tabs        | Off     | Yes          | Creator only   |
+| **Creator**         | Channel action buttons     | Off     | Yes          | Creator only   |
+| **Watch**           | Video player               | On      | No           | Watch only     |
+| **Watch**           | Channel info section       | On      | Yes          | Watch only     |
+| **Watch**           | Engagement buttons         | Off     | Yes          | Watch only     |
+| **Watch**           | Comments / Recommendations | Off     | Yes          | Watch only     |
 
 ---
 

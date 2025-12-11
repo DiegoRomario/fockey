@@ -201,9 +201,72 @@ const Options: React.FC = () => {
           <TabsContent value="youtube" className="space-y-6">
             <Accordion
               type="multiple"
-              defaultValue={['home', 'search', 'watch']}
+              defaultValue={['globalNavigation', 'home', 'search', 'watch']}
               className="w-full"
             >
+              {/* Global Navigation Elements */}
+              <AccordionItem value="globalNavigation">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Global Navigation Elements
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      These settings apply to <strong>all YouTube pages</strong> (Home, Search,
+                      Watch). Control persistent header and sidebar navigation elements that appear
+                      consistently across all pages.
+                    </p>
+
+                    <SettingToggle
+                      id="global-logo"
+                      label="YouTube Logo"
+                      description="Show the YouTube logo in the top-left corner"
+                      checked={settings.youtube.globalNavigation.showLogo}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'globalNavigation', 'showLogo'], checked)
+                      }
+                      tooltip="Applies to all YouTube pages"
+                    />
+
+                    <SettingToggle
+                      id="global-sidebar"
+                      label="Left Sidebar"
+                      description="Show the navigation sidebar and hamburger menu (unified component)"
+                      checked={settings.youtube.globalNavigation.showSidebar}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'globalNavigation', 'showSidebar'], checked)
+                      }
+                      tooltip="Controls both sidebar and hamburger menu across all pages"
+                    />
+
+                    <SettingToggle
+                      id="global-profile"
+                      label="Profile Avatar"
+                      description="Show your account profile picture"
+                      checked={settings.youtube.globalNavigation.showProfile}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'globalNavigation', 'showProfile'], checked)
+                      }
+                      tooltip="Applies to all YouTube pages"
+                    />
+
+                    <SettingToggle
+                      id="global-notifications"
+                      label="Notifications Bell"
+                      description="Show the notifications bell icon"
+                      checked={settings.youtube.globalNavigation.showNotifications}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'globalNavigation', 'showNotifications'],
+                          checked
+                        )
+                      }
+                      tooltip="Applies to all YouTube pages"
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
               {/* Home Page Settings */}
               <AccordionItem value="home">
                 <AccordionTrigger className="text-lg font-semibold">
@@ -211,65 +274,11 @@ const Options: React.FC = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Control which UI elements are visible on the YouTube home page. By default,
-                      only the search bar is shown.
+                    <p className="text-sm text-muted-foreground">
+                      No page-specific settings available yet. Use{' '}
+                      <strong>Global Navigation Elements</strong> above to control navigation
+                      elements on the Home page.
                     </p>
-
-                    <SettingToggle
-                      id="home-logo"
-                      label="YouTube Logo"
-                      description="Show the YouTube logo in the top-left corner"
-                      checked={settings.youtube.homePage.showLogo}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'homePage', 'showLogo'], checked)
-                      }
-                      tooltip="The clickable YouTube logo that returns you to the home page"
-                    />
-
-                    <SettingToggle
-                      id="home-hamburger"
-                      label="Hamburger Menu"
-                      description="Show the menu button to toggle the sidebar"
-                      checked={settings.youtube.homePage.showHamburger}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'homePage', 'showHamburger'], checked)
-                      }
-                      tooltip="The three-line menu icon that opens/closes the left sidebar"
-                    />
-
-                    <SettingToggle
-                      id="home-sidebar"
-                      label="Left Sidebar"
-                      description="Show the navigation sidebar (Home, Subscriptions, Library, etc.)"
-                      checked={settings.youtube.homePage.showSidebar}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'homePage', 'showSidebar'], checked)
-                      }
-                      tooltip="The left navigation panel with links to Home, Subscriptions, Library, and more"
-                    />
-
-                    <SettingToggle
-                      id="home-profile"
-                      label="Profile Avatar"
-                      description="Show your account profile picture"
-                      checked={settings.youtube.homePage.showProfile}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'homePage', 'showProfile'], checked)
-                      }
-                      tooltip="Your profile picture in the top-right corner for accessing account settings"
-                    />
-
-                    <SettingToggle
-                      id="home-notifications"
-                      label="Notifications Button"
-                      description="Show the notifications bell icon"
-                      checked={settings.youtube.homePage.showNotifications}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'homePage', 'showNotifications'], checked)
-                      }
-                      tooltip="The bell icon that shows notifications from your subscriptions"
-                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -282,59 +291,10 @@ const Options: React.FC = () => {
                 <AccordionContent>
                   <div className="space-y-1 pt-2">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Control which elements appear in YouTube search results. By default, only
-                      long-form videos are shown.
+                      Control which content appears in YouTube search results. By default, only
+                      long-form videos are shown. Use <strong>Global Navigation Elements</strong>{' '}
+                      above to control header and sidebar elements.
                     </p>
-
-                    {/* Navigation Chrome */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Navigation Elements</h4>
-                      <SettingToggle
-                        id="search-logo"
-                        label="YouTube Logo"
-                        checked={settings.youtube.searchPage.showLogo}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showLogo'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="search-hamburger"
-                        label="Hamburger Menu"
-                        checked={settings.youtube.searchPage.showHamburger}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showHamburger'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="search-sidebar"
-                        label="Left Sidebar"
-                        checked={settings.youtube.searchPage.showSidebar}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showSidebar'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="search-profile"
-                        label="Profile Avatar"
-                        checked={settings.youtube.searchPage.showProfile}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showProfile'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="search-notifications"
-                        label="Notifications Button"
-                        checked={settings.youtube.searchPage.showNotifications}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'searchPage', 'showNotifications'],
-                            checked
-                          )
-                        }
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
 
                     {/* Content Options */}
                     <div className="mb-4">

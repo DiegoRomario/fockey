@@ -121,6 +121,10 @@ const Popup: React.FC = () => {
           youtube: {
             ...prev.youtube,
             ...(updates.youtube || {}),
+            globalNavigation: {
+              ...prev.youtube.globalNavigation,
+              ...(updates.youtube?.globalNavigation || {}),
+            },
             homePage: {
               ...prev.youtube.homePage,
               ...(updates.youtube?.homePage || {}),
@@ -159,16 +163,16 @@ const Popup: React.FC = () => {
   );
 
   /**
-   * Handle individual page setting toggles
+   * Handle global navigation setting toggles
    */
-  const handleHomePageToggle = useCallback(
+  const handleGlobalNavigationToggle = useCallback(
     (key: string, value: boolean) => {
       if (!settings) return;
       handleSettingsChange({
         youtube: {
           ...settings.youtube,
-          homePage: {
-            ...settings.youtube.homePage,
+          globalNavigation: {
+            ...settings.youtube.globalNavigation,
             [key]: value,
           },
         },
@@ -177,6 +181,9 @@ const Popup: React.FC = () => {
     [settings, handleSettingsChange]
   );
 
+  /**
+   * Handle individual page setting toggles
+   */
   const handleSearchPageToggle = useCallback(
     (key: string, value: boolean) => {
       if (!settings) return;
@@ -270,20 +277,20 @@ const Popup: React.FC = () => {
 
           {/* Quick Access Toggles */}
           <div className="space-y-3">
-            {/* Home Page Settings */}
-            <SettingsSection title="Home Page">
+            {/* Global Navigation Settings */}
+            <SettingsSection title="Navigation (All Pages)">
               <ModuleToggle
-                id="home-sidebar"
+                id="global-sidebar"
                 label="Show Sidebar"
-                checked={settings.youtube.homePage.showSidebar}
-                onChange={(checked) => handleHomePageToggle('showSidebar', checked)}
+                checked={settings.youtube.globalNavigation.showSidebar}
+                onChange={(checked) => handleGlobalNavigationToggle('showSidebar', checked)}
                 disabled={!settings.youtube.enabled}
               />
               <ModuleToggle
-                id="home-profile"
+                id="global-profile"
                 label="Show Profile"
-                checked={settings.youtube.homePage.showProfile}
-                onChange={(checked) => handleHomePageToggle('showProfile', checked)}
+                checked={settings.youtube.globalNavigation.showProfile}
+                onChange={(checked) => handleGlobalNavigationToggle('showProfile', checked)}
                 disabled={!settings.youtube.enabled}
               />
             </SettingsSection>

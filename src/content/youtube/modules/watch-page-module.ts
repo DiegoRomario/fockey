@@ -4,7 +4,7 @@
  * Wraps existing watch page functionality with standardized lifecycle
  */
 
-import type { ModuleInterface, PageSettings } from '../types';
+import type { ModuleInterface, ModuleSettings } from '../types';
 import type { WatchPageSettings } from '../../../shared/types/settings';
 import { initWatchPageModule, cleanupWatchPageModule, applyWatchPageSettings } from '../watch-page';
 
@@ -17,9 +17,10 @@ class WatchPageModule implements ModuleInterface {
 
   /**
    * Initializes the watch page module
+   * Note: Watch page doesn't currently use global navigation settings
    */
-  async init(settings: PageSettings): Promise<void> {
-    this.settings = settings as WatchPageSettings;
+  async init(settings: ModuleSettings): Promise<void> {
+    this.settings = settings.pageSettings as WatchPageSettings;
     this.isInitialized = true;
     await initWatchPageModule(this.settings);
   }
@@ -28,8 +29,8 @@ class WatchPageModule implements ModuleInterface {
    * Updates settings without full re-initialization
    * Enables hot reload when settings change
    */
-  updateSettings(settings: PageSettings): void {
-    this.settings = settings as WatchPageSettings;
+  updateSettings(settings: ModuleSettings): void {
+    this.settings = settings.pageSettings as WatchPageSettings;
     if (this.isInitialized) {
       // Re-apply settings using existing functionality
       applyWatchPageSettings(this.settings);

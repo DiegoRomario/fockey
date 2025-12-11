@@ -5,6 +5,7 @@
 
 import {
   ExtensionSettings,
+  GlobalNavigationSettings,
   HomePageSettings,
   SearchPageSettings,
   WatchPageSettings,
@@ -36,12 +37,11 @@ function validateBooleanObject(obj: unknown, requiredKeys: string[]): boolean {
 }
 
 /**
- * Validates HomePageSettings structure
+ * Validates GlobalNavigationSettings structure
  */
-function validateHomePageSettings(settings: unknown): settings is HomePageSettings {
+function validateGlobalNavigationSettings(settings: unknown): settings is GlobalNavigationSettings {
   return validateBooleanObject(settings, [
     'showLogo',
-    'showHamburger',
     'showSidebar',
     'showProfile',
     'showNotifications',
@@ -49,10 +49,28 @@ function validateHomePageSettings(settings: unknown): settings is HomePageSettin
 }
 
 /**
+ * Validates HomePageSettings structure
+ * Note: HomePageSettings is currently empty (reserved for future expansion)
+ */
+function validateHomePageSettings(settings: unknown): settings is HomePageSettings {
+  // HomePageSettings is an empty interface - just validate it's an object
+  if (!settings || typeof settings !== 'object') {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Validates SearchPageSettings structure
  */
 function validateSearchPageSettings(settings: unknown): settings is SearchPageSettings {
-  return validateBooleanObject(settings, ['showShorts', 'showCommunityPosts', 'blurThumbnails']);
+  return validateBooleanObject(settings, [
+    'showShorts',
+    'showCommunityPosts',
+    'showMixes',
+    'showSponsored',
+    'blurThumbnails',
+  ]);
 }
 
 /**
@@ -89,6 +107,12 @@ function validateYouTubeModuleSettings(settings: unknown): settings is YouTubeMo
   // Validate enabled property
   if (typeof youtubeSettings.enabled !== 'boolean') {
     console.error('Validation failed: YouTubeModuleSettings.enabled is not a boolean');
+    return false;
+  }
+
+  // Validate global navigation settings
+  if (!validateGlobalNavigationSettings(youtubeSettings.globalNavigation)) {
+    console.error('Validation failed: invalid globalNavigation settings');
     return false;
   }
 

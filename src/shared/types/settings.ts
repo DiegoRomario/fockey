@@ -4,39 +4,38 @@
  */
 
 /**
+ * Global Navigation Elements settings (applies to all YouTube pages)
+ * Controls visibility of persistent header and sidebar navigation elements
+ * that appear consistently across Home, Search, Watch, and Creator Profile pages
+ */
+export interface GlobalNavigationSettings {
+  /** Show YouTube logo in header */
+  showLogo: boolean;
+  /** Show left sidebar (includes hamburger menu - unified component) */
+  showSidebar: boolean;
+  /** Show profile avatar in header */
+  showProfile: boolean;
+  /** Show notifications bell in header */
+  showNotifications: boolean;
+}
+
+/**
  * Settings for YouTube Home Page
  * Controls visibility of UI elements on youtube.com home page
+ * Note: Global navigation elements are controlled via GlobalNavigationSettings
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HomePageSettings {
-  /** Show/hide YouTube logo */
-  showLogo: boolean;
-  /** Show/hide hamburger menu */
-  showHamburger: boolean;
-  /** Show/hide left sidebar (Home, Subscriptions, etc.) */
-  showSidebar: boolean;
-  /** Show/hide profile avatar */
-  showProfile: boolean;
-  /** Show/hide notifications button */
-  showNotifications: boolean;
+  // Empty for now - future expansion point for home-specific features
+  // Global navigation elements moved to GlobalNavigationSettings
 }
 
 /**
  * Settings for YouTube Search Page
  * Controls visibility of UI elements in search results
+ * Note: Global navigation elements are controlled via GlobalNavigationSettings
  */
 export interface SearchPageSettings {
-  // Navigation chrome controls (matching HomePageSettings)
-  /** Show/hide YouTube logo */
-  showLogo: boolean;
-  /** Show/hide hamburger menu */
-  showHamburger: boolean;
-  /** Show/hide left sidebar (Home, Subscriptions, etc.) */
-  showSidebar: boolean;
-  /** Show/hide profile avatar */
-  showProfile: boolean;
-  /** Show/hide notifications button */
-  showNotifications: boolean;
-
   // Content controls
   /** Show/hide Shorts in search results */
   showShorts: boolean;
@@ -104,6 +103,8 @@ export interface WatchPageSettings {
 export interface YouTubeModuleSettings {
   /** Enable/disable the YouTube module entirely */
   enabled: boolean;
+  /** Global navigation elements settings (applies to all YouTube pages) */
+  globalNavigation: GlobalNavigationSettings;
   /** Home page settings */
   homePage: HomePageSettings;
   /** Search page settings */
@@ -126,28 +127,25 @@ export interface ExtensionSettings {
 /**
  * Default settings for the extension
  * Implements the "Minimal by default" principle:
+ * - All global navigation elements hidden by default
  * - All UI elements hidden by default on Home page
  * - Only long-form videos shown on Search page
  * - Only video player and essential controls on Watch page
  */
 export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
-  version: '1.0.0',
+  version: '1.1.0',
   youtube: {
     enabled: true,
-    homePage: {
+    globalNavigation: {
       showLogo: false,
-      showHamburger: false,
-      showSidebar: false,
+      showSidebar: false, // Unified: controls both sidebar and hamburger menu
       showProfile: false,
       showNotifications: false,
     },
+    homePage: {
+      // Empty for now - future expansion point
+    },
     searchPage: {
-      // Navigation chrome (hidden by default - minimalist principle)
-      showLogo: false,
-      showHamburger: false,
-      showSidebar: false,
-      showProfile: false,
-      showNotifications: false,
       // Content (hidden by default - minimalist principle)
       showShorts: false,
       showCommunityPosts: false,
