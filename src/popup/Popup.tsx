@@ -137,6 +137,10 @@ const Popup: React.FC = () => {
               ...prev.youtube.watchPage,
               ...(updates.youtube?.watchPage || {}),
             },
+            creatorProfilePage: {
+              ...prev.youtube.creatorProfilePage,
+              ...(updates.youtube?.creatorProfilePage || {}),
+            },
           },
         };
       });
@@ -208,6 +212,22 @@ const Popup: React.FC = () => {
           ...settings.youtube,
           watchPage: {
             ...settings.youtube.watchPage,
+            [key]: value,
+          },
+        },
+      });
+    },
+    [settings, handleSettingsChange]
+  );
+
+  const handleCreatorProfilePageToggle = useCallback(
+    (key: string, value: boolean) => {
+      if (!settings) return;
+      handleSettingsChange({
+        youtube: {
+          ...settings.youtube,
+          creatorProfilePage: {
+            ...settings.youtube.creatorProfilePage,
             [key]: value,
           },
         },
@@ -327,6 +347,24 @@ const Popup: React.FC = () => {
                 label="Show Related Videos"
                 checked={settings.youtube.watchPage.showRelated}
                 onChange={(checked) => handleWatchPageToggle('showRelated', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+            </SettingsSection>
+
+            {/* Creator Profile Page Settings */}
+            <SettingsSection title="Creator Profile Page">
+              <ModuleToggle
+                id="creator-shorts-tab"
+                label="Show Shorts Tab"
+                checked={settings.youtube.creatorProfilePage.showShortsTab}
+                onChange={(checked) => handleCreatorProfilePageToggle('showShortsTab', checked)}
+                disabled={!settings.youtube.enabled}
+              />
+              <ModuleToggle
+                id="creator-posts-tab"
+                label="Show Posts Tab"
+                checked={settings.youtube.creatorProfilePage.showCommunityTab}
+                onChange={(checked) => handleCreatorProfilePageToggle('showCommunityTab', checked)}
                 disabled={!settings.youtube.enabled}
               />
             </SettingsSection>

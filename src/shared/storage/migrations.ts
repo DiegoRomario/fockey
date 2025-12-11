@@ -73,6 +73,8 @@ export const MIGRATIONS: Migration[] = [
           homePage,
           searchPage,
           watchPage: oldSettings.youtube?.watchPage || DEFAULT_SETTINGS.youtube.watchPage,
+          creatorProfilePage:
+            oldSettings.youtube?.creatorProfilePage || DEFAULT_SETTINGS.youtube.creatorProfilePage,
         },
       };
     },

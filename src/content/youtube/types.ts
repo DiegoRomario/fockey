@@ -9,6 +9,7 @@ import type {
   HomePageSettings,
   SearchPageSettings,
   WatchPageSettings,
+  CreatorProfilePageSettings,
 } from '../../shared/types/settings';
 
 /**
@@ -22,7 +23,9 @@ export enum PageType {
   SEARCH = 'search',
   /** Video watch page (/watch) */
   WATCH = 'watch',
-  /** Other YouTube pages (channel, playlist, etc.) */
+  /** Creator profile/channel page (/@username, /c/, /user/, /channel/) */
+  CREATOR_PROFILE = 'creator-profile',
+  /** Other YouTube pages (playlist, etc.) */
   OTHER = 'other',
 }
 
@@ -30,7 +33,11 @@ export enum PageType {
  * Settings type for each page module
  * Maps PageType to its corresponding settings interface
  */
-export type PageSettings = HomePageSettings | SearchPageSettings | WatchPageSettings;
+export type PageSettings =
+  | HomePageSettings
+  | SearchPageSettings
+  | WatchPageSettings
+  | CreatorProfilePageSettings;
 
 /**
  * Complete module settings including both page-specific and global navigation

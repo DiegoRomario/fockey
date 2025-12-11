@@ -521,17 +521,15 @@ These settings apply globally across all YouTube pages, not just the Creator Pro
 - ☑️ Show Shorts tab
 - ☑️ Show Posts / Community tab
 
-**Page-Specific Content Options:**
-- ☑️ Show Shorts-type content in Videos tab
+**Page-Specific Content Filtering Options (Home Tab Only):**
 - ☑️ Show Community posts in Home tab
-- ☑️ Show Shorts in Playlists
+- ☑️ Show Shorts in Home tab
 
-**Page-Specific Channel Action Buttons:**
-- ☑️ Show Subscribe button
-- ☑️ Show Notifications (bell) button
-- ☑️ Show Join / Membership buttons
+**Channel Action Buttons:**
 
-**Important:** By default, **all header/sidebar elements, action buttons, and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings.
+Channel action buttons (Subscribe, Join, Notifications Bell, See Perks) are **always visible** on creator profile pages by default and are **not configurable** on this page. These buttons are essential for creator-viewer interaction and engagement. Users can control these buttons specifically on the Watch page if desired.
+
+**Important:** By default, **all header/sidebar elements and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings. The four configurable options for Creator Profile pages are intentionally minimal to preserve the core channel browsing experience.
 
 ---
 
@@ -567,15 +565,16 @@ These settings apply globally across all YouTube pages, not just the Creator Pro
 
 The Creator Profile Page is considered **successfully implemented** when:
 
-- ✅ Only the search bar, channel header (banner, avatar, name, metadata), and allowed tabs are visible by default
-- ✅ All navigation chrome (logo, sidebar, profile, etc.) is hidden
+- ✅ Only the search bar, channel header (banner, avatar, name, metadata), channel action buttons (Subscribe, Join, Notifications, See Perks), and Videos tab are visible by default
+- ✅ All navigation chrome (logo, sidebar, profile avatar, notifications bell) is hidden by default (controlled by Global Navigation settings)
 - ✅ Shorts and Posts tabs are hidden by default
-- ✅ Shorts-type content is filtered out of the Videos tab and other visible tabs
-- ✅ Channel action buttons (Subscribe, Join, Notifications) are hidden by default
+- ✅ Shorts content is filtered out of the Home tab unless explicitly enabled
+- ✅ Community posts are filtered out of the Home tab unless explicitly enabled
+- ✅ Channel action buttons (Subscribe, Join, Notifications Bell, See Perks) remain always visible and are not configurable
 - ✅ Native YouTube channel navigation and tab switching remain intact
 - ✅ Channel metadata and creator information remain fully accessible
 - ✅ Visual design matches the minimalist style of the Home and Search pages
-- ✅ Settings allow granular control over re-enabling hidden tabs, content types, and action buttons
+- ✅ Settings allow granular control over 4 specific options: Show Shorts Tab, Show Posts Tab, Show Community Posts in Home Tab, Show Shorts in Home Tab
 - ✅ No performance degradation or flickering during page load or tab switching
 
 ---

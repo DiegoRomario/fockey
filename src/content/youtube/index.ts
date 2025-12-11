@@ -59,7 +59,18 @@ function detectYouTubePage(): PageType {
     return PageType.WATCH;
   }
 
-  // All other pages (channels, playlists, shorts, etc.)
+  // Creator profile page detection (various URL formats)
+  // /@username, /c/channelname, /user/username, /channel/UCxxxxxxx
+  if (
+    path.startsWith('/@') ||
+    path.startsWith('/c/') ||
+    path.startsWith('/user/') ||
+    path.startsWith('/channel/')
+  ) {
+    return PageType.CREATOR_PROFILE;
+  }
+
+  // All other pages (playlists, shorts, etc.)
   return PageType.OTHER;
 }
 
@@ -85,6 +96,10 @@ async function loadModule(pageType: PageType): Promise<ModuleInterface | null> {
       case PageType.WATCH: {
         const { watchPageModule } = await import('./modules/watch-page-module');
         return watchPageModule;
+      }
+      case PageType.CREATOR_PROFILE: {
+        const { creatorProfilePageModule } = await import('./modules/creator-profile-page-module');
+        return creatorProfilePageModule;
       }
       case PageType.OTHER:
         // No module for other page types
@@ -119,6 +134,9 @@ function getPageSettings(pageType: PageType, settings: ExtensionSettings): Modul
       break;
     case PageType.WATCH:
       pageSettings = settings.youtube.watchPage;
+      break;
+    case PageType.CREATOR_PROFILE:
+      pageSettings = settings.youtube.creatorProfilePage;
       break;
     default:
       return null;

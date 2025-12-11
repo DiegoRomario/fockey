@@ -97,6 +97,26 @@ export interface WatchPageSettings {
 }
 
 /**
+ * Settings for YouTube Creator Profile Page
+ * Controls visibility of UI elements on channel/creator profile pages
+ * Note: Global navigation elements are controlled via GlobalNavigationSettings
+ * Channel action buttons (Subscribe, Join, Notifications, See Perks) are always visible on creator profiles
+ */
+export interface CreatorProfilePageSettings {
+  // Tab visibility controls
+  /** Show/hide Shorts tab */
+  showShortsTab: boolean;
+  /** Show/hide Community/Posts tab */
+  showCommunityTab: boolean;
+
+  // Content filtering controls (Home tab only)
+  /** Show/hide Community posts in Home tab */
+  showCommunityInHome: boolean;
+  /** Show/hide Shorts in Home tab */
+  showShortsInHome: boolean;
+}
+
+/**
  * Settings for the YouTube module
  * Top-level settings for YouTube-specific features
  */
@@ -111,6 +131,8 @@ export interface YouTubeModuleSettings {
   searchPage: SearchPageSettings;
   /** Watch page settings */
   watchPage: WatchPageSettings;
+  /** Creator profile page settings */
+  creatorProfilePage: CreatorProfilePageSettings;
 }
 
 /**
@@ -174,6 +196,14 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showRelated: false,
       showPlaylists: false,
       showEndScreen: false,
+    },
+    creatorProfilePage: {
+      // Tab visibility (hidden by default - minimalist principle)
+      showShortsTab: false,
+      showCommunityTab: false,
+      // Content filtering in Home tab (hidden by default - minimalist principle)
+      showCommunityInHome: false,
+      showShortsInHome: false,
     },
   },
 } as const;

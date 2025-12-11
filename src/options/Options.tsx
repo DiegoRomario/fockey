@@ -201,7 +201,7 @@ const Options: React.FC = () => {
           <TabsContent value="youtube" className="space-y-6">
             <Accordion
               type="multiple"
-              defaultValue={['globalNavigation', 'home', 'search', 'watch']}
+              defaultValue={['globalNavigation', 'home', 'search', 'watch', 'creatorProfile']}
               className="w-full"
             >
               {/* Global Navigation Elements */}
@@ -568,6 +568,88 @@ const Options: React.FC = () => {
                         onChange={(checked) =>
                           handleSettingChange(['youtube', 'watchPage', 'showEndScreen'], checked)
                         }
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Creator Profile Page Settings */}
+              <AccordionItem value="creatorProfile">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Creator Profile Page Settings
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Control which tabs and content appear on YouTube channel/creator profile
+                      pages. Channel action buttons (Subscribe, Join, Notifications, See Perks) are
+                      always visible on creator profiles. Use{' '}
+                      <strong>Global Navigation Elements</strong> above to control header and
+                      sidebar elements.
+                    </p>
+
+                    {/* Tab Visibility */}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Tab Visibility</h4>
+                      <SettingToggle
+                        id="creator-shorts-tab"
+                        label="Show Shorts Tab"
+                        description="Display the Shorts tab on creator profiles"
+                        checked={settings.youtube.creatorProfilePage.showShortsTab}
+                        onChange={(checked) =>
+                          handleSettingChange(
+                            ['youtube', 'creatorProfilePage', 'showShortsTab'],
+                            checked
+                          )
+                        }
+                        tooltip="The tab that shows the creator's Shorts videos"
+                      />
+                      <SettingToggle
+                        id="creator-community-tab"
+                        label="Show Posts Tab"
+                        description="Display the Community/Posts tab"
+                        checked={settings.youtube.creatorProfilePage.showCommunityTab}
+                        onChange={(checked) =>
+                          handleSettingChange(
+                            ['youtube', 'creatorProfilePage', 'showCommunityTab'],
+                            checked
+                          )
+                        }
+                        tooltip="The tab that shows community posts and updates"
+                      />
+                    </div>
+
+                    <Separator className="my-4" />
+
+                    {/* Content Filtering (Home Tab) */}
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Home Tab Content</h4>
+                      <SettingToggle
+                        id="creator-community-in-home"
+                        label="Show Community Posts in Home Tab"
+                        description="Display community posts in the Home tab"
+                        checked={settings.youtube.creatorProfilePage.showCommunityInHome}
+                        onChange={(checked) =>
+                          handleSettingChange(
+                            ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
+                            checked
+                          )
+                        }
+                        tooltip="Text, image, and poll posts shown on the channel's Home tab"
+                      />
+                      <SettingToggle
+                        id="creator-shorts-in-home"
+                        label="Show Shorts in Home Tab"
+                        description="Display Shorts content in the Home tab"
+                        checked={settings.youtube.creatorProfilePage.showShortsInHome}
+                        onChange={(checked) =>
+                          handleSettingChange(
+                            ['youtube', 'creatorProfilePage', 'showShortsInHome'],
+                            checked
+                          )
+                        }
+                        tooltip="Shorts shelf shown on the channel's Home tab"
                       />
                     </div>
                   </div>
