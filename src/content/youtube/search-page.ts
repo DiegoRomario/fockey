@@ -232,15 +232,52 @@ function generateSearchPageCSS(
 
   // Center search bar when navigation chrome is hidden
   rules.push(`
-    /* Center search bar in header */
+    /* Center search bar in header with balanced flex layout */
     ${SEARCH_PAGE_SELECTORS.MASTHEAD_CONTAINER} {
       display: flex !important;
-      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    /* Force start and end sections to take equal space for true centering */
+    #start.ytd-masthead,
+    #end.ytd-masthead {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+    }
+
+    /* Center section maintains proper search box width */
+    #center.ytd-masthead {
+      flex: 0 0 auto !important;
+      max-width: 732px !important;
+      width: 100% !important;
+    }
+
+    /* Align content within start and end sections */
+    #start.ytd-masthead {
+      display: flex !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+    }
+
+    #end.ytd-masthead {
+      display: flex !important;
+      justify-content: flex-end !important;
       align-items: center !important;
     }
 
     ${SEARCH_PAGE_SELECTORS.SEARCH_FORM} {
       margin: 0 auto !important;
+      width: 100% !important;
+      max-width: 640px !important;
+    }
+
+    /* Reset asymmetric margins on search box components */
+    .ytSearchboxComponentHost {
+      margin: 0 !important;
+    }
+
+    .ytSearchboxComponentInputBox {
+      margin-left: 0 !important;
     }
 
     /* Smooth transitions for settings changes */
