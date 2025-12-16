@@ -5,7 +5,7 @@
  */
 
 import type { ModuleInterface, ModuleSettings } from '../types';
-import type { WatchPageSettings } from '../../../shared/types/settings';
+import type { WatchPageSettings, GlobalNavigationSettings } from '../../../shared/types/settings';
 import { initWatchPageModule, cleanupWatchPageModule, applyWatchPageSettings } from '../watch-page';
 
 /**
@@ -13,16 +13,17 @@ import { initWatchPageModule, cleanupWatchPageModule, applyWatchPageSettings } f
  */
 class WatchPageModule implements ModuleInterface {
   private settings: WatchPageSettings | null = null;
+  private globalNavigation: GlobalNavigationSettings | null = null;
   private isInitialized = false;
 
   /**
    * Initializes the watch page module
-   * Note: Watch page doesn't currently use global navigation settings
    */
   async init(settings: ModuleSettings): Promise<void> {
     this.settings = settings.pageSettings as WatchPageSettings;
+    this.globalNavigation = settings.globalNavigation;
     this.isInitialized = true;
-    await initWatchPageModule(this.settings);
+    await initWatchPageModule(this.settings, this.globalNavigation);
   }
 
   /**
@@ -31,9 +32,10 @@ class WatchPageModule implements ModuleInterface {
    */
   updateSettings(settings: ModuleSettings): void {
     this.settings = settings.pageSettings as WatchPageSettings;
+    this.globalNavigation = settings.globalNavigation;
     if (this.isInitialized) {
       // Re-apply settings using existing functionality
-      applyWatchPageSettings(this.settings);
+      applyWatchPageSettings(this.settings, this.globalNavigation);
     }
   }
 
@@ -43,6 +45,7 @@ class WatchPageModule implements ModuleInterface {
   destroy(): void {
     cleanupWatchPageModule();
     this.settings = null;
+    this.globalNavigation = null;
     this.isInitialized = false;
   }
 }

@@ -263,6 +263,20 @@ const Options: React.FC = () => {
                       }
                       tooltip="Applies to all YouTube pages"
                     />
+
+                    <SettingToggle
+                      id="global-hover-previews"
+                      label="Hover Previews"
+                      description="Enable video preview autoplay when hovering over thumbnails"
+                      checked={settings.youtube.globalNavigation.enableHoverPreviews}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'globalNavigation', 'enableHoverPreviews'],
+                          checked
+                        )
+                      }
+                      tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

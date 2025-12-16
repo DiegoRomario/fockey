@@ -4,8 +4,9 @@
  * Hides engagement buttons, comments, recommendations while preserving video player and controls
  */
 
-import { WatchPageSettings } from '../../shared/types/settings';
+import { WatchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
+import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 
 /**
  * YouTube element selectors for watch page
@@ -110,6 +111,11 @@ const STYLE_TAG_ID = 'fockey-watch-styles';
  * MutationObserver instance for detecting dynamic content
  */
 let mutationObserver: MutationObserver | null = null;
+
+/**
+ * HoverPreviewBlocker instance for managing hover preview behavior
+ */
+let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
  * Current video ID to detect video navigation
@@ -457,9 +463,17 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
  *
  * @param settings - Watch page settings object
  */
-export function applyWatchPageSettings(settings: WatchPageSettings): void {
+export function applyWatchPageSettings(
+  settings: WatchPageSettings,
+  globalNavigation?: GlobalNavigationSettings
+): void {
   const css = generateWatchPageCSS(settings);
   injectCSS(css, STYLE_TAG_ID);
+
+  // Update hover preview blocker settings if globalNavigation is provided
+  if (globalNavigation) {
+    hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
+  }
 }
 
 /**
@@ -576,7 +590,10 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
  *
  * @param settings - Watch page settings object
  */
-export async function initWatchPageModule(settings: WatchPageSettings): Promise<void> {
+export async function initWatchPageModule(
+  settings: WatchPageSettings,
+  globalNavigation?: GlobalNavigationSettings
+): Promise<void> {
   try {
     // Wait for essential elements to load
     await waitForElement(WATCH_PAGE_SELECTORS.VIDEO_PLAYER, 5000);
@@ -592,6 +609,12 @@ export async function initWatchPageModule(settings: WatchPageSettings): Promise<
 
     // Set up video navigation detection
     setupVideoNavigationListener(settings);
+
+    // Initialize hover preview blocker if globalNavigation is provided
+    if (globalNavigation) {
+      hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
+      hoverPreviewBlocker.init();
+    }
 
     console.log('[Fockey] Watch page module initialized');
   } catch (error) {
@@ -611,6 +634,12 @@ export function cleanupWatchPageModule(): void {
   if (mutationObserver) {
     mutationObserver.disconnect();
     mutationObserver = null;
+  }
+
+  // Cleanup hover preview blocker
+  if (hoverPreviewBlocker) {
+    hoverPreviewBlocker.cleanup();
+    hoverPreviewBlocker = null;
   }
 
   // Reset current video ID

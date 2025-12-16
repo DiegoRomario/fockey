@@ -6,6 +6,7 @@
 
 import { SearchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
+import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 
 /**
  * YouTube element selectors for search results page
@@ -62,6 +63,11 @@ const STYLE_TAG_ID = 'fockey-search-styles';
  * MutationObserver instance for detecting dynamic content
  */
 let mutationObserver: MutationObserver | null = null;
+
+/**
+ * HoverPreviewBlocker instance for managing hover preview behavior
+ */
+let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
  * Generates CSS rules based on search page and global navigation settings
@@ -302,6 +308,9 @@ export function applySearchPageSettings(
 ): void {
   const css = generateSearchPageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
+
+  // Update hover preview blocker settings
+  hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 }
 
 /**
@@ -400,6 +409,10 @@ export async function initSearchPageModule(
     // Set up mutation observer for dynamic content
     setupMutationObserver(pageSettings, globalNavigation);
 
+    // Initialize hover preview blocker
+    hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
+    hoverPreviewBlocker.init();
+
     console.log('[Fockey] Search page module initialized');
   } catch (error) {
     console.error('[Fockey] Failed to initialize search page module:', error);
@@ -418,6 +431,12 @@ export function cleanupSearchPageModule(): void {
   if (mutationObserver) {
     mutationObserver.disconnect();
     mutationObserver = null;
+  }
+
+  // Cleanup hover preview blocker
+  if (hoverPreviewBlocker) {
+    hoverPreviewBlocker.cleanup();
+    hoverPreviewBlocker = null;
   }
 
   console.log('[Fockey] Search page module cleaned up');

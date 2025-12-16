@@ -52,6 +52,7 @@ export const MIGRATIONS: Migration[] = [
           oldSettings.youtube?.homePage?.showNotifications ||
           oldSettings.youtube?.searchPage?.showNotifications ||
           false,
+        enableHoverPreviews: oldSettings.youtube?.globalNavigation?.enableHoverPreviews ?? false,
       };
 
       // Remove global navigation fields from page-specific settings

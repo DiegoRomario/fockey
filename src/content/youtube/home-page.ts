@@ -6,6 +6,7 @@
 
 import { HomePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
+import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 
 /**
  * YouTube element selectors for home page
@@ -52,6 +53,11 @@ const STYLE_TAG_ID = 'fockey-home-styles';
  * MutationObserver instance for detecting dynamic content
  */
 let mutationObserver: MutationObserver | null = null;
+
+/**
+ * HoverPreviewBlocker instance for managing hover preview behavior
+ */
+let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
  * Current settings state
@@ -243,6 +249,9 @@ export function applyHomePageSettings(
   // currentSettings = settings; // Reserved for future real-time updates
   const css = generateHomePageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
+
+  // Update hover preview blocker settings
+  hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 }
 
 /**
@@ -337,6 +346,10 @@ export async function initHomePageModule(
     // Set up mutation observer for dynamic content
     setupMutationObserver(pageSettings, globalNavigation);
 
+    // Initialize hover preview blocker
+    hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
+    hoverPreviewBlocker.init();
+
     console.log('[Fockey] Home page module initialized');
   } catch (error) {
     console.error('[Fockey] Failed to initialize home page module:', error);
@@ -355,6 +368,12 @@ export function cleanupHomePageModule(): void {
   if (mutationObserver) {
     mutationObserver.disconnect();
     mutationObserver = null;
+  }
+
+  // Cleanup hover preview blocker
+  if (hoverPreviewBlocker) {
+    hoverPreviewBlocker.cleanup();
+    hoverPreviewBlocker = null;
   }
 
   console.log('[Fockey] Home page module cleaned up');

@@ -6,6 +6,7 @@
 
 import { CreatorProfilePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, debounce } from './utils/dom-helpers';
+import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 
 /**
  * YouTube element selectors for creator profile pages
@@ -60,6 +61,11 @@ const STYLE_TAG_ID = 'fockey-creator-profile-styles';
  * MutationObserver instance for detecting dynamic content
  */
 let mutationObserver: MutationObserver | null = null;
+
+/**
+ * HoverPreviewBlocker instance for managing hover preview behavior
+ */
+let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
  * Generates CSS rules based on creator profile page and global navigation settings
@@ -343,6 +349,10 @@ export async function initCreatorProfileModule(
   // Set up mutation observer for dynamic content
   mutationObserver = setupCreatorProfileObserver(pageSettings);
 
+  // Initialize hover preview blocker
+  hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
+  hoverPreviewBlocker.init();
+
   console.log('[Fockey] Creator Profile page module initialized');
 }
 
@@ -369,6 +379,9 @@ export function applyCreatorProfileSettings(
   // Re-apply content filtering
   filterCreatorProfileContent(pageSettings);
 
+  // Update hover preview blocker settings
+  hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
+
   console.log('[Fockey] Creator Profile settings applied');
 }
 
@@ -386,6 +399,12 @@ export function cleanupCreatorProfileModule(): void {
   if (mutationObserver) {
     mutationObserver.disconnect();
     mutationObserver = null;
+  }
+
+  // Cleanup hover preview blocker
+  if (hoverPreviewBlocker) {
+    hoverPreviewBlocker.cleanup();
+    hoverPreviewBlocker = null;
   }
 
   // Restore filtered content

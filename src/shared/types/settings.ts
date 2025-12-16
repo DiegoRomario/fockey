@@ -17,6 +17,8 @@ export interface GlobalNavigationSettings {
   showProfile: boolean;
   /** Show notifications bell in header */
   showNotifications: boolean;
+  /** Enable hover previews on video thumbnails */
+  enableHoverPreviews: boolean;
 }
 
 /**
@@ -163,6 +165,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showSidebar: false, // Unified: controls both sidebar and hamburger menu
       showProfile: false,
       showNotifications: false,
+      enableHoverPreviews: false, // Disabled by default (minimalist principle)
     },
     homePage: {
       // Empty for now - future expansion point
