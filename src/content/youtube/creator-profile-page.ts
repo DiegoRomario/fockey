@@ -68,6 +68,17 @@ let mutationObserver: MutationObserver | null = null;
 let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
+ * Current settings state
+ * Stores the latest settings to ensure mutation observer uses up-to-date values
+ * Note: currentGlobalNavigation is stored for consistency and potential future use,
+ * but is not directly used by the mutation observer (which only filters content).
+ * Global navigation is handled by CSS which is applied via applyCreatorProfileSettings.
+ */
+let currentPageSettings: CreatorProfilePageSettings | null = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+
+/**
  * Generates CSS rules based on creator profile page and global navigation settings
  * Returns CSS string with display: none rules for hidden elements
  *
@@ -294,13 +305,18 @@ function filterCreatorProfileContent(pageSettings: CreatorProfilePageSettings): 
  * Sets up MutationObserver to detect dynamically loaded content
  * Monitors for new content added to the page and applies filtering
  *
- * @param pageSettings - Creator profile page settings
+ * Note: This function is called once during initialization and uses the current
+ * settings stored in module-level variables to ensure settings updates are reflected
+ *
  * @returns MutationObserver instance for cleanup
  */
-function setupCreatorProfileObserver(pageSettings: CreatorProfilePageSettings): MutationObserver {
+function setupCreatorProfileObserver(): MutationObserver {
   // Debounced content filtering to prevent excessive calls
   const debouncedFilter = debounce(() => {
-    filterCreatorProfileContent(pageSettings);
+    // Use current settings from module-level variables, not captured parameters
+    if (currentPageSettings) {
+      filterCreatorProfileContent(currentPageSettings);
+    }
   }, 100);
 
   const observer = new MutationObserver((mutations) => {
@@ -339,6 +355,10 @@ export async function initCreatorProfileModule(
     globalNavigation,
   });
 
+  // Store current settings for mutation observer to use
+  currentPageSettings = pageSettings;
+  currentGlobalNavigation = globalNavigation;
+
   // Generate and inject CSS
   const css = generateCreatorProfileCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
@@ -346,8 +366,8 @@ export async function initCreatorProfileModule(
   // Apply initial content filtering
   filterCreatorProfileContent(pageSettings);
 
-  // Set up mutation observer for dynamic content
-  mutationObserver = setupCreatorProfileObserver(pageSettings);
+  // Set up mutation observer for dynamic content (uses stored settings)
+  mutationObserver = setupCreatorProfileObserver();
 
   // Initialize hover preview blocker
   hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
@@ -372,6 +392,10 @@ export function applyCreatorProfileSettings(
     globalNavigation,
   });
 
+  // Store current settings for mutation observer to use
+  currentPageSettings = pageSettings;
+  currentGlobalNavigation = globalNavigation;
+
   // Regenerate and inject CSS with updated settings
   const css = generateCreatorProfileCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
@@ -394,6 +418,10 @@ export function cleanupCreatorProfileModule(): void {
 
   // Remove injected CSS
   removeCSS(STYLE_TAG_ID);
+
+  // Clear current settings
+  currentPageSettings = null;
+  currentGlobalNavigation = null;
 
   // Disconnect mutation observer
   if (mutationObserver) {

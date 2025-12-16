@@ -71,6 +71,13 @@ let mutationObserver: MutationObserver | null = null;
 let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
+ * Current settings state
+ * Stores the latest settings to ensure mutation observer uses up-to-date values
+ */
+let currentPageSettings: SearchPageSettings | null = null;
+let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+
+/**
  * Generates CSS rules based on search page and global navigation settings
  * Returns CSS string with display: none rules for hidden elements
  *
@@ -307,6 +314,10 @@ export function applySearchPageSettings(
   pageSettings: SearchPageSettings,
   globalNavigation: GlobalNavigationSettings
 ): void {
+  // Store current settings for mutation observer to use
+  currentPageSettings = pageSettings;
+  currentGlobalNavigation = globalNavigation;
+
   const css = generateSearchPageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 
@@ -320,27 +331,29 @@ export function applySearchPageSettings(
  */
 export function removeSearchPageStyles(): void {
   removeCSS(STYLE_TAG_ID);
+  currentPageSettings = null;
+  currentGlobalNavigation = null;
 }
 
 /**
  * Sets up MutationObserver to detect dynamic YouTube content loading
  * Re-applies CSS when new elements are added (e.g., infinite scroll)
  *
- * @param pageSettings - Search page specific settings object
- * @param globalNavigation - Global navigation settings object
+ * Note: This function is called once during initialization and uses the current
+ * settings stored in module-level variables to ensure settings updates are reflected
  */
-function setupMutationObserver(
-  pageSettings: SearchPageSettings,
-  globalNavigation: GlobalNavigationSettings
-): void {
+function setupMutationObserver(): void {
   // Disconnect existing observer if any
   if (mutationObserver) {
     mutationObserver.disconnect();
   }
 
-  // Create debounced re-apply function
+  // Create debounced re-apply function that uses current settings
   const debouncedReapply = debounce(() => {
-    applySearchPageSettings(pageSettings, globalNavigation);
+    // Use current settings from module-level variables, not captured parameters
+    if (currentPageSettings && currentGlobalNavigation) {
+      applySearchPageSettings(currentPageSettings, currentGlobalNavigation);
+    }
   }, 200);
 
   // Create observer
@@ -404,11 +417,11 @@ export async function initSearchPageModule(
     // Wait for essential elements to load
     await waitForElement(SEARCH_PAGE_SELECTORS.MASTHEAD, 5000);
 
-    // Apply initial settings
+    // Apply initial settings (this also stores them for the mutation observer)
     applySearchPageSettings(pageSettings, globalNavigation);
 
-    // Set up mutation observer for dynamic content
-    setupMutationObserver(pageSettings, globalNavigation);
+    // Set up mutation observer for dynamic content (uses stored settings)
+    setupMutationObserver();
 
     // Initialize hover preview blocker
     hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
