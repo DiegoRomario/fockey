@@ -13,7 +13,9 @@
 export function isShortContent(element: Element | null | undefined): boolean {
   if (!element) return false;
 
-  return element.matches('ytd-reel-shelf-renderer, ytd-short-renderer');
+  return element.matches(
+    'ytd-reel-shelf-renderer, ytd-short-renderer, ytd-rich-shelf-renderer[is-shorts], ytd-grid-video-renderer[is-shorts], ytd-rich-item-renderer[is-shorts], ytd-reel-item-renderer, grid-shelf-view-model, ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model, ytd-video-renderer:has(a[href*="/shorts/"])'
+  );
 }
 
 /**

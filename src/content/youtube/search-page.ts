@@ -19,7 +19,8 @@ export const SEARCH_PAGE_SELECTORS = {
   VIDEO_RENDERER: 'ytd-video-renderer',
 
   // Content types to filter
-  SHORTS: 'ytd-reel-shelf-renderer, ytd-short-renderer, grid-shelf-view-model',
+  SHORTS:
+    'ytd-reel-shelf-renderer, ytd-short-renderer, ytd-rich-shelf-renderer[is-shorts], ytd-grid-video-renderer[is-shorts], ytd-rich-item-renderer[is-shorts], ytd-reel-item-renderer, grid-shelf-view-model, ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model, ytd-video-renderer:has(a[href*="/shorts/"])',
   COMMUNITY_POSTS: 'ytd-backstage-post-thread-renderer, ytd-post-renderer',
   MIXES: 'ytd-radio-renderer',
   SPONSORED_CONTENT: 'ytd-ad-slot-renderer',
