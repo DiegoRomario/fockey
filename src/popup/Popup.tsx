@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { getSettings, updateSettings } from '@/shared/storage/settings-manager';
 import { ExtensionSettings } from '@/shared/types/settings';
 import LoadingState from './components/LoadingState';
-import ModuleToggle from './components/ModuleToggle';
-import SettingsSection from './components/SettingsSection';
+import SettingsTabs from './components/SettingsTabs';
 
 /**
  * Extension popup component
@@ -16,6 +17,7 @@ const Popup: React.FC = () => {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('global');
 
   // Debounce timer ref for batching rapid toggle changes
   const debounceTimerRef = useRef<number | null>(null);
@@ -246,7 +248,7 @@ const Popup: React.FC = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="w-80">
+      <div className="w-96">
         <LoadingState />
       </div>
     );
@@ -255,7 +257,7 @@ const Popup: React.FC = () => {
   // Show error state
   if (error || !settings) {
     return (
-      <div className="w-80 p-4">
+      <div className="w-96 p-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-destructive">{error || 'Failed to load settings'}</p>
@@ -273,117 +275,58 @@ const Popup: React.FC = () => {
   }
 
   return (
-    <div className="w-80">
-      <Card>
-        {/* Header */}
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Fockey</CardTitle>
-          <CardDescription>Minimalist YouTube Experience</CardDescription>
-        </CardHeader>
+    <TooltipProvider>
+      <div className="w-96">
+        <Card>
+          {/* Header with Integrated Master Toggle */}
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Fockey</CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Extension</span>
+                <Switch
+                  checked={settings.youtube.enabled}
+                  onCheckedChange={handleModuleToggle}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+            </div>
+          </CardHeader>
 
-        <CardContent className="space-y-4">
-          {/* Master YouTube Module Toggle */}
-          <SettingsSection title="YouTube Module">
-            <ModuleToggle
-              id="youtube-enabled"
-              label="Enable Extension"
-              description="Turn the YouTube module on or off"
-              checked={settings.youtube.enabled}
-              onChange={handleModuleToggle}
+          <CardContent className="space-y-4 pt-4">
+            {/* Tabbed Settings Interface - All 33+ Settings */}
+            <SettingsTabs
+              settings={settings}
+              disabled={!settings.youtube.enabled}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onGlobalNavigationToggle={handleGlobalNavigationToggle}
+              onSearchPageToggle={handleSearchPageToggle}
+              onWatchPageToggle={handleWatchPageToggle}
+              onCreatorProfilePageToggle={handleCreatorProfilePageToggle}
             />
-          </SettingsSection>
 
-          <Separator />
+            <Separator className="my-4" />
 
-          {/* Quick Access Toggles */}
-          <div className="space-y-3">
-            {/* Global Navigation Settings */}
-            <SettingsSection title="Navigation (All Pages)">
-              <ModuleToggle
-                id="global-sidebar"
-                label="Show Sidebar"
-                checked={settings.youtube.globalNavigation.showSidebar}
-                onChange={(checked) => handleGlobalNavigationToggle('showSidebar', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-              <ModuleToggle
-                id="global-profile"
-                label="Show Profile"
-                checked={settings.youtube.globalNavigation.showProfile}
-                onChange={(checked) => handleGlobalNavigationToggle('showProfile', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-            </SettingsSection>
+            {/* Open Settings Button */}
+            <Button
+              onClick={handleOpenSettings}
+              variant="outline"
+              className="w-full text-sm h-9 border-primary/20 hover:bg-primary/5 hover:border-primary/40"
+            >
+              Open Settings
+            </Button>
 
-            {/* Search Page Settings */}
-            <SettingsSection title="Search Page">
-              <ModuleToggle
-                id="search-shorts"
-                label="Show Shorts"
-                checked={settings.youtube.searchPage.showShorts}
-                onChange={(checked) => handleSearchPageToggle('showShorts', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-              <ModuleToggle
-                id="search-blur"
-                label="Blur Thumbnails"
-                checked={settings.youtube.searchPage.blurThumbnails}
-                onChange={(checked) => handleSearchPageToggle('blurThumbnails', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-            </SettingsSection>
-
-            {/* Watch Page Settings */}
-            <SettingsSection title="Watch Page">
-              <ModuleToggle
-                id="watch-comments"
-                label="Show Comments"
-                checked={settings.youtube.watchPage.showComments}
-                onChange={(checked) => handleWatchPageToggle('showComments', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-              <ModuleToggle
-                id="watch-related"
-                label="Show Related Videos"
-                checked={settings.youtube.watchPage.showRelated}
-                onChange={(checked) => handleWatchPageToggle('showRelated', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-            </SettingsSection>
-
-            {/* Creator Profile Page Settings */}
-            <SettingsSection title="Creator Profile Page">
-              <ModuleToggle
-                id="creator-shorts-tab"
-                label="Show Shorts Tab"
-                checked={settings.youtube.creatorProfilePage.showShortsTab}
-                onChange={(checked) => handleCreatorProfilePageToggle('showShortsTab', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-              <ModuleToggle
-                id="creator-posts-tab"
-                label="Show Posts Tab"
-                checked={settings.youtube.creatorProfilePage.showCommunityTab}
-                onChange={(checked) => handleCreatorProfilePageToggle('showCommunityTab', checked)}
-                disabled={!settings.youtube.enabled}
-              />
-            </SettingsSection>
-          </div>
-
-          <Separator />
-
-          {/* Open Settings Button */}
-          <Button onClick={handleOpenSettings} variant="outline" className="w-full">
-            Open Settings
-          </Button>
-
-          {/* Footer with Version */}
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">v{chrome.runtime.getManifest().version}</p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            {/* Footer with Version */}
+            <div className="text-center pt-1">
+              <p className="text-[10px] text-muted-foreground">
+                v{chrome.runtime.getManifest().version}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 };
 
