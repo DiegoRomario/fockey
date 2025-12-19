@@ -294,7 +294,7 @@ const Popup: React.FC = () => {
           </CardHeader>
 
           <CardContent className="space-y-4 pt-4">
-            {/* Tabbed Settings Interface - All 33+ Settings */}
+            {/* Tabbed Settings Interface - All 32 Settings */}
             <SettingsTabs
               settings={settings}
               disabled={!settings.youtube.enabled}

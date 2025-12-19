@@ -16,7 +16,7 @@ interface SettingsTabsProps {
 
 /**
  * Tabbed settings interface for the Popup
- * Provides access to all 33+ YouTube settings organized across 4 tabs
+ * Provides access to all 32 YouTube settings organized across 4 tabs
  */
 export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   settings,
@@ -127,7 +127,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
           />
         </TabsContent>
 
-        {/* Watch Tab - 19 settings in single column */}
+        {/* Watch Tab - 18 settings in single column */}
         <TabsContent value="watch" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="watch-like-dislike"
@@ -223,14 +223,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             tooltip="Appears when user has active membership"
             checked={settings.youtube.watchPage.showSeePerks}
             onChange={(checked) => onWatchPageToggle('showSeePerks', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-channel-info"
-            label="Channel Info"
-            tooltip="The channel's profile picture and name below the video"
-            checked={settings.youtube.watchPage.showChannelInfo}
-            onChange={(checked) => onWatchPageToggle('showChannelInfo', checked)}
             disabled={disabled}
           />
           <ModuleToggle

@@ -273,18 +273,6 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
   }
 
   // ========================================
-  // Channel info section (avatar + channel name as one unit)
-  // ========================================
-  if (!settings.showChannelInfo) {
-    rules.push(`
-      ${WATCH_PAGE_SELECTORS.CHANNEL_AVATAR},
-      ${WATCH_PAGE_SELECTORS.CHANNEL_NAME} {
-        display: none !important;
-      }
-    `);
-  }
-
-  // ========================================
   // Three-dots overflow menu
   // ========================================
   if (!settings.showOverflowMenu) {

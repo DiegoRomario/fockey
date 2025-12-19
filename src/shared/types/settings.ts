@@ -82,8 +82,6 @@ export interface WatchPageSettings {
   showNotifications: boolean;
   /** Show/hide See Perks button (appears only when user has active membership) */
   showSeePerks: boolean;
-  /** Show/hide channel info section (avatar + channel name as one unit) */
-  showChannelInfo: boolean;
   /** Show/hide three-dots overflow menu */
   showOverflowMenu: boolean;
   /** Show/hide Comments section */
@@ -180,7 +178,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       blurThumbnails: false,
     },
     watchPage: {
-      showLikeDislike: false,
+      showLikeDislike: true, // Visible by default - basic engagement metric
       showShare: false,
       showSave: false,
       showDownload: false,
@@ -192,7 +190,6 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showJoin: false,
       showNotifications: false,
       showSeePerks: false,
-      showChannelInfo: true, // Channel avatar + name visible by default (users need to know which channel they're watching)
       showOverflowMenu: false,
       showComments: false,
       showLiveChat: false,

@@ -390,23 +390,6 @@ const Options: React.FC = () => {
                       player controls are always preserved.
                     </p>
 
-                    {/* Channel Info */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Channel Information</h4>
-                      <SettingToggle
-                        id="watch-channel-info"
-                        label="Channel Info Section"
-                        description="Show channel avatar and name (visible by default)"
-                        checked={settings.youtube.watchPage.showChannelInfo}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showChannelInfo'], checked)
-                        }
-                        tooltip="The channel's profile picture and name below the video"
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
-
                     {/* Engagement Buttons */}
                     <div className="mb-4">
                       <h4 className="text-sm font-medium mb-2">Engagement Buttons</h4>
