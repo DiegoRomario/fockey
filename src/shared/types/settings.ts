@@ -62,38 +62,18 @@ export interface WatchPageSettings {
   showLikeDislike: boolean;
   /** Show/hide Share button */
   showShare: boolean;
-  /** Show/hide Save button */
-  showSave: boolean;
-  /** Show/hide Download button (appears only when logged in) */
-  showDownload: boolean;
-  /** Show/hide Clip button */
-  showClip: boolean;
-  /** Show/hide Thanks button (appears only when logged in) */
-  showThanks: boolean;
-  /** Show/hide Report button */
-  showReport: boolean;
-  /** Show/hide Ask (AI assistant) button */
-  showAskButton: boolean;
-  /** Show/hide Subscribe button */
-  showSubscribe: boolean;
-  /** Show/hide Join/Membership button (appears when channel offers memberships) */
-  showJoin: boolean;
-  /** Show/hide Notifications (bell) button (appears only when subscribed) */
-  showNotifications: boolean;
-  /** Show/hide See Perks button (appears only when user has active membership) */
-  showSeePerks: boolean;
-  /** Show/hide three-dots overflow menu */
-  showOverflowMenu: boolean;
+  /** Show/hide More Actions buttons (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) */
+  showMoreActions: boolean;
+  /** Show/hide Subscription Actions buttons (Subscribe, Join, Notifications, See Perks) */
+  showSubscriptionActions: boolean;
   /** Show/hide Comments section */
   showComments: boolean;
-  /** Show/hide Live chat */
-  showLiveChat: boolean;
   /** Show/hide Related videos sidebar */
   showRelated: boolean;
   /** Show/hide Playlists sidebar */
   showPlaylists: boolean;
-  /** Show/hide Creator-recommended end-screen videos */
-  showEndScreen: boolean;
+  /** Show/hide Recommended Video cards (Info Cards and teasers during playback) */
+  showRecommendedVideo: boolean;
 }
 
 /**
@@ -155,7 +135,7 @@ export interface ExtensionSettings {
  * - Only video player and essential controls on Watch page
  */
 export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
-  version: '1.1.0',
+  version: '1.0.0',
   youtube: {
     enabled: true,
     globalNavigation: {
@@ -180,22 +160,12 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
     watchPage: {
       showLikeDislike: true, // Visible by default - basic engagement metric
       showShare: false,
-      showSave: false,
-      showDownload: false,
-      showClip: false,
-      showThanks: false,
-      showReport: false,
-      showAskButton: false,
-      showSubscribe: false,
-      showJoin: false,
-      showNotifications: false,
-      showSeePerks: false,
-      showOverflowMenu: false,
+      showMoreActions: false, // Unified toggle for Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu
+      showSubscriptionActions: false, // Unified toggle for Subscribe, Join, Notifications, See Perks
       showComments: false,
-      showLiveChat: false,
       showRelated: false,
       showPlaylists: false,
-      showEndScreen: false,
+      showRecommendedVideo: false, // Info Cards and teasers during playback
     },
     creatorProfilePage: {
       // Tab visibility (hidden by default - minimalist principle)

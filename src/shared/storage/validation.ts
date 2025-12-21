@@ -9,6 +9,7 @@ import {
   HomePageSettings,
   SearchPageSettings,
   WatchPageSettings,
+  CreatorProfilePageSettings,
   YouTubeModuleSettings,
 } from '../types/settings';
 
@@ -45,6 +46,7 @@ function validateGlobalNavigationSettings(settings: unknown): settings is Global
     'showSidebar',
     'showProfile',
     'showNotifications',
+    'enableHoverPreviews',
   ]);
 }
 
@@ -80,16 +82,26 @@ function validateWatchPageSettings(settings: unknown): settings is WatchPageSett
   return validateBooleanObject(settings, [
     'showLikeDislike',
     'showShare',
-    'showSave',
-    'showDownload',
-    'showClip',
-    'showSubscribe',
-    'showJoin',
+    'showMoreActions',
+    'showSubscriptionActions',
     'showComments',
-    'showLiveChat',
     'showRelated',
     'showPlaylists',
-    'showEndScreen',
+    'showRecommendedVideo',
+  ]);
+}
+
+/**
+ * Validates CreatorProfilePageSettings structure
+ */
+function validateCreatorProfilePageSettings(
+  settings: unknown
+): settings is CreatorProfilePageSettings {
+  return validateBooleanObject(settings, [
+    'showShortsTab',
+    'showCommunityTab',
+    'showCommunityInHome',
+    'showShortsInHome',
   ]);
 }
 
@@ -129,6 +141,11 @@ function validateYouTubeModuleSettings(settings: unknown): settings is YouTubeMo
 
   if (!validateWatchPageSettings(youtubeSettings.watchPage)) {
     console.error('Validation failed: invalid watchPage settings');
+    return false;
+  }
+
+  if (!validateCreatorProfilePageSettings(youtubeSettings.creatorProfilePage)) {
+    console.error('Validation failed: invalid creatorProfilePage settings');
     return false;
   }
 

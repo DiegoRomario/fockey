@@ -410,109 +410,15 @@ const Options: React.FC = () => {
                         }
                       />
                       <SettingToggle
-                        id="watch-save"
-                        label="Save Button"
-                        description="Save to playlists"
-                        checked={settings.youtube.watchPage.showSave}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showSave'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-download"
-                        label="Download Button"
-                        description="Appears when logged in"
-                        checked={settings.youtube.watchPage.showDownload}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showDownload'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-clip"
-                        label="Clip Button"
-                        checked={settings.youtube.watchPage.showClip}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showClip'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-thanks"
-                        label="Thanks Button"
-                        description="Appears when logged in"
-                        checked={settings.youtube.watchPage.showThanks}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showThanks'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-report"
-                        label="Report Button"
-                        checked={settings.youtube.watchPage.showReport}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showReport'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-ask"
-                        label="Ask Button"
-                        description="YouTube AI assistant"
-                        checked={settings.youtube.watchPage.showAskButton}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showAskButton'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-overflow"
-                        label="Three-Dots Menu"
-                        description="Overflow menu with additional options"
-                        checked={settings.youtube.watchPage.showOverflowMenu}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showOverflowMenu'], checked)
-                        }
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Channel Actions */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Channel Action Buttons</h4>
-                      <SettingToggle
-                        id="watch-subscribe"
-                        label="Subscribe Button"
-                        checked={settings.youtube.watchPage.showSubscribe}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showSubscribe'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-notifications-bell"
-                        label="Notifications Bell"
-                        description="Appears when subscribed to channel"
-                        checked={settings.youtube.watchPage.showNotifications}
+                        id="watch-subscription-actions"
+                        label="Subscription Actions"
+                        description="Subscribe, Join, Notifications, See Perks"
+                        checked={settings.youtube.watchPage.showSubscriptionActions}
                         onChange={(checked) =>
                           handleSettingChange(
-                            ['youtube', 'watchPage', 'showNotifications'],
+                            ['youtube', 'watchPage', 'showSubscriptionActions'],
                             checked
                           )
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-join"
-                        label="Join/Membership Button"
-                        description="Appears when channel offers memberships"
-                        checked={settings.youtube.watchPage.showJoin}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showJoin'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-perks"
-                        label="See Perks Button"
-                        description="Appears when user has active membership"
-                        checked={settings.youtube.watchPage.showSeePerks}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showSeePerks'], checked)
                         }
                       />
                     </div>
@@ -528,15 +434,6 @@ const Options: React.FC = () => {
                         checked={settings.youtube.watchPage.showComments}
                         onChange={(checked) =>
                           handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-live-chat"
-                        label="Live Chat"
-                        description="For live streams and premieres"
-                        checked={settings.youtube.watchPage.showLiveChat}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showLiveChat'], checked)
                         }
                       />
                       <SettingToggle
@@ -558,12 +455,24 @@ const Options: React.FC = () => {
                         }
                       />
                       <SettingToggle
-                        id="watch-endscreen"
-                        label="End Screen Videos"
-                        description="Creator-recommended videos at the end"
-                        checked={settings.youtube.watchPage.showEndScreen}
+                        id="watch-recommended-video"
+                        label="Recommended Video Cards"
+                        description="Creator-placed video recommendations during playback"
+                        checked={settings.youtube.watchPage.showRecommendedVideo}
                         onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showEndScreen'], checked)
+                          handleSettingChange(
+                            ['youtube', 'watchPage', 'showRecommendedVideo'],
+                            checked
+                          )
+                        }
+                      />
+                      <SettingToggle
+                        id="watch-more-actions"
+                        label="More Actions"
+                        description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+                        checked={settings.youtube.watchPage.showMoreActions}
+                        onChange={(checked) =>
+                          handleSettingChange(['youtube', 'watchPage', 'showMoreActions'], checked)
                         }
                       />
                     </div>

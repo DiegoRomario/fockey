@@ -41,7 +41,7 @@ export const WATCH_PAGE_SELECTORS = {
     '#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*="Clip"]), ytd-button-renderer:has(button[aria-label*="Clip"]), button[aria-label*="Clip"]',
   // Conditional: appears only when user is logged in
   THANKS_BUTTON:
-    '#sponsor-button, ytd-button-renderer:has(button[aria-label*="Thanks"]), ytd-button-renderer:has(a[aria-label*="Thanks"]), button[aria-label*="Thanks"]',
+    'ytd-button-renderer:has(button[aria-label*="Thanks"]), ytd-button-renderer:has(a[aria-label*="Thanks"]), button[aria-label*="Thanks"]',
   // May appear inline or in overflow menu
   REPORT_BUTTON: 'ytd-menu-renderer button[aria-label*="Report"], button[aria-label*="Report"]',
   // New YouTube AI assistant button
@@ -60,7 +60,8 @@ export const WATCH_PAGE_SELECTORS = {
   JOIN_BUTTON:
     'ytd-button-renderer[is-join-action], ytd-sponsor-button-renderer, ytd-button-renderer:has(a[href*="/sponsor"])',
   // Conditional: appears only when user has active channel membership
-  SEE_PERKS_BUTTON: 'ytd-button-renderer:has(button[aria-label*="See perks"])',
+  SEE_PERKS_BUTTON:
+    '#sponsor-button, ytd-button-renderer:has(button[aria-label*="See perks"]), ytd-button-renderer:has(a[aria-label*="See perks"])',
 
   // ========================================
   // CHANNEL INFO SECTION (hidden by default, toggleable as one unit)
@@ -79,13 +80,25 @@ export const WATCH_PAGE_SELECTORS = {
   // ========================================
   COMMENTS: '#comments, ytd-comments#comments',
   LIVE_CHAT: '#chat-container, ytd-live-chat-frame',
-  RELATED_VIDEOS: '#related, ytd-watch-next-secondary-results-renderer, #secondary',
+  RELATED_VIDEOS: '#related, ytd-watch-next-secondary-results-renderer',
   PLAYLISTS: 'ytd-playlist-panel-renderer',
 
   // ========================================
   // END-OF-VIDEO ELEMENTS (ALWAYS hidden, non-configurable)
   // ========================================
-  END_SCREEN: '.ytp-endscreen-content, .ytp-ce-element',
+  END_SCREEN: '.ytp-endscreen-content, .ytp-fullscreen-grid-stills-container',
+
+  // ========================================
+  // INFO CARDS & TEASERS (in-video recommendations, toggleable)
+  // ========================================
+  INFO_CARDS_BUTTON: '.ytp-cards-button',
+  INFO_CARDS_TEASER: '.ytp-cards-teaser',
+  INFO_CARDS_OVERLAY: '.ytp-ce-element-show, .ytp-ce-expanding-overlay-background',
+
+  // ========================================
+  // LIVE CHAT (ALWAYS hidden, non-configurable)
+  // ========================================
+  LIVE_CHAT_ALWAYS: '#chat-container, ytd-live-chat-frame',
 
   // ========================================
   // NAVIGATION CHROME (to maintain consistency with home/search pages)
@@ -133,11 +146,19 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
   const rules: string[] = [];
 
   // ========================================
-  // CRITICAL: ALWAYS hide end-screen elements (non-configurable)
+  // CRITICAL: ALWAYS hide non-configurable elements
   // ========================================
   rules.push(`
     /* ALWAYS hide end-screen elements (non-configurable) */
     ${WATCH_PAGE_SELECTORS.END_SCREEN} {
+      display: none !important;
+      pointer-events: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    /* ALWAYS hide live chat (non-configurable) */
+    ${WATCH_PAGE_SELECTORS.LIVE_CHAT_ALWAYS} {
       display: none !important;
       pointer-events: none !important;
       opacity: 0 !important;
@@ -177,7 +198,10 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
     `);
   }
 
-  if (!settings.showSave) {
+  // ========================================
+  // More Actions (unified toggle for Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu)
+  // ========================================
+  if (!settings.showMoreActions) {
     rules.push(`
       /* Hide Save button */
       ${WATCH_PAGE_SELECTORS.SAVE_BUTTON} {
@@ -188,43 +212,27 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
       ytd-button-renderer[is-icon-button]:has(button[aria-label*="Save"]) {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showDownload) {
-    rules.push(`
+      /* Hide Download button */
       ${WATCH_PAGE_SELECTORS.DOWNLOAD_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showClip) {
-    rules.push(`
+      /* Hide Clip button */
       ${WATCH_PAGE_SELECTORS.CLIP_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showThanks) {
-    rules.push(`
+      /* Hide Thanks button */
       ${WATCH_PAGE_SELECTORS.THANKS_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showReport) {
-    rules.push(`
+      /* Hide Report button */
       ${WATCH_PAGE_SELECTORS.REPORT_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showAskButton) {
-    rules.push(`
       /* Hide Ask (AI assistant) button */
       ${WATCH_PAGE_SELECTORS.ASK_BUTTON} {
         display: none !important;
@@ -234,50 +242,36 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
       ytd-button-renderer[is-icon-button]:has(button[aria-label*="Ask"]) {
         display: none !important;
       }
+
+      /* Hide Overflow Menu */
+      ${WATCH_PAGE_SELECTORS.OVERFLOW_MENU} {
+        display: none !important;
+      }
     `);
   }
 
   // ========================================
-  // Channel-related buttons (individually toggleable)
+  // Subscription Actions (unified toggle for Subscribe, Join, Notifications, See Perks)
   // ========================================
-  if (!settings.showSubscribe) {
+  if (!settings.showSubscriptionActions) {
     rules.push(`
+      /* Hide Subscribe button */
       ${WATCH_PAGE_SELECTORS.SUBSCRIBE_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showNotifications) {
-    rules.push(`
-      ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_BUTTON} {
-        display: none !important;
-      }
-    `);
-  }
-
-  if (!settings.showJoin) {
-    rules.push(`
+      /* Hide Join button */
       ${WATCH_PAGE_SELECTORS.JOIN_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  if (!settings.showSeePerks) {
-    rules.push(`
-      ${WATCH_PAGE_SELECTORS.SEE_PERKS_BUTTON} {
+      /* Hide Notifications button */
+      ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_BUTTON} {
         display: none !important;
       }
-    `);
-  }
 
-  // ========================================
-  // Three-dots overflow menu
-  // ========================================
-  if (!settings.showOverflowMenu) {
-    rules.push(`
-      ${WATCH_PAGE_SELECTORS.OVERFLOW_MENU} {
+      /* Hide See Perks button */
+      ${WATCH_PAGE_SELECTORS.SEE_PERKS_BUTTON} {
         display: none !important;
       }
     `);
@@ -294,14 +288,6 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
     `);
   }
 
-  if (!settings.showLiveChat) {
-    rules.push(`
-      ${WATCH_PAGE_SELECTORS.LIVE_CHAT} {
-        display: none !important;
-      }
-    `);
-  }
-
   if (!settings.showRelated) {
     rules.push(`
       ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} {
@@ -310,10 +296,49 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
     `);
   }
 
+  // ========================================
+  // CRITICAL: ALWAYS hide Shorts from Related Videos section (non-configurable)
+  // Even when Related Videos are enabled, Shorts must remain hidden
+  // ========================================
+  rules.push(`
+    /* ALWAYS hide Shorts in Related Videos sidebar */
+    ytd-watch-next-secondary-results-renderer ytd-reel-shelf-renderer {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+  `);
+
   if (!settings.showPlaylists) {
     rules.push(`
       ${WATCH_PAGE_SELECTORS.PLAYLISTS} {
         display: none !important;
+      }
+    `);
+  }
+
+  // ========================================
+  // Hide #secondary container when BOTH playlists and related videos are disabled
+  // This ensures proper video centering
+  // ========================================
+  if (!settings.showRelated && !settings.showPlaylists) {
+    rules.push(`
+      /* Hide secondary container when both playlists and related videos are disabled */
+      #secondary.style-scope.ytd-watch-flexy {
+        display: none !important;
+      }
+    `);
+  }
+
+  if (!settings.showRecommendedVideo) {
+    rules.push(`
+      /* Hide Info Cards and Teasers */
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_BUTTON},
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_TEASER},
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_OVERLAY} {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
       }
     `);
   }

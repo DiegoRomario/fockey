@@ -3,7 +3,7 @@
  * Manifest V3 background script for lifecycle management and coordination
  */
 
-import { getSettings, updateSettings, resetToDefaults, checkAndMigrate } from '../shared/storage';
+import { getSettings, updateSettings, resetToDefaults } from '../shared/storage';
 import { DEFAULT_SETTINGS, ExtensionSettings } from '../shared/types/settings';
 import type {
   Message,
@@ -56,19 +56,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       // Log version for debugging
       logger.info('Extension version:', EXTENSION_VERSION);
     } else if (details.reason === 'update') {
-      // Extension update - run migration if needed
+      // Extension update
       const previousVersion = details.previousVersion || 'unknown';
       logger.info(`Extension updated from ${previousVersion} to ${EXTENSION_VERSION}`);
-
-      // Subtask 5.9: Migration logic
-      const currentSettings = await getSettings();
-      const migratedSettings = await checkAndMigrate(currentSettings);
-
-      // Save migrated settings if any changes were made
-      if (migratedSettings.version !== currentSettings.version) {
-        await chrome.storage.sync.set({ fockey_settings: migratedSettings });
-        logger.info('Settings migrated successfully');
-      }
 
       // Cleanup deprecated storage keys if any
       await cleanupDeprecatedStorage();
@@ -87,18 +77,8 @@ chrome.runtime.onStartup.addListener(async () => {
 
   try {
     // Validate settings schema
-    const settings = await getSettings();
+    await getSettings();
     logger.info('Settings loaded and validated successfully');
-
-    // Check if migration is needed
-    if (settings.version !== EXTENSION_VERSION) {
-      logger.warn('Settings version mismatch, running migration');
-      const migratedSettings = await checkAndMigrate(settings);
-      if (migratedSettings.version !== settings.version) {
-        await chrome.storage.sync.set({ fockey_settings: migratedSettings });
-        logger.info('Settings migrated on startup');
-      }
-    }
   } catch (error) {
     logger.error('Failed during startup validation', error);
     // Attempt to reset to defaults as fallback

@@ -5,7 +5,6 @@
 
 import { ExtensionSettings, DEFAULT_SETTINGS } from '../types/settings';
 import { validateSettings } from './validation';
-import { checkAndMigrate } from './migrations';
 
 /**
  * Storage key used for persisting settings
@@ -56,36 +55,16 @@ export async function getSettings(): Promise<ExtensionSettings> {
     const syncResult = await chrome.storage.sync.get(SETTINGS_KEY);
 
     if (syncResult[SETTINGS_KEY]) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const storedSettings = syncResult[SETTINGS_KEY] as any;
+      const storedSettings = syncResult[SETTINGS_KEY] as ExtensionSettings;
 
-      // Check if migration is needed BEFORE validation
-      // This allows old settings to be migrated to new structure before validation
-      let settingsToUse = storedSettings as ExtensionSettings;
-      if (storedSettings?.version !== DEFAULT_SETTINGS.version) {
-        console.log(
-          `Settings version mismatch: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`
-        );
-        try {
-          settingsToUse = await checkAndMigrate(storedSettings);
-          // Persist migrated settings
-          await chrome.storage.sync.set({ [SETTINGS_KEY]: settingsToUse });
-          console.log('Settings migrated successfully to version', settingsToUse.version);
-        } catch (migrationError) {
-          console.error('Migration failed:', migrationError);
-          // If migration fails, fall back to defaults
-          return { ...DEFAULT_SETTINGS };
-        }
-      }
-
-      // Validate settings AFTER migration
-      if (!validateSettings(settingsToUse)) {
-        console.warn('Settings failed validation after migration, using defaults');
+      // Validate settings
+      if (!validateSettings(storedSettings)) {
+        console.warn('Settings failed validation, using defaults');
         return { ...DEFAULT_SETTINGS };
       }
 
       // Merge with defaults to handle partial settings or missing keys
-      return deepMerge(DEFAULT_SETTINGS, settingsToUse as Partial<ExtensionSettings>);
+      return deepMerge(DEFAULT_SETTINGS, storedSettings as Partial<ExtensionSettings>);
     }
 
     // No settings found, return defaults
@@ -101,39 +80,15 @@ export async function getSettings(): Promise<ExtensionSettings> {
       const localResult = await chrome.storage.local.get(SETTINGS_KEY);
 
       if (localResult[SETTINGS_KEY]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const storedSettings = localResult[SETTINGS_KEY] as any;
+        const storedSettings = localResult[SETTINGS_KEY] as ExtensionSettings;
 
-        // Check if migration is needed BEFORE validation
-        let settingsToUse = storedSettings as ExtensionSettings;
-        if (storedSettings?.version !== DEFAULT_SETTINGS.version) {
-          console.log(
-            `Settings version mismatch in local: stored=${storedSettings.version}, current=${DEFAULT_SETTINGS.version}`
-          );
-          try {
-            settingsToUse = await checkAndMigrate(storedSettings);
-            // Persist migrated settings
-            await chrome.storage.local.set({ [SETTINGS_KEY]: settingsToUse });
-            console.log(
-              'Settings migrated successfully in local storage to version',
-              settingsToUse.version
-            );
-          } catch (migrationError) {
-            console.error('Migration failed in local storage:', migrationError);
-            // If migration fails, fall back to defaults
-            return { ...DEFAULT_SETTINGS };
-          }
-        }
-
-        // Validate settings AFTER migration
-        if (!validateSettings(settingsToUse)) {
-          console.warn(
-            'Settings in local storage failed validation after migration, using defaults'
-          );
+        // Validate settings
+        if (!validateSettings(storedSettings)) {
+          console.warn('Settings in local storage failed validation, using defaults');
           return { ...DEFAULT_SETTINGS };
         }
 
-        return deepMerge(DEFAULT_SETTINGS, settingsToUse as Partial<ExtensionSettings>);
+        return deepMerge(DEFAULT_SETTINGS, storedSettings as Partial<ExtensionSettings>);
       }
 
       // No settings found in local storage either, return defaults

@@ -600,24 +600,28 @@ The Watch Page is where the user watches a selected video.
 - Like button
 - Dislike button
 - Share button
-- Save button
-- Download button (appears only when user is logged in)
-- Clip button
-- Thanks button (appears only when user is logged in)
-- Report button (may be grouped in three-dots overflow menu)
-- Ask button (YouTube AI assistant feature)
+- More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) — unified group controlled by a single toggle
+  - Save button
+  - Download button (appears only when user is logged in)
+  - Clip button
+  - Thanks button (appears only when user is logged in)
+  - Report button (may be grouped in three-dots overflow menu)
+  - Ask button (YouTube AI assistant feature)
+  - Three-dots overflow menu
 
-**Channel-Related Buttons:**
-- Subscribe button
-- Notifications (bell) button (appears only when subscribed to channel)
-- Join button (channel membership — appears when channel offers memberships and user is not a member)
-- See Perks button (appears only when user has active channel membership)
+**Subscription Action Buttons (Unified Group):**
+- Subscription Actions — unified group controlled by a single toggle
+  - Subscribe button
+  - Notifications (bell) button (appears only when subscribed to channel)
+  - Join button (channel membership — appears when channel offers memberships and user is not a member)
+  - See Perks button (appears only when user has active channel membership)
 
 **Social & Discovery Elements:**
 - Comments section
 - Live chat (if applicable)
 - Related / recommended videos (right sidebar)
 - Playlists sidebar
+- Recommended Video Cards (Info Cards and teasers during playback — configurable)
 
 **End-of-Video Elements:**
 - End cards / end-screen thumbnails (non-configurable, always hidden)
@@ -625,10 +629,9 @@ The Watch Page is where the user watches a selected video.
 **Important Notes on Button Visibility:**
 
 - **Conditional Appearance:** Some buttons (Download, Thanks, Notifications, See Perks) appear conditionally based on user authentication status, subscription state, or channel membership status. The extension must handle these cases gracefully.
-- **Three-Dots Overflow Menu:** YouTube may group certain action buttons (e.g., Report, Save, Clip) inside a three-dots overflow menu to save screen space, especially on smaller viewports. The extension must:
-  - Detect and hide the overflow menu itself by default
-  - Allow re-enabling the overflow menu via settings (or individual buttons within it)
-  - Ensure that hidden buttons remain hidden whether they appear inline or within the overflow menu
+- **More Actions Unified Toggle:** To simplify settings management, Save, Download, Clip, Thanks, Report, Ask AI, and the Three-Dots Overflow Menu are all controlled by a single "More Actions" toggle. This reduces UI complexity while maintaining full control over these secondary action buttons.
+- **Subscription Actions Unified Toggle:** Subscribe, Join, Notifications (bell), and See Perks buttons are controlled by a single "Subscription Actions" toggle. This simplifies state management and reduces cognitive load by grouping all channel subscription-related actions together.
+- **Three-Dots Overflow Menu:** YouTube may group certain action buttons (e.g., Report, Save, Clip) inside a three-dots overflow menu to save screen space, especially on smaller viewports. When the "More Actions" toggle is disabled, all these buttons are hidden whether they appear inline or within the overflow menu.
 
 **Observed from images:**
 
@@ -654,28 +657,16 @@ The following **must always remain available**:
 
 #### Configurable Options (Watch Page)
 
-Users can selectively re-enable hidden elements via extension settings. Each element is individually toggleable.
+Users can selectively re-enable hidden elements via extension settings. Most elements are individually toggleable, with some grouped for simplified management.
 
 **Engagement Action Buttons**
 
-- ☑️ Like button
-- ☑️ Dislike button
+- ☑️ Like / Dislike buttons (unified toggle for both Like and Dislike)
 - ☑️ Share button
-- ☑️ Save button
-- ☑️ Download button
-- ☑️ Clip button
-- ☑️ Thanks button
-- ☑️ Report button
-- ☑️ Ask button (YouTube AI assistant)
-- ☑️ Three-dots overflow menu (enables all grouped buttons)
-
-**Channel-Related Buttons**
-
-- ☑️ Subscribe button
-- ☑️ Notifications (bell) button
-- ☑️ Join button
-- ☑️ See Perks button
-- ☑️ Hide channel info section (avatar + channel name) — **Visible by default, can be hidden via settings**
+- ☑️ **Subscription Actions** (unified toggle for Subscribe, Join, Notifications, See Perks)
+  - Includes: Subscribe, Notifications (bell), Join/Membership, See Perks buttons
+  - When enabled, all subscription-related buttons become visible (subject to YouTube's conditional rendering)
+  - When disabled, all subscription-related buttons are hidden
 
 **Social Elements**
 
@@ -686,18 +677,22 @@ Users can selectively re-enable hidden elements via extension settings. Each ele
 
 - ☑️ Related videos sidebar
 - ☑️ Playlists
-- ☑️ Creator‑recommended end‑screen videos
+- ☑️ **Recommended Video Cards** (Info Cards and teasers during playback)
+- ☑️ **More Actions** (unified toggle for Save, Download, Clip, Thanks, Report, Ask AI, and Overflow Menu)
+  - Includes: Save, Download, Clip, Thanks, Report, Ask AI assistant, and Three-dots overflow menu
+  - When enabled, all included buttons become visible (subject to YouTube's conditional rendering based on auth state)
+  - When disabled, all included buttons are hidden
 
 **Note:** End cards and end-screen thumbnails are **always hidden** and cannot be re-enabled. This is a core minimalist design decision.
 
 **Default Behavior & Conditional Rules:**
 
 - **All listed engagement and social elements are hidden by default** in minimalist mode
-- **Channel info (avatar + name) is visible by default** because users need to know which channel they're watching
 - **Conditional buttons** (e.g., Notifications, See Perks, Download, Thanks) are hidden regardless of their native visibility state
 - **If a button is enabled in settings** but YouTube doesn't render it (e.g., Join button when channel has no memberships), the extension does nothing — it simply doesn't hide the button if/when YouTube decides to show it
-- **Three-dots overflow menu toggle:** When enabled, all buttons within the overflow menu become visible; when disabled, the overflow menu itself is hidden
-- **Per-button granularity:** Users can choose to enable specific buttons (e.g., Like/Dislike only) without enabling the entire overflow menu
+- **Subscription Actions unified toggle:** When enabled, all subscription-related buttons (Subscribe, Join, Notifications, See Perks) become visible; when disabled, all are hidden
+- **More Actions unified toggle:** When enabled, all included buttons (Save, Download, Clip, Thanks, Report, Ask AI, and Overflow Menu) become visible; when disabled, all are hidden
+- **Simplified settings management:** The Subscription Actions and More Actions unified toggles reduce cognitive load by grouping related buttons, resulting in 8 clean toggles instead of 12 individual controls on the Watch page
 
 ---
 

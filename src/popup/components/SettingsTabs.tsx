@@ -16,7 +16,7 @@ interface SettingsTabsProps {
 
 /**
  * Tabbed settings interface for the Popup
- * Provides access to all 32 YouTube settings organized across 4 tabs
+ * Provides access to all 21 YouTube settings organized across 4 tabs
  */
 export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   settings,
@@ -127,7 +127,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
           />
         </TabsContent>
 
-        {/* Watch Tab - 18 settings in single column */}
+        {/* Watch Tab - 7 settings in single column */}
         <TabsContent value="watch" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="watch-like-dislike"
@@ -146,91 +146,11 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="watch-save"
-            label="Save"
-            tooltip="Save to playlists"
-            checked={settings.youtube.watchPage.showSave}
-            onChange={(checked) => onWatchPageToggle('showSave', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-download"
-            label="Download"
-            tooltip="Appears when logged in"
-            checked={settings.youtube.watchPage.showDownload}
-            onChange={(checked) => onWatchPageToggle('showDownload', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-clip"
-            label="Clip"
-            tooltip="Create short clips from the video"
-            checked={settings.youtube.watchPage.showClip}
-            onChange={(checked) => onWatchPageToggle('showClip', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-thanks"
-            label="Thanks"
-            tooltip="Appears when logged in"
-            checked={settings.youtube.watchPage.showThanks}
-            onChange={(checked) => onWatchPageToggle('showThanks', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-report"
-            label="Report"
-            tooltip="Report inappropriate content"
-            checked={settings.youtube.watchPage.showReport}
-            onChange={(checked) => onWatchPageToggle('showReport', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-ask"
-            label="Ask AI"
-            tooltip="YouTube AI assistant"
-            checked={settings.youtube.watchPage.showAskButton}
-            onChange={(checked) => onWatchPageToggle('showAskButton', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-subscribe"
-            label="Subscribe"
-            tooltip="Subscribe to the channel"
-            checked={settings.youtube.watchPage.showSubscribe}
-            onChange={(checked) => onWatchPageToggle('showSubscribe', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-join"
-            label="Join"
-            tooltip="Appears when channel offers memberships"
-            checked={settings.youtube.watchPage.showJoin}
-            onChange={(checked) => onWatchPageToggle('showJoin', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-notifications"
-            label="Notifications"
-            tooltip="Appears when subscribed to channel"
-            checked={settings.youtube.watchPage.showNotifications}
-            onChange={(checked) => onWatchPageToggle('showNotifications', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-see-perks"
-            label="See Perks"
-            tooltip="Appears when user has active membership"
-            checked={settings.youtube.watchPage.showSeePerks}
-            onChange={(checked) => onWatchPageToggle('showSeePerks', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-overflow-menu"
-            label="Overflow Menu"
-            tooltip="Three-dots menu with additional options"
-            checked={settings.youtube.watchPage.showOverflowMenu}
-            onChange={(checked) => onWatchPageToggle('showOverflowMenu', checked)}
+            id="watch-subscription-actions"
+            label="Subscription Actions"
+            tooltip="Subscribe, Join, Notifications, See Perks"
+            checked={settings.youtube.watchPage.showSubscriptionActions}
+            onChange={(checked) => onWatchPageToggle('showSubscriptionActions', checked)}
             disabled={disabled}
           />
           <ModuleToggle
@@ -239,14 +159,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             tooltip="User comments below the video"
             checked={settings.youtube.watchPage.showComments}
             onChange={(checked) => onWatchPageToggle('showComments', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="watch-live-chat"
-            label="Live Chat"
-            tooltip="For live streams and premieres"
-            checked={settings.youtube.watchPage.showLiveChat}
-            onChange={(checked) => onWatchPageToggle('showLiveChat', checked)}
             disabled={disabled}
           />
           <ModuleToggle
@@ -266,11 +178,19 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="watch-end-screen"
-            label="End Screen"
-            tooltip="Creator-recommended videos at the end"
-            checked={settings.youtube.watchPage.showEndScreen}
-            onChange={(checked) => onWatchPageToggle('showEndScreen', checked)}
+            id="watch-recommended-video"
+            label="Recommended Video"
+            tooltip="Info Cards during playback"
+            checked={settings.youtube.watchPage.showRecommendedVideo}
+            onChange={(checked) => onWatchPageToggle('showRecommendedVideo', checked)}
+            disabled={disabled}
+          />
+          <ModuleToggle
+            id="watch-more-actions"
+            label="More Actions"
+            tooltip="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+            checked={settings.youtube.watchPage.showMoreActions}
+            onChange={(checked) => onWatchPageToggle('showMoreActions', checked)}
             disabled={disabled}
           />
         </TabsContent>
