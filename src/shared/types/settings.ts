@@ -116,6 +116,21 @@ export interface YouTubeModuleSettings {
 }
 
 /**
+ * Blocked YouTube Channel entry
+ * Represents a channel that should be blocked across all YouTube surfaces
+ */
+export interface BlockedChannel {
+  /** Unique channel ID (e.g., UCxxxxxxx) or handle */
+  id: string;
+  /** Channel handle without @ (e.g., "MrBeast") */
+  handle: string;
+  /** Display name of the channel */
+  name: string;
+  /** Timestamp when channel was blocked */
+  blockedAt: number;
+}
+
+/**
  * Root settings interface for the extension
  * Contains all extension-wide settings
  */
@@ -124,6 +139,8 @@ export interface ExtensionSettings {
   version: string;
   /** YouTube module settings */
   youtube: YouTubeModuleSettings;
+  /** List of blocked YouTube channels */
+  blockedChannels: BlockedChannel[];
 }
 
 /**
@@ -176,4 +193,5 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showShortsInHome: false,
     },
   },
+  blockedChannels: [],
 } as const;

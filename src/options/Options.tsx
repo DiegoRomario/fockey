@@ -13,14 +13,26 @@ import { Check, Loader2 } from 'lucide-react';
 import { SettingToggle } from './components/SettingToggle';
 import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
-import { getSettings, updateSettings, resetToDefaults } from '@/shared/storage/settings-manager';
-import { ExtensionSettings } from '@/shared/types/settings';
+import {
+  getSettings,
+  updateSettings,
+  resetToDefaults,
+  addBlockedChannel,
+  removeBlockedChannel,
+} from '@/shared/storage/settings-manager';
+import { ExtensionSettings, BlockedChannel } from '@/shared/types/settings';
+import { normalizeChannelInput } from '@/shared/utils/channel-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 const Options: React.FC = () => {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [blockChannelInput, setBlockChannelInput] = useState('');
+  const [isBlockingChannel, setIsBlockingChannel] = useState(false);
   const { toast } = useToast();
 
   // Load settings on mount
@@ -126,6 +138,66 @@ const Options: React.FC = () => {
     }
   };
 
+  // Handle block channel
+  const handleBlockChannelSubmit = async () => {
+    if (!blockChannelInput.trim()) return;
+
+    setIsBlockingChannel(true);
+    try {
+      const normalized = normalizeChannelInput(blockChannelInput);
+      const newChannel: BlockedChannel = {
+        id: normalized.id || normalized.name,
+        handle: normalized.handle || normalized.name,
+        name: normalized.name,
+        blockedAt: Date.now(),
+      };
+
+      await addBlockedChannel(newChannel);
+
+      // Reload settings to reflect changes
+      const updatedSettings = await getSettings();
+      setSettings(updatedSettings);
+
+      setBlockChannelInput('');
+      toast({
+        title: 'Channel Blocked',
+        description: `${newChannel.name} has been blocked.`,
+      });
+    } catch (error) {
+      console.error('Failed to block channel:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to block channel. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsBlockingChannel(false);
+    }
+  };
+
+  // Handle unblock channel
+  const handleUnblockChannel = async (channelId: string, channelName: string) => {
+    try {
+      await removeBlockedChannel(channelId);
+
+      // Reload settings to reflect changes
+      const updatedSettings = await getSettings();
+      setSettings(updatedSettings);
+
+      toast({
+        title: 'Channel Unblocked',
+        description: `${channelName} has been unblocked.`,
+      });
+    } catch (error) {
+      console.error('Failed to unblock channel:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to unblock channel. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Loading state
   if (!settings) {
     return (
@@ -201,7 +273,14 @@ const Options: React.FC = () => {
           <TabsContent value="youtube" className="space-y-6">
             <Accordion
               type="multiple"
-              defaultValue={['globalNavigation', 'home', 'search', 'watch', 'creatorProfile']}
+              defaultValue={[
+                'globalNavigation',
+                'home',
+                'search',
+                'watch',
+                'creatorProfile',
+                'blockedChannels',
+              ]}
               className="w-full"
             >
               {/* Global Navigation Elements */}
@@ -558,6 +637,89 @@ const Options: React.FC = () => {
                         tooltip="Shorts shelf shown on the channel's Home tab"
                       />
                     </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Blocked Channels */}
+              <AccordionItem value="blockedChannels">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Blocked YouTube Channels
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      Block specific YouTube channels to prevent access to their content across all
+                      pages. You can block by channel handle (@username), channel URL, or channel
+                      name.
+                    </p>
+
+                    {/* Block Channel Input */}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter channel handle, URL, or name"
+                        value={blockChannelInput}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setBlockChannelInput(e.target.value)
+                        }
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === 'Enter') {
+                            handleBlockChannelSubmit();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleBlockChannelSubmit}
+                        disabled={!blockChannelInput.trim() || isBlockingChannel}
+                        variant="destructive"
+                      >
+                        {isBlockingChannel ? 'Blocking...' : 'Block'}
+                      </Button>
+                    </div>
+
+                    {/* Blocked Channels List */}
+                    {settings.blockedChannels.length === 0 ? (
+                      <div className="text-center py-8 border border-dashed rounded-lg">
+                        <p className="text-sm text-muted-foreground">No blocked channels yet</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Add a channel above to get started
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">
+                          Blocked Channels ({settings.blockedChannels.length})
+                        </div>
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {settings.blockedChannels.map((channel) => (
+                            <div
+                              key={channel.id}
+                              className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate">{channel.name}</div>
+                                <div className="text-xs text-muted-foreground truncate">
+                                  @{channel.handle}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  Blocked on {new Date(channel.blockedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => handleUnblockChannel(channel.id, channel.name)}
+                                variant="ghost"
+                                size="sm"
+                                className="shrink-0 ml-2 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                                Unblock
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>

@@ -3,7 +3,7 @@
  * Provides type-safe Chrome Storage API wrapper with sync support
  */
 
-import { ExtensionSettings, DEFAULT_SETTINGS } from '../types/settings';
+import { ExtensionSettings, DEFAULT_SETTINGS, BlockedChannel } from '../types/settings';
 import { validateSettings } from './validation';
 
 /**
@@ -236,4 +236,102 @@ export function watchSettings(callback: (settings: ExtensionSettings) => void): 
   return () => {
     chrome.storage.onChanged.removeListener(listener);
   };
+}
+
+/**
+ * Adds a channel to the blocked channels list
+ * Prevents duplicates by checking if channel ID or handle already exists
+ *
+ * @param channel - Blocked channel to add
+ * @returns Promise that resolves when channel is added
+ */
+export async function addBlockedChannel(channel: BlockedChannel): Promise<void> {
+  const settings = await getSettings();
+
+  // Check if channel already exists (by ID or handle)
+  const exists = settings.blockedChannels.some(
+    (c) =>
+      c.id === channel.id ||
+      c.handle === channel.handle ||
+      c.id.toLowerCase() === channel.id.toLowerCase() ||
+      c.handle.toLowerCase() === channel.handle.toLowerCase()
+  );
+
+  if (exists) {
+    console.warn('Channel already blocked:', channel.name);
+    return;
+  }
+
+  // Add channel to blocked list
+  const updatedSettings = {
+    ...settings,
+    blockedChannels: [...settings.blockedChannels, channel],
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Removes a channel from the blocked channels list
+ * Matches by channel ID or handle (case-insensitive)
+ *
+ * @param channelId - Channel ID or handle to remove
+ * @returns Promise that resolves when channel is removed
+ */
+export async function removeBlockedChannel(channelId: string): Promise<void> {
+  const settings = await getSettings();
+
+  // Filter out the channel by ID or handle (case-insensitive)
+  const updatedSettings = {
+    ...settings,
+    blockedChannels: settings.blockedChannels.filter(
+      (c) =>
+        c.id !== channelId &&
+        c.handle !== channelId &&
+        c.id.toLowerCase() !== channelId.toLowerCase() &&
+        c.handle.toLowerCase() !== channelId.toLowerCase()
+    ),
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Retrieves the list of blocked channels
+ *
+ * @returns Promise resolving to array of blocked channels
+ */
+export async function getBlockedChannels(): Promise<BlockedChannel[]> {
+  const settings = await getSettings();
+  return settings.blockedChannels;
+}
+
+/**
+ * Checks if a channel is blocked
+ * Matches by channel ID or handle (case-insensitive)
+ *
+ * @param channelId - Channel ID or handle to check
+ * @returns Promise resolving to true if channel is blocked
+ */
+export async function isChannelBlocked(channelId: string): Promise<boolean> {
+  const channels = await getBlockedChannels();
+  return channels.some(
+    (c) =>
+      c.id === channelId ||
+      c.handle === channelId ||
+      c.id.toLowerCase() === channelId.toLowerCase() ||
+      c.handle.toLowerCase() === channelId.toLowerCase()
+  );
 }

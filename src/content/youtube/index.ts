@@ -12,6 +12,7 @@ import {
   type ModuleSettings,
   type OrchestratorState,
 } from './types';
+import { ChannelBlocker } from './utils/channel-blocker';
 
 /**
  * Orchestrator state
@@ -23,6 +24,12 @@ const state: OrchestratorState = {
   currentSettings: null,
   serviceWorkerPort: null,
 };
+
+/**
+ * Global ChannelBlocker instance
+ * Handles channel blocking across all YouTube pages
+ */
+let channelBlocker: ChannelBlocker | null = null;
 
 /**
  * Flag to prevent duplicate navigation handling
@@ -142,10 +149,11 @@ function getPageSettings(pageType: PageType, settings: ExtensionSettings): Modul
       return null;
   }
 
-  // Combine page-specific settings with global navigation settings
+  // Combine page-specific settings with global navigation settings and blocked channels
   return {
     pageSettings,
     globalNavigation: settings.youtube.globalNavigation,
+    blockedChannels: settings.blockedChannels,
   };
 }
 
@@ -164,9 +172,16 @@ async function handlePageChange(settings: ExtensionSettings): Promise<void> {
   try {
     isHandlingNavigation = true;
 
+    // CRITICAL: Check if current page should be blocked BEFORE any other logic
+    // This handles SPA navigation to blocked channels
+    if (channelBlocker) {
+      channelBlocker.checkAndBlock();
+      // Note: if page is blocked, checkAndBlock() will redirect and this code won't continue
+    }
+
     const newPageType = detectYouTubePage();
 
-    // Skip if page type hasn't changed
+    // Skip module reinitialization if page type hasn't changed
     if (newPageType === state.currentPageType) {
       return;
     }
@@ -326,6 +341,12 @@ async function initialize(): Promise<void> {
     const settings = await getSettings();
     state.currentSettings = settings;
 
+    // Initialize ChannelBlocker
+    channelBlocker = new ChannelBlocker(settings.blockedChannels);
+
+    // Check if current page should be blocked FIRST (before initializing modules)
+    channelBlocker.checkAndBlock();
+
     // Initialize current page
     await handlePageChange(settings);
 
@@ -338,6 +359,11 @@ async function initialize(): Promise<void> {
     // Watch for settings changes (hot reload)
     watchSettings((updatedSettings) => {
       state.currentSettings = updatedSettings;
+
+      // Update ChannelBlocker with new blocked channels
+      if (channelBlocker) {
+        channelBlocker.updateBlockedChannels(updatedSettings.blockedChannels);
+      }
 
       // If YouTube module is disabled, cleanup and exit
       if (!updatedSettings.youtube.enabled) {

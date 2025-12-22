@@ -4,9 +4,14 @@
  * Hides navigation chrome, Shorts, community posts while preserving search functionality
  */
 
-import { SearchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
+import {
+  SearchPageSettings,
+  GlobalNavigationSettings,
+  BlockedChannel,
+} from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
+import { ChannelBlocker } from './utils/channel-blocker';
 
 /**
  * YouTube element selectors for search results page
@@ -71,11 +76,17 @@ let mutationObserver: MutationObserver | null = null;
 let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 
 /**
+ * ChannelBlocker instance for filtering blocked channels
+ */
+let channelBlocker: ChannelBlocker | null = null;
+
+/**
  * Current settings state
  * Stores the latest settings to ensure mutation observer uses up-to-date values
  */
 let currentPageSettings: SearchPageSettings | null = null;
 let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+let currentBlockedChannels: BlockedChannel[] = [];
 
 /**
  * Generates CSS rules based on search page and global navigation settings
@@ -309,20 +320,34 @@ function generateSearchPageCSS(
  *
  * @param pageSettings - Search page specific settings object
  * @param globalNavigation - Global navigation settings object
+ * @param blockedChannels - List of blocked YouTube channels
  */
 export function applySearchPageSettings(
   pageSettings: SearchPageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  blockedChannels: BlockedChannel[] = []
 ): void {
   // Store current settings for mutation observer to use
   currentPageSettings = pageSettings;
   currentGlobalNavigation = globalNavigation;
+  currentBlockedChannels = blockedChannels;
 
   const css = generateSearchPageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 
   // Update hover preview blocker settings
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
+
+  // Update channel blocker and filter content
+  if (channelBlocker) {
+    channelBlocker.updateBlockedChannels(blockedChannels);
+  }
+
+  // Filter blocked channel content from search results
+  const resultsContainer = document.querySelector(SEARCH_PAGE_SELECTORS.RESULTS_CONTAINER);
+  if (resultsContainer && channelBlocker) {
+    channelBlocker.filterContent(resultsContainer);
+  }
 }
 
 /**
@@ -333,6 +358,7 @@ export function removeSearchPageStyles(): void {
   removeCSS(STYLE_TAG_ID);
   currentPageSettings = null;
   currentGlobalNavigation = null;
+  currentBlockedChannels = [];
 }
 
 /**
@@ -352,9 +378,19 @@ function setupMutationObserver(): void {
   const debouncedReapply = debounce(() => {
     // Use current settings from module-level variables, not captured parameters
     if (currentPageSettings && currentGlobalNavigation) {
-      applySearchPageSettings(currentPageSettings, currentGlobalNavigation);
+      applySearchPageSettings(currentPageSettings, currentGlobalNavigation, currentBlockedChannels);
     }
   }, 200);
+
+  // Create debounced filter function for blocked channels
+  const debouncedFilter = debounce(() => {
+    if (channelBlocker) {
+      const resultsContainer = document.querySelector(SEARCH_PAGE_SELECTORS.RESULTS_CONTAINER);
+      if (resultsContainer) {
+        channelBlocker.filterContent(resultsContainer);
+      }
+    }
+  }, 100);
 
   // Create observer
   mutationObserver = new MutationObserver((mutations) => {
@@ -391,6 +427,8 @@ function setupMutationObserver(): void {
 
     if (shouldReapply) {
       debouncedReapply();
+      // Also filter blocked channel content when new content is added
+      debouncedFilter();
     }
   });
 
@@ -408,17 +446,22 @@ function setupMutationObserver(): void {
  *
  * @param pageSettings - Search page specific settings object
  * @param globalNavigation - Global navigation settings object
+ * @param blockedChannels - List of blocked YouTube channels
  */
 export async function initSearchPageModule(
   pageSettings: SearchPageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  blockedChannels: BlockedChannel[] = []
 ): Promise<void> {
   try {
     // Wait for essential elements to load
     await waitForElement(SEARCH_PAGE_SELECTORS.MASTHEAD, 5000);
 
+    // Initialize channel blocker
+    channelBlocker = new ChannelBlocker(blockedChannels);
+
     // Apply initial settings (this also stores them for the mutation observer)
-    applySearchPageSettings(pageSettings, globalNavigation);
+    applySearchPageSettings(pageSettings, globalNavigation, blockedChannels);
 
     // Set up mutation observer for dynamic content (uses stored settings)
     setupMutationObserver();
@@ -452,6 +495,9 @@ export function cleanupSearchPageModule(): void {
     hoverPreviewBlocker.cleanup();
     hoverPreviewBlocker = null;
   }
+
+  // Cleanup channel blocker
+  channelBlocker = null;
 
   console.log('[Fockey] Search page module cleaned up');
 }

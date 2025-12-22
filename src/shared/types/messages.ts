@@ -13,7 +13,8 @@ export type MessageType =
   | 'UPDATE_SETTINGS'
   | 'RESET_SETTINGS'
   | 'RELOAD_CONTENT_SCRIPT'
-  | 'SETTINGS_UPDATED';
+  | 'SETTINGS_UPDATED'
+  | 'NAVIGATE_TO_HOME';
 
 /**
  * Base message structure
@@ -62,6 +63,14 @@ export interface SettingsUpdatedMessage extends BaseMessage {
 }
 
 /**
+ * Request to navigate to YouTube home page
+ * Sent from blocked page to service worker
+ */
+export interface NavigateToHomeMessage extends BaseMessage {
+  type: 'NAVIGATE_TO_HOME';
+}
+
+/**
  * Union type of all possible messages
  */
 export type Message =
@@ -69,7 +78,8 @@ export type Message =
   | UpdateSettingsMessage
   | ResetSettingsMessage
   | ReloadContentScriptMessage
-  | SettingsUpdatedMessage;
+  | SettingsUpdatedMessage
+  | NavigateToHomeMessage;
 
 /**
  * Response structure for messages

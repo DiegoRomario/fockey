@@ -5,7 +5,11 @@
  */
 
 import type { ModuleInterface, ModuleSettings } from '../types';
-import type { SearchPageSettings, GlobalNavigationSettings } from '../../../shared/types/settings';
+import type {
+  SearchPageSettings,
+  GlobalNavigationSettings,
+  BlockedChannel,
+} from '../../../shared/types/settings';
 import {
   initSearchPageModule,
   cleanupSearchPageModule,
@@ -18,6 +22,7 @@ import {
 class SearchPageModule implements ModuleInterface {
   private pageSettings: SearchPageSettings | null = null;
   private globalNavigation: GlobalNavigationSettings | null = null;
+  private blockedChannels: BlockedChannel[] = [];
   private isInitialized = false;
 
   /**
@@ -26,8 +31,9 @@ class SearchPageModule implements ModuleInterface {
   async init(settings: ModuleSettings): Promise<void> {
     this.pageSettings = settings.pageSettings as SearchPageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.blockedChannels = settings.blockedChannels;
     this.isInitialized = true;
-    await initSearchPageModule(this.pageSettings, this.globalNavigation);
+    await initSearchPageModule(this.pageSettings, this.globalNavigation, this.blockedChannels);
   }
 
   /**
@@ -37,9 +43,10 @@ class SearchPageModule implements ModuleInterface {
   updateSettings(settings: ModuleSettings): void {
     this.pageSettings = settings.pageSettings as SearchPageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.blockedChannels = settings.blockedChannels;
     if (this.isInitialized && this.globalNavigation) {
       // Re-apply settings using existing functionality
-      applySearchPageSettings(this.pageSettings, this.globalNavigation);
+      applySearchPageSettings(this.pageSettings, this.globalNavigation, this.blockedChannels);
     }
   }
 
@@ -50,6 +57,7 @@ class SearchPageModule implements ModuleInterface {
     cleanupSearchPageModule();
     this.pageSettings = null;
     this.globalNavigation = null;
+    this.blockedChannels = [];
     this.isInitialized = false;
   }
 }

@@ -4,8 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { getSettings, updateSettings } from '@/shared/storage/settings-manager';
-import { ExtensionSettings } from '@/shared/types/settings';
+import {
+  getSettings,
+  updateSettings,
+  addBlockedChannel,
+  removeBlockedChannel,
+} from '@/shared/storage/settings-manager';
+import { ExtensionSettings, BlockedChannel } from '@/shared/types/settings';
 import LoadingState from './components/LoadingState';
 import SettingsTabs from './components/SettingsTabs';
 
@@ -18,6 +23,13 @@ const Popup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('global');
+  const [currentChannel, setCurrentChannel] = useState<{
+    id: string;
+    handle: string;
+    name: string;
+  } | null>(null);
+  const [isCurrentChannelBlocked, setIsCurrentChannelBlocked] = useState(false);
+  const [isBlockingChannel, setIsBlockingChannel] = useState(false);
 
   // Debounce timer ref for batching rapid toggle changes
   const debounceTimerRef = useRef<number | null>(null);
@@ -71,6 +83,170 @@ const Popup: React.FC = () => {
       }
     };
   }, []);
+
+  /**
+   * Detect current channel when popup opens
+   */
+  useEffect(() => {
+    const detectChannel = async () => {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        if (!tab?.id || !tab.url?.includes('youtube.com')) {
+          return;
+        }
+
+        // Inject inline function that doesn't rely on imports
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            // Inline channel detection logic (no external dependencies)
+            const currentUrl = window.location.href;
+
+            // Extract channel ID from URL
+            const extractChannelId = (url: string): string | null => {
+              try {
+                const urlObj = new URL(url);
+                const handleMatch = urlObj.pathname.match(/^\/@([^/?]+)/);
+                if (handleMatch) return handleMatch[1];
+                const cMatch = urlObj.pathname.match(/^\/c\/([^/?]+)/);
+                if (cMatch) return cMatch[1];
+                const userMatch = urlObj.pathname.match(/^\/user\/([^/?]+)/);
+                if (userMatch) return userMatch[1];
+                const channelMatch = urlObj.pathname.match(/^\/channel\/([^/?]+)/);
+                if (channelMatch) return channelMatch[1];
+                return null;
+              } catch {
+                return null;
+              }
+            };
+
+            // Method 1: Channel page detection
+            if (
+              currentUrl.includes('/@') ||
+              currentUrl.includes('/channel/') ||
+              currentUrl.includes('/c/') ||
+              currentUrl.includes('/user/')
+            ) {
+              const channelId = extractChannelId(currentUrl);
+              if (channelId) {
+                const channelName =
+                  document.querySelector('ytd-channel-name #text')?.textContent?.trim() ||
+                  document.querySelector('#channel-name')?.textContent?.trim() ||
+                  document.querySelector('#text.ytd-channel-name')?.textContent?.trim() ||
+                  document
+                    .querySelector('yt-formatted-string.ytd-channel-name')
+                    ?.textContent?.trim() ||
+                  document.title.split(' - ')[0] ||
+                  channelId;
+
+                return { id: channelId, handle: channelId, name: channelName };
+              }
+            }
+
+            // Method 2: Watch page detection
+            if (currentUrl.includes('/watch')) {
+              const selectors = [
+                'ytd-video-owner-renderer a.yt-simple-endpoint[href*="/@"]',
+                'ytd-video-owner-renderer a[href*="/channel/"]',
+                'ytd-channel-name a',
+                '#upload-info a[href*="/@"]',
+                '#owner a[href*="/@"]',
+              ];
+
+              for (const selector of selectors) {
+                const link = document.querySelector(selector) as HTMLAnchorElement;
+                if (link && link.href) {
+                  const channelId = extractChannelId(link.href);
+                  if (channelId) {
+                    const channelName =
+                      link.textContent?.trim() ||
+                      document.querySelector('ytd-channel-name #text')?.textContent?.trim() ||
+                      document
+                        .querySelector('#upload-info #channel-name #text')
+                        ?.textContent?.trim() ||
+                      channelId;
+
+                    return { id: channelId, handle: channelId, name: channelName };
+                  }
+                }
+              }
+            }
+
+            return null;
+          },
+        });
+
+        const channelInfo = results[0]?.result;
+
+        if (channelInfo && settings) {
+          setCurrentChannel(channelInfo);
+
+          // Check if channel is blocked
+          const blocked = settings.blockedChannels.some(
+            (c) =>
+              c.id === channelInfo.id ||
+              c.handle === channelInfo.handle ||
+              c.id.toLowerCase() === channelInfo.id.toLowerCase() ||
+              c.handle.toLowerCase() === channelInfo.handle.toLowerCase()
+          );
+          setIsCurrentChannelBlocked(blocked);
+        }
+      } catch (error) {
+        console.error('Failed to detect current channel:', error);
+      }
+    };
+
+    if (settings) {
+      detectChannel();
+    }
+  }, [settings]);
+
+  /**
+   * Handle block/unblock channel
+   */
+  const handleBlockChannel = useCallback(async () => {
+    if (!currentChannel || !settings) return;
+
+    setIsBlockingChannel(true);
+    try {
+      if (isCurrentChannelBlocked) {
+        // Unblock channel
+        await removeBlockedChannel(currentChannel.id);
+        setIsCurrentChannelBlocked(false);
+
+        // Reload settings to reflect changes
+        const updatedSettings = await getSettings();
+        setSettings(updatedSettings);
+      } else {
+        // Block channel
+        const blockedChannel: BlockedChannel = {
+          id: currentChannel.id,
+          handle: currentChannel.handle,
+          name: currentChannel.name,
+          blockedAt: Date.now(),
+        };
+
+        await addBlockedChannel(blockedChannel);
+        setIsCurrentChannelBlocked(true);
+
+        // Reload current tab to apply block
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab?.id) {
+          await chrome.tabs.reload(tab.id);
+        }
+
+        // Reload settings to reflect changes
+        const updatedSettings = await getSettings();
+        setSettings(updatedSettings);
+      }
+    } catch (error) {
+      console.error('Failed to block/unblock channel:', error);
+      setError('Failed to update channel block status.');
+    } finally {
+      setIsBlockingChannel(false);
+    }
+  }, [currentChannel, settings, isCurrentChannelBlocked]);
 
   /**
    * Debounced update to Chrome Storage
@@ -305,6 +481,39 @@ const Popup: React.FC = () => {
               onWatchPageToggle={handleWatchPageToggle}
               onCreatorProfilePageToggle={handleCreatorProfilePageToggle}
             />
+
+            {/* Channel Blocking Section */}
+            {currentChannel && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <div className="text-xs text-muted-foreground">Current Channel</div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{currentChannel.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          @{currentChannel.handle}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleBlockChannel}
+                        disabled={isBlockingChannel}
+                        variant={isCurrentChannelBlocked ? 'outline' : 'destructive'}
+                        size="sm"
+                        className="shrink-0"
+                      >
+                        {isBlockingChannel
+                          ? 'Processing...'
+                          : isCurrentChannelBlocked
+                            ? 'Unblock'
+                            : 'Block Channel'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <Separator className="my-4" />
 

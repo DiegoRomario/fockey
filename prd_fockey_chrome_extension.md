@@ -53,7 +53,7 @@ These elements reduce focus and often lead to unintentional consumption.
 ### Non‑Goals (v1)
 
 - Content recommendation optimization
-- Content blocking by topic or keyword
+- Content blocking by topic or keyword (note: specific channel blocking is supported)
 - Support for websites other than YouTube
 
 ---
@@ -696,6 +696,279 @@ Users can selectively re-enable hidden elements via extension settings. Most ele
 
 ---
 
+## Channel Blocking Feature
+
+### Overview
+
+The Channel Blocking feature empowers users to completely block specific YouTube channels, preventing access to both the channel's profile page and any individual videos from that channel. This feature aligns with Fockey's core minimalist philosophy by giving users **ultimate control over their content environment** and eliminating unwanted distractions at the source.
+
+When a user blocks a channel, all attempts to access content from that channel are intercepted and redirected to a visually polished **blocked page** that reinforces productivity and focus.
+
+---
+
+### Feature Goals
+
+**Primary Goals:**
+- Provide users with granular control over which YouTube creators they can access
+- Eliminate distractions from specific channels without affecting the broader YouTube experience
+- Maintain a seamless, intuitive blocking workflow across all YouTube surfaces
+
+**Secondary Goals:**
+- Support multiple channel identification patterns (handle, name, URL)
+- Integrate blocking functionality into existing extension UI surfaces (popup, settings)
+- Deliver a polished, on-brand blocked page experience
+
+---
+
+### Channel Blocking Rules & Input Patterns
+
+Users must be able to block YouTube channels using **any of the following input patterns**:
+
+1. **Channel Handle** (preferred)
+   - Format: `@mrbeast`, `@channelname`
+   - Most reliable identifier, as it's unique per channel
+
+2. **Channel Name**
+   - Format: `MrBeast`, `Channel Name`
+   - May match multiple channels if names are similar (handle preferred)
+
+3. **Channel URL**
+   - Full URL: `https://www.youtube.com/@mrbeast`
+   - Short URL: `youtube.com/@mrbeast`
+   - Channel ID URL: `youtube.com/channel/UCX6OQ3DkcsbYNE6H8uQQuVA`
+
+**Normalization & Matching Logic:**
+- All input patterns should be normalized to a canonical channel identifier (ideally channel handle or channel ID)
+- Handle and URL-based inputs should be preferred for accuracy
+- Name-based inputs should warn users if ambiguity is detected
+- Blocked channels are stored using a reliable, permanent identifier (channel ID or handle)
+
+---
+
+### Blocking Behavior
+
+Once a channel is blocked, the following access restrictions apply:
+
+#### 1. **Blocked Channel Profile Page**
+
+When a user attempts to navigate to a blocked channel's profile page (e.g., `https://www.youtube.com/@MrBeast`), they are **immediately redirected** to the **Blocked Page**.
+
+**Examples of blocked URLs:**
+- `https://www.youtube.com/@MrBeast`
+- `https://www.youtube.com/c/MrBeast6000`
+- `https://www.youtube.com/channel/UCX6OQ3DkcsbYNE6H8uQQuVA`
+
+#### 2. **Blocked Channel Videos**
+
+When a user attempts to watch a video from a blocked channel (e.g., `https://www.youtube.com/watch?v=4l97aNza_Zc`), they are **immediately redirected** to the **Blocked Page**.
+
+**Detection Logic:**
+- Extract channel information from the Watch Page DOM or YouTube API
+- Match against the list of blocked channels
+- Redirect if a match is found
+
+**Important:** The blocking must occur **before** the video player loads, to avoid any visual flicker or partial rendering.
+
+#### 3. **Blocked Content in Search Results, Feeds, and Recommendations**
+
+Blocked channels' content should be **hidden** from:
+- Search results
+- Home page feed (if Home content is enabled)
+- Related/recommended videos sidebar (Watch Page)
+- Any other surfaces where channel content may appear
+
+**Implementation Strategy:**
+- Use mutation observers to detect and hide blocked channel content dynamically
+- Apply content filtering at the DOM level (similar to existing Shorts/Posts filtering)
+- Ensure no performance degradation during content filtering
+
+---
+
+### Blocked Page Design
+
+When a user is redirected due to a channel block, they are shown a **full-page interstitial** with the following design:
+
+**Visual Design:**
+- **Background:** Smooth gradient (purple-to-blue) covering the full viewport
+- **Lock Icon:** Centered, circular badge with a lock symbol (golden/amber color)
+- **Heading:** "Page Blocked" (large, bold, white text)
+- **Channel Name Message:** "Channel '[Channel Name]' is blocked" (subtitle, white text)
+- **Motivational Message:** "Stay focused on what matters. This block helps you avoid distractions and maintain productivity." (smaller white text)
+- **Go Back Button:** Prominent, centered button with a subtle outline (white border, transparent background)
+- **Footer Text:** "Blocked: [URL]" (small, faded white text at the bottom of the page)
+
+**Behavioral Details:**
+- **Go Back Button:** Navigates the user back to their previous page (using `history.back()`)
+- **Responsive Design:** Full-page layout adapts to all screen sizes
+- **Branding:** Maintains Fockey's polished, minimalist design language
+- **Performance:** Page renders instantly with no external dependencies
+
+**Technical Implementation:**
+- Hosted as an extension HTML page (`blocked.html`)
+- Receives channel name and URL as query parameters
+- Fully self-contained (no external API calls)
+
+---
+
+### Settings Page Integration
+
+A new **"Blocked YouTube Channels"** section must be added to the extension's Settings (Options) page.
+
+**Section Layout:**
+
+**Header:**
+- Title: "Blocked YouTube Channels"
+- Subtitle: "Block YouTube channels to hide their videos and prevent access to their channel pages."
+
+**Input Area:**
+- Text input field with placeholder: "Enter channel name or @channel"
+- **"Block"** button positioned to the right of the input field
+- Informational text below input: "Examples: @mrbeast, MrBeast, or youtube.com/@mrbeast"
+
+**Blocked Channels List:**
+- Display a list of all currently blocked channels
+- Each list item shows:
+  - Channel name (if available)
+  - Channel handle (e.g., `@mrbeast`)
+  - **"Unblock"** button (or trash icon) for removal
+- If no channels are blocked, show:
+  - Empty state icon (YouTube icon with a strikethrough or lock)
+  - Text: "No blocked channels yet"
+  - Subtext: "Use the input above to block a channel, or visit YouTube and use the popup."
+
+**User Interaction:**
+1. User enters a channel identifier (handle, name, or URL) in the input field
+2. User clicks the **"Block"** button
+3. Extension resolves the channel identifier to a canonical form (channel ID or handle)
+4. Channel is added to the blocked list and persisted to Chrome Storage API
+5. UI updates immediately to reflect the new blocked channel
+6. Success feedback is shown (toast notification or inline message)
+
+**Edge Cases:**
+- **Invalid Input:** Show error message if input cannot be resolved to a valid channel
+- **Duplicate Block:** Show warning if channel is already blocked
+- **Empty Input:** Disable "Block" button until valid input is provided
+
+---
+
+### Popup Integration
+
+The extension popup must include a new **"Block Channel"** button that allows users to quickly block the current YouTube channel they are viewing.
+
+**Button Location:**
+- Positioned within the popup UI, ideally in a dedicated section or near the top for quick access
+- Follows the established shadcn/ui design patterns and Tailwind styling
+
+**Button Design:**
+- Red background with white text
+- Label: "Block"
+- Icon: Lock or shield icon (optional)
+- Disabled state: Grayed out if not on a valid channel page or watch page
+
+**Popup Channel Info Display:**
+- Show the current channel's name (e.g., "MrBeast")
+- Show the current channel's handle (e.g., "@MrBeast")
+- Display this info in a card or section above or near the "Block" button
+
+**User Interaction Flow:**
+1. User opens the extension popup while on a YouTube video or channel page
+2. Popup displays the current channel's name and handle
+3. User clicks the **"Block"** button
+4. Extension adds the channel to the blocked list
+5. Popup shows success feedback (e.g., "Channel blocked successfully")
+6. User is optionally redirected away from the blocked content (or immediately sees the blocked page if on a video/channel page)
+7. The blocked channel automatically appears in the Settings page's "Blocked Channels" list
+
+**Contextual Availability:**
+- Button is **only enabled** when:
+  - User is on a YouTube Watch Page (`/watch?v=...`)
+  - User is on a YouTube Channel Profile Page (`/@channelname`, `/channel/...`, `/c/...`)
+- Button is **disabled** when:
+  - User is on Home, Search, or any non-channel/video page
+  - Channel information cannot be reliably extracted
+
+**Edge Cases:**
+- **Channel Already Blocked:** Show message "Channel already blocked" and disable button
+- **Invalid Page Context:** Show message "Navigate to a video or channel to block"
+
+---
+
+### Data Storage & Persistence
+
+**Blocked Channels List Storage:**
+- Stored using **Chrome Storage API** (sync storage for cross-device persistence)
+- Storage key: `blockedChannels`
+- Data structure:
+  ```json
+  {
+    "blockedChannels": [
+      {
+        "id": "UCX6OQ3DkcsbYNE6H8uQQuVA",
+        "handle": "@mrbeast",
+        "name": "MrBeast",
+        "blockedAt": 1677649200000
+      }
+    ]
+  }
+  ```
+
+**Key Fields:**
+- `id` (required): YouTube channel ID (canonical identifier)
+- `handle` (optional): Channel handle (e.g., `@mrbeast`)
+- `name` (optional): Display name of the channel
+- `blockedAt` (optional): Timestamp of when the channel was blocked
+
+**Data Synchronization:**
+- Changes to the blocked channels list are immediately persisted to Chrome Storage
+- All extension contexts (popup, content scripts, service worker) listen for storage changes
+- Real-time updates across all open YouTube tabs when channels are blocked/unblocked
+
+---
+
+### Technical Implementation Notes
+
+**Content Script Integration:**
+- Each YouTube page content script (home, search, watch, profile) must:
+  - Check if the current page's channel is in the blocked list
+  - Redirect to the blocked page if a match is found
+  - Filter out blocked channel content from feeds, recommendations, and search results
+
+**Service Worker Coordination:**
+- Service worker listens for navigation events to blocked channels
+- Provides blocked channel list to content scripts on demand
+- Handles storage synchronization and cross-tab communication
+
+**Performance Considerations:**
+- Blocked channel checks must be **fast and non-blocking**
+- Use efficient data structures for channel matching (Map or Set)
+- Avoid unnecessary DOM queries or API calls
+- Ensure no visual flicker when blocking content
+
+**Channel Resolution Logic:**
+- Use YouTube's DOM to extract channel information when possible
+- Fallback to URL parsing for channel ID/handle extraction
+- Handle edge cases where channel info is unavailable or ambiguous
+
+---
+
+### Success Criteria
+
+The Channel Blocking feature is considered **successfully implemented** when:
+
+- ✅ Users can add channels to a block list using handles, names, or URLs via the Settings page
+- ✅ Users can quickly block the current channel via the popup "Block" button
+- ✅ Blocked channel profile pages redirect to the Blocked Page immediately
+- ✅ Videos from blocked channels redirect to the Blocked Page immediately
+- ✅ Blocked channel content is hidden from search results, feeds, and recommendations
+- ✅ The Blocked Page displays a polished, branded interstitial with channel info and "Go Back" button
+- ✅ Settings page shows a list of all blocked channels with an "Unblock" option
+- ✅ All blocked channel data is persisted and synchronized via Chrome Storage API
+- ✅ The popup displays current channel info and enables/disables the "Block" button contextually
+- ✅ No performance degradation or flickering during channel blocking or content filtering
+- ✅ Edge cases (invalid input, duplicate blocks, ambiguous names) are handled gracefully with clear user feedback
+
+---
+
 ## Settings & Configuration
 
 ### Access Points
@@ -727,6 +1000,9 @@ Users can selectively re-enable hidden elements via extension settings. Most ele
 | **Global Navigation**      | Left Sidebar (+ Hamburger) | Off     | Yes          | All pages      |
 | **Global Navigation**      | Profile Avatar             | Off     | Yes          | All pages      |
 | **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
+| **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
+| **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
+| **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |
 | **Home**            | Search bar                 | On      | No           | Home only      |
 | **Home**            | Feed, Shorts               | Off     | N/A          | Home only      |
 | **Search**          | Search bar, Results        | On      | No           | Search only    |

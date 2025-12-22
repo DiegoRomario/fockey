@@ -149,7 +149,7 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
   logger.info('Message received:', message.type, 'from:', sender.tab?.id || 'popup/options');
 
   // Route message to appropriate handler
-  handleMessage(message)
+  handleMessage(message, sender)
     .then((response) => {
       sendResponse(response);
     })
@@ -169,7 +169,10 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
  * Central message routing handler
  * Subtask 5.8: Centralized error handling and logging
  */
-async function handleMessage(message: Message): Promise<MessageResponse> {
+async function handleMessage(
+  message: Message,
+  sender: chrome.runtime.MessageSender
+): Promise<MessageResponse> {
   try {
     switch (message.type) {
       case 'GET_SETTINGS':
@@ -183,6 +186,9 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
 
       case 'RELOAD_CONTENT_SCRIPT':
         return await handleReloadContentScript(message.tabId);
+
+      case 'NAVIGATE_TO_HOME':
+        return await handleNavigateToHome(sender.tab?.id);
 
       default:
         throw new Error(`Unknown message type: ${(message as Message).type}`);
@@ -257,6 +263,26 @@ async function handleReloadContentScript(tabId?: number): Promise<MessageRespons
     return { success: true };
   } catch (error) {
     logger.error('Failed to reload content script', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle NAVIGATE_TO_HOME message
+ * Navigates the current tab to YouTube home page
+ */
+async function handleNavigateToHome(tabId?: number): Promise<MessageResponse> {
+  try {
+    if (tabId) {
+      await chrome.tabs.update(tabId, { url: 'https://www.youtube.com' });
+      logger.info(`Navigated tab ${tabId} to YouTube home`);
+      return { success: true };
+    } else {
+      logger.error('No tab ID provided for navigation');
+      throw new Error('Tab ID required for navigation');
+    }
+  } catch (error) {
+    logger.error('Failed to navigate to home', error);
     throw error;
   }
 }

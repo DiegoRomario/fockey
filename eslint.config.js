@@ -47,6 +47,6 @@ export default [
   },
   prettierConfig,
   {
-    ignores: ['dist/', 'node_modules/', '.husky/'],
+    ignores: ['dist/', 'node_modules/', '.husky/', 'public/'],
   },
 ];

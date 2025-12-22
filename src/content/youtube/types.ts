@@ -10,6 +10,7 @@ import type {
   SearchPageSettings,
   WatchPageSettings,
   CreatorProfilePageSettings,
+  BlockedChannel,
 } from '../../shared/types/settings';
 
 /**
@@ -48,6 +49,8 @@ export interface ModuleSettings {
   pageSettings: PageSettings;
   /** Global navigation settings (applies to all pages) */
   globalNavigation: GlobalNavigationSettings;
+  /** Blocked YouTube channels */
+  blockedChannels: BlockedChannel[];
 }
 
 /**
