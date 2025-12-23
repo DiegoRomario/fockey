@@ -92,8 +92,15 @@ function generateCreatorProfileCSS(
 ): string {
   const rules: string[] = [];
 
-  // Hide Shorts tab unless explicitly enabled
-  if (!pageSettings.showShortsTab) {
+  // Show/hide Shorts tab based on settings
+  if (pageSettings.showShortsTab) {
+    rules.push(`
+      /* Show Shorts tab */
+      ${CREATOR_PROFILE_SELECTORS.SHORTS_TAB} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide Shorts tab */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_TAB} {
@@ -102,8 +109,15 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide Community/Posts tab unless explicitly enabled
-  if (!pageSettings.showCommunityTab) {
+  // Show/hide Community/Posts tab based on settings
+  if (pageSettings.showCommunityTab) {
+    rules.push(`
+      /* Show Community/Posts tab */
+      ${CREATOR_PROFILE_SELECTORS.COMMUNITY_TAB} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide Community/Posts tab */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_TAB} {
@@ -112,8 +126,16 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide Community posts in Home tab unless explicitly enabled
-  if (!pageSettings.showCommunityInHome) {
+  // Show/hide Community posts in Home tab based on settings
+  if (pageSettings.showCommunityInHome) {
+    rules.push(`
+      /* Show Community posts and Posts section in Home tab */
+      ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS},
+      ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS_SECTION} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide Community posts and Posts section in Home tab */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS},
@@ -123,8 +145,15 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide Shorts in Home tab unless explicitly enabled
-  if (!pageSettings.showShortsInHome) {
+  // Show/hide Shorts in Home tab based on settings
+  if (pageSettings.showShortsInHome) {
+    rules.push(`
+      /* Show Shorts in Home tab */
+      ${CREATOR_PROFILE_SELECTORS.SHORTS_CONTENT} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide Shorts in Home tab */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_CONTENT} {
@@ -143,7 +172,14 @@ function generateCreatorProfileCSS(
   `);
 
   // Global Navigation Settings (apply to all pages)
-  if (!globalNavigation.showLogo) {
+  if (globalNavigation.showLogo) {
+    rules.push(`
+      /* Show YouTube logo */
+      ${CREATOR_PROFILE_SELECTORS.YOUTUBE_LOGO} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide YouTube logo */
       ${CREATOR_PROFILE_SELECTORS.YOUTUBE_LOGO} {
@@ -152,7 +188,15 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  if (!globalNavigation.showSidebar) {
+  if (globalNavigation.showSidebar) {
+    rules.push(`
+      /* Show sidebar and hamburger menu (unified component) */
+      ${CREATOR_PROFILE_SELECTORS.HAMBURGER_MENU},
+      ${CREATOR_PROFILE_SELECTORS.LEFT_SIDEBAR} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide sidebar and hamburger menu (unified component) */
       ${CREATOR_PROFILE_SELECTORS.HAMBURGER_MENU},
@@ -162,7 +206,14 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  if (!globalNavigation.showProfile) {
+  if (globalNavigation.showProfile) {
+    rules.push(`
+      /* Show profile avatar */
+      ${CREATOR_PROFILE_SELECTORS.PROFILE_AVATAR} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide profile avatar */
       ${CREATOR_PROFILE_SELECTORS.PROFILE_AVATAR} {
@@ -171,7 +222,14 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  if (!globalNavigation.showNotifications) {
+  if (globalNavigation.showNotifications) {
+    rules.push(`
+      /* Show notifications bell */
+      ${CREATOR_PROFILE_SELECTORS.NOTIFICATIONS_BELL} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       /* Hide notifications bell */
       ${CREATOR_PROFILE_SELECTORS.NOTIFICATIONS_BELL} {

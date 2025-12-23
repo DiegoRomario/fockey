@@ -136,13 +136,22 @@ let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 let currentVideoId: string | null = null;
 
 /**
+ * Current global navigation settings
+ */
+let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+
+/**
  * Generates CSS rules based on watch page settings
  * Returns CSS string with display: none rules for hidden elements
  *
  * @param settings - Watch page settings object
+ * @param globalNavigation - Global navigation settings object
  * @returns CSS string with rules for hiding/showing elements
  */
-function generateWatchPageCSS(settings: WatchPageSettings): string {
+function generateWatchPageCSS(
+  settings: WatchPageSettings,
+  globalNavigation?: GlobalNavigationSettings
+): string {
   const rules: string[] = [];
 
   // ========================================
@@ -344,40 +353,129 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
   }
 
   // ========================================
-  // CRITICAL: ALWAYS hide navigation chrome (matching Home/Search page behavior)
-  // These are ALWAYS hidden by default to maintain minimalist consistency
+  // Global Navigation Settings (configurable)
   // ========================================
+  if (globalNavigation) {
+    if (globalNavigation.showLogo) {
+      rules.push(`
+        /* Show YouTube logo */
+        ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
+          display: block !important;
+        }
+      `);
+    } else {
+      rules.push(`
+        /* Hide YouTube logo */
+        ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
+          display: none !important;
+        }
+      `);
+    }
+
+    if (globalNavigation.showSidebar) {
+      rules.push(`
+        /* Show hamburger menu */
+        ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
+          display: block !important;
+        }
+
+        /* Show left sidebar */
+        ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
+          display: block !important;
+        }
+
+        /* Reset page content margin */
+        ytd-page-manager {
+          margin-left: auto !important;
+        }
+      `);
+    } else {
+      rules.push(`
+        /* Hide hamburger menu */
+        ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
+          display: none !important;
+        }
+
+        /* Hide left sidebar */
+        ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
+          display: none !important;
+        }
+
+        /* Adjust page content to fill space when sidebar is hidden */
+        ytd-page-manager {
+          margin-left: 0 !important;
+        }
+      `);
+    }
+
+    if (globalNavigation.showProfile) {
+      rules.push(`
+        /* Show profile avatar */
+        ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
+          display: block !important;
+        }
+      `);
+    } else {
+      rules.push(`
+        /* Hide profile avatar */
+        ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
+          display: none !important;
+        }
+      `);
+    }
+
+    if (globalNavigation.showNotifications) {
+      rules.push(`
+        /* Show notifications button in topbar */
+        ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
+          display: block !important;
+        }
+      `);
+    } else {
+      rules.push(`
+        /* Hide notifications button in topbar */
+        ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
+          display: none !important;
+        }
+      `);
+    }
+  } else {
+    // Default: hide all global navigation elements
+    rules.push(`
+      /* Hide YouTube logo */
+      ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
+        display: none !important;
+      }
+
+      /* Hide hamburger menu */
+      ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
+        display: none !important;
+      }
+
+      /* Hide left sidebar */
+      ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
+        display: none !important;
+      }
+
+      /* Adjust page content to fill space */
+      ytd-page-manager {
+        margin-left: 0 !important;
+      }
+
+      /* Hide profile avatar */
+      ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
+        display: none !important;
+      }
+
+      /* Hide notifications button in topbar */
+      ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
+        display: none !important;
+      }
+    `);
+  }
+
+  // Always hide upload/create button and other non-configurable elements
   rules.push(`
-    /* ALWAYS hide YouTube logo */
-    ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide hamburger menu */
-    ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide left sidebar */
-    ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
-      display: none !important;
-    }
-
-    /* Adjust page content to fill space when sidebar is hidden */
-    ytd-page-manager {
-      margin-left: 0 !important;
-    }
-
-    /* ALWAYS hide profile avatar */
-    ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide notifications button in topbar */
-    ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
-      display: none !important;
-    }
-
     /* ALWAYS hide upload/create button */
     ${WATCH_PAGE_SELECTORS.UPLOAD_BUTTON} {
       display: none !important;
@@ -480,7 +578,10 @@ export function applyWatchPageSettings(
   settings: WatchPageSettings,
   globalNavigation?: GlobalNavigationSettings
 ): void {
-  const css = generateWatchPageCSS(settings);
+  // Store current global navigation settings
+  currentGlobalNavigation = globalNavigation || null;
+
+  const css = generateWatchPageCSS(settings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 
   // Update hover preview blocker settings if globalNavigation is provided
@@ -520,7 +621,7 @@ function setupMutationObserver(settings: WatchPageSettings): void {
 
   // Create debounced re-apply function
   const debouncedReapply = debounce(() => {
-    applyWatchPageSettings(settings);
+    applyWatchPageSettings(settings, currentGlobalNavigation || undefined);
   }, 200);
 
   // Create observer
@@ -581,7 +682,7 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
       console.log(`[Fockey] Video changed to: ${newVideoId}`);
 
       // Re-apply settings for new video
-      applyWatchPageSettings(settings);
+      applyWatchPageSettings(settings, currentGlobalNavigation || undefined);
     }
   });
 
@@ -592,7 +693,7 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
     if (newVideoId && newVideoId !== currentVideoId) {
       currentVideoId = newVideoId;
       console.log(`[Fockey] Video changed (popstate) to: ${newVideoId}`);
-      applyWatchPageSettings(settings);
+      applyWatchPageSettings(settings, currentGlobalNavigation || undefined);
     }
   });
 }
@@ -611,11 +712,14 @@ export async function initWatchPageModule(
     // Wait for essential elements to load
     await waitForElement(WATCH_PAGE_SELECTORS.VIDEO_PLAYER, 5000);
 
+    // Store current settings
+    currentGlobalNavigation = globalNavigation || null;
+
     // Store current video ID
     currentVideoId = getVideoId();
 
     // Apply initial settings
-    applyWatchPageSettings(settings);
+    applyWatchPageSettings(settings, globalNavigation);
 
     // Set up mutation observer for dynamic content
     setupMutationObserver(settings);

@@ -1,0 +1,136 @@
+/**
+ * Fockey Hide CSS - Prevents FOUC by hiding elements before JS loads
+ * This CSS is injected at document_start to hide all elements that are hidden by default in minimalist mode
+ * Modules will override these rules with !important when settings allow elements to be shown
+ */
+
+/* Global Navigation Elements - Hidden by default on all pages */
+#logo,
+ytd-topbar-logo-renderer,
+#guide-inner-content,
+ytd-guide-renderer,
+ytd-mini-guide-renderer,
+#guide,
+#guide-button,
+button[aria-label*='Guide'],
+#avatar-btn,
+button#avatar-btn,
+ytd-notification-topbar-button-renderer,
+ytd-topbar-menu-button-renderer[aria-label*='Create'],
+ytd-topbar-menu-button-renderer:has(> button[aria-label*='Create']),
+#buttons ytd-button-renderer,
+button[aria-label='Skip navigation'] {
+  display: none !important;
+}
+
+/* Home Page Elements - Hidden by default */
+#contents.ytd-rich-grid-renderer,
+ytd-rich-shelf-renderer[is-shorts],
+ytd-browse[page-subtype='home'] ytd-feed-filter-chip-bar-renderer,
+ytd-browse[page-subtype='home'] #chips {
+  display: none !important;
+}
+
+/* Search Page Elements - Hidden by default */
+ytd-reel-shelf-renderer,
+ytd-short-renderer,
+ytd-rich-shelf-renderer[is-shorts],
+ytd-grid-video-renderer[is-shorts],
+ytd-rich-item-renderer[is-shorts],
+ytd-reel-item-renderer,
+ytd-backstage-post-thread-renderer,
+ytd-post-renderer,
+ytd-radio-renderer,
+ytd-ad-slot-renderer,
+ytd-shelf-renderer[modern-typography],
+ytd-horizontal-card-list-renderer,
+ytd-banner-promo-renderer,
+ytd-statement-banner-renderer,
+iron-selector#chips {
+  display: none !important;
+}
+
+/* Creator Profile Page Elements - Hidden by default */
+tp-yt-paper-tab[tab-title='Shorts'],
+yt-tab-shape[tab-title='Shorts'],
+a[title='Shorts'],
+tp-yt-paper-tab[tab-title='Community'],
+tp-yt-paper-tab[tab-title='Posts'],
+yt-tab-shape[tab-title='Community'],
+yt-tab-shape[tab-title='Posts'],
+a[title='Community'],
+a[title='Posts'],
+ytd-reel-shelf-renderer,
+ytd-short-renderer,
+ytd-grid-video-renderer[is-shorts],
+ytd-rich-item-renderer[is-shorts],
+ytd-reel-item-renderer,
+ytd-backstage-post-thread-renderer,
+ytd-post-renderer,
+ytd-item-section-renderer:has(ytd-backstage-post-thread-renderer),
+ytd-item-section-renderer:has(ytd-post-renderer),
+ytd-banner-promo-renderer,
+ytd-statement-banner-renderer,
+ytd-shelf-renderer[modern-typography] {
+  display: none !important;
+}
+
+/* Watch Page Elements - Hidden by default */
+#segmented-like-button,
+ytd-segmented-like-dislike-button-renderer button[aria-label*='like'],
+ytd-segmented-like-dislike-button-renderer,
+ytd-toggle-button-renderer#like-button,
+button[aria-label*='like this video'],
+#segmented-dislike-button,
+ytd-segmented-like-dislike-button-renderer button[aria-label*='dislike'],
+button[aria-label*='Dislike this video'],
+#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*='Share']),
+ytd-button-renderer:has(button[aria-label*='Share']),
+button[aria-label*='Share'],
+#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*='Save']),
+ytd-download-and-save-button-renderer,
+ytd-button-renderer:has(button[aria-label*='Save to playlist']),
+button[aria-label*='Save'],
+ytd-download-button-renderer,
+button[aria-label*='Download'],
+#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*='Clip']),
+ytd-button-renderer:has(button[aria-label*='Clip']),
+button[aria-label*='Clip'],
+ytd-button-renderer:has(button[aria-label*='Thanks']),
+ytd-button-renderer:has(a[aria-label*='Thanks']),
+button[aria-label*='Thanks'],
+ytd-menu-renderer button[aria-label*='Report'],
+button[aria-label*='Report'],
+#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*='Ask']),
+ytd-button-renderer:has(button[aria-label*='Ask']),
+button[aria-label*='Ask'],
+ytd-menu-renderer.ytd-watch-metadata #button,
+ytd-menu-renderer.ytd-watch-metadata button[aria-label*='More'],
+#subscribe-button,
+ytd-subscribe-button-renderer,
+ytd-button-renderer#subscribe-button,
+ytd-subscription-notification-toggle-button-renderer,
+#notification-preference-button,
+ytd-button-renderer[is-join-action],
+ytd-sponsor-button-renderer,
+ytd-button-renderer:has(a[href*='/sponsor']),
+#sponsor-button,
+ytd-button-renderer:has(button[aria-label*='See perks']),
+ytd-button-renderer:has(a[aria-label*='See perks']),
+#comments,
+ytd-comments#comments,
+#chat-container,
+ytd-live-chat-frame,
+#related,
+ytd-watch-next-secondary-results-renderer,
+ytd-playlist-panel-renderer,
+.ytp-endscreen-content,
+.ytp-fullscreen-grid-stills-container,
+.ytp-cards-button,
+.ytp-cards-teaser,
+.ytp-ce-element-show,
+.ytp-ce-expanding-overlay-background {
+  display: none !important;
+}
+
+/* Channel Info Section on Watch Page is always visible - do not hide */

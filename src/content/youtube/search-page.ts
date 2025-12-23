@@ -138,6 +138,42 @@ function generateSearchPageCSS(
     `);
   }
 
+  // Conditionally hide or show Mixes based on settings
+  if (!pageSettings.showMixes) {
+    rules.push(`
+      /* Hide Mixes in search results */
+      ${SEARCH_PAGE_SELECTORS.MIXES} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly ensure Mixes are visible when enabled
+    rules.push(`
+      /* Ensure Mixes are visible in search results */
+      ${SEARCH_PAGE_SELECTORS.MIXES} {
+        display: block !important;
+      }
+    `);
+  }
+
+  // Conditionally hide or show Sponsored content based on settings
+  if (!pageSettings.showSponsored) {
+    rules.push(`
+      /* Hide Sponsored content in search results */
+      ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly ensure Sponsored content is visible when enabled
+    rules.push(`
+      /* Ensure Sponsored content is visible in search results */
+      ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
+        display: block !important;
+      }
+    `);
+  }
+
   // Always hide algorithmic suggestions and promotional banners
   rules.push(`
     /* Hide algorithmic suggestions */
@@ -156,8 +192,14 @@ function generateSearchPageCSS(
     }
   `);
 
-  // Conditionally hide global navigation elements based on global settings (default: hidden)
-  if (!globalNavigation.showLogo) {
+  // Conditionally show/hide global navigation elements based on global settings
+  if (globalNavigation.showLogo) {
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
@@ -165,7 +207,23 @@ function generateSearchPageCSS(
     `);
   }
 
-  if (!globalNavigation.showSidebar) {
+  if (globalNavigation.showSidebar) {
+    // Unified: show both hamburger menu and sidebar with single setting
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.HAMBURGER_MENU} {
+        display: block !important;
+      }
+
+      ${SEARCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
+        display: block !important;
+      }
+
+      /* Reset page content margin */
+      ytd-page-manager {
+        margin-left: auto !important;
+      }
+    `);
+  } else {
     // Unified: hide both hamburger menu and sidebar with single setting
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.HAMBURGER_MENU} {
@@ -183,7 +241,13 @@ function generateSearchPageCSS(
     `);
   }
 
-  if (!globalNavigation.showProfile) {
+  if (globalNavigation.showProfile) {
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.PROFILE_AVATAR} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.PROFILE_AVATAR} {
         display: none !important;
@@ -191,7 +255,13 @@ function generateSearchPageCSS(
     `);
   }
 
-  if (!globalNavigation.showNotifications) {
+  if (globalNavigation.showNotifications) {
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.NOTIFICATIONS} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.NOTIFICATIONS} {
         display: none !important;

@@ -98,8 +98,14 @@ function generateHomePageCSS(
     }
   `);
 
-  // Conditionally hide global navigation elements based on global settings
-  if (!globalNavigation.showLogo) {
+  // Conditionally show/hide global navigation elements based on global settings
+  if (globalNavigation.showLogo) {
+    rules.push(`
+      ${HOME_PAGE_SELECTORS.YOUTUBE_LOGO} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${HOME_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
@@ -107,7 +113,33 @@ function generateHomePageCSS(
     `);
   }
 
-  if (!globalNavigation.showSidebar) {
+  if (globalNavigation.showSidebar) {
+    // Unified: show both hamburger menu and sidebar with single setting
+    rules.push(`
+      ${HOME_PAGE_SELECTORS.HAMBURGER_MENU} {
+        display: block !important;
+      }
+
+      ${HOME_PAGE_SELECTORS.LEFT_SIDEBAR} {
+        display: block !important;
+      }
+
+      /* Show mini guide sidebar */
+      ${HOME_PAGE_SELECTORS.MINI_GUIDE} {
+        display: block !important;
+      }
+
+      /* Show full guide sidebar */
+      ${HOME_PAGE_SELECTORS.GUIDE_RENDERER} {
+        display: block !important;
+      }
+
+      /* Reset page content margin */
+      ytd-page-manager {
+        margin-left: auto !important;
+      }
+    `);
+  } else {
     // Unified: hide both hamburger menu and sidebar with single setting
     rules.push(`
       ${HOME_PAGE_SELECTORS.HAMBURGER_MENU} {
@@ -135,7 +167,13 @@ function generateHomePageCSS(
     `);
   }
 
-  if (!globalNavigation.showProfile) {
+  if (globalNavigation.showProfile) {
+    rules.push(`
+      ${HOME_PAGE_SELECTORS.PROFILE_AVATAR} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${HOME_PAGE_SELECTORS.PROFILE_AVATAR} {
         display: none !important;
@@ -143,7 +181,13 @@ function generateHomePageCSS(
     `);
   }
 
-  if (!globalNavigation.showNotifications) {
+  if (globalNavigation.showNotifications) {
+    rules.push(`
+      ${HOME_PAGE_SELECTORS.NOTIFICATIONS} {
+        display: block !important;
+      }
+    `);
+  } else {
     rules.push(`
       ${HOME_PAGE_SELECTORS.NOTIFICATIONS} {
         display: none !important;
