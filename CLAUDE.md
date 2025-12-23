@@ -211,7 +211,6 @@ This command runs both linting and formatting checks. If any issues are found, C
 For **any task related to the Chrome Extension itself** (content scripts, popup UI, options page, service worker, or DOM behavior), Claude **must validate behavior using at least one**:
 
 * ✅ **Playwright MCP** (for testing behavior)
-* ✅ **Chrome DevTools MCP** (for logs)
 
 Claude must:
 
