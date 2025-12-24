@@ -98,11 +98,33 @@ function generateHomePageCSS(
     }
   `);
 
-  // Conditionally hide global navigation elements based on global settings
+  // Conditionally hide/show global navigation elements based on global settings
+  // Note: Critical CSS hides these by default, so we need explicit show rules when enabled
   if (!globalNavigation.showLogo) {
     rules.push(`
       ${HOME_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show logo when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    // IMPORTANT: ytd-topbar-logo-renderer needs proper flex layout for children (country code, etc.)
+    rules.push(`
+      ytd-topbar-logo-renderer {
+        display: flex !important;
+        align-items: center !important;
+        flex-direction: row !important;
+      }
+
+      ytd-topbar-logo-renderer * {
+        display: revert !important;
+        visibility: visible !important;
+      }
+
+      #logo,
+      #logo-icon {
+        display: block !important;
       }
     `);
   }
@@ -133,6 +155,24 @@ function generateHomePageCSS(
         margin-left: 0 !important;
       }
     `);
+  } else {
+    // Explicitly show sidebar and hamburger when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #guide-button,
+      ytd-guide-button-renderer,
+      button#guide-button {
+        display: flex !important;
+      }
+
+      #guide,
+      ytd-guide-renderer,
+      #guide-wrapper,
+      ytd-mini-guide-renderer,
+      #mini-guide {
+        display: block !important;
+      }
+    `);
   }
 
   if (!globalNavigation.showProfile) {
@@ -141,12 +181,39 @@ function generateHomePageCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show profile avatar when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #avatar-btn,
+      ytd-topbar-menu-button-renderer button#avatar-btn,
+      ytd-button-renderer#avatar-btn {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(#avatar-btn) {
+        display: flex !important;
+      }
+    `);
   }
 
   if (!globalNavigation.showNotifications) {
     rules.push(`
       ${HOME_PAGE_SELECTORS.NOTIFICATIONS} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show notifications when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-notification-topbar-button-renderer,
+      #notification-button {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(ytd-notification-topbar-button-renderer) {
+        display: flex !important;
       }
     `);
   }

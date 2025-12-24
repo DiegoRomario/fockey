@@ -92,7 +92,7 @@ function generateCreatorProfileCSS(
 ): string {
   const rules: string[] = [];
 
-  // Hide Shorts tab unless explicitly enabled
+  // Hide/show Shorts tab based on settings
   if (!pageSettings.showShortsTab) {
     rules.push(`
       /* Hide Shorts tab */
@@ -100,9 +100,20 @@ function generateCreatorProfileCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show Shorts tab when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Shorts'],
+      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Shorts'],
+      tp-yt-paper-tab[title='Shorts'],
+      ytd-tab-renderer[tab-title='Shorts'] {
+        display: flex !important;
+      }
+    `);
   }
 
-  // Hide Community/Posts tab unless explicitly enabled
+  // Hide/show Community/Posts tab based on settings
   if (!pageSettings.showCommunityTab) {
     rules.push(`
       /* Hide Community/Posts tab */
@@ -110,25 +121,62 @@ function generateCreatorProfileCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show Community/Posts tab when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Community'],
+      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Posts'],
+      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Community'],
+      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Posts'],
+      tp-yt-paper-tab[title='Community'],
+      tp-yt-paper-tab[title='Posts'],
+      ytd-tab-renderer[tab-title='Community'],
+      ytd-tab-renderer[tab-title='Posts'] {
+        display: flex !important;
+      }
+    `);
   }
 
-  // Hide Community posts in Home tab unless explicitly enabled
-  if (!pageSettings.showCommunityInHome) {
+  // Hide/show Community posts based on settings
+  // Posts should be visible if EITHER:
+  // 1. showCommunityTab is true (user wants the Posts tab, so posts must be visible in that tab)
+  // 2. showCommunityInHome is true (user wants posts in the Home tab)
+  // Only hide if BOTH are false
+  if (!pageSettings.showCommunityTab && !pageSettings.showCommunityInHome) {
     rules.push(`
-      /* Hide Community posts and Posts section in Home tab */
+      /* Hide Community posts when both Posts tab and Posts in Home are disabled */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS},
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS_SECTION} {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show Community posts when either setting is enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-browse[page-subtype='channels'] ytd-post-renderer,
+      ytd-browse[page-subtype='channels'] ytd-backstage-post-renderer {
+        display: block !important;
+      }
+    `);
   }
 
-  // Hide Shorts in Home tab unless explicitly enabled
+  // Hide/show Shorts in Home tab based on settings
   if (!pageSettings.showShortsInHome) {
     rules.push(`
       /* Hide Shorts in Home tab */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_CONTENT} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show Shorts in Home tab when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-browse[page-subtype='channels'] ytd-reel-shelf-renderer,
+      ytd-browse[page-subtype='channels'] ytd-rich-shelf-renderer[is-shorts] {
+        display: block !important;
       }
     `);
   }
@@ -143,11 +191,33 @@ function generateCreatorProfileCSS(
   `);
 
   // Global Navigation Settings (apply to all pages)
+  // Note: Critical CSS hides these by default, so we need explicit show rules when enabled
   if (!globalNavigation.showLogo) {
     rules.push(`
       /* Hide YouTube logo */
       ${CREATOR_PROFILE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show logo when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    // IMPORTANT: ytd-topbar-logo-renderer needs proper flex layout for children (country code, etc.)
+    rules.push(`
+      ytd-topbar-logo-renderer {
+        display: flex !important;
+        align-items: center !important;
+        flex-direction: row !important;
+      }
+
+      ytd-topbar-logo-renderer * {
+        display: revert !important;
+        visibility: visible !important;
+      }
+
+      #logo,
+      #logo-icon {
+        display: block !important;
       }
     `);
   }
@@ -160,6 +230,24 @@ function generateCreatorProfileCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show sidebar and hamburger when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #guide-button,
+      ytd-guide-button-renderer,
+      button#guide-button {
+        display: flex !important;
+      }
+
+      #guide,
+      ytd-guide-renderer,
+      #guide-wrapper,
+      ytd-mini-guide-renderer,
+      #mini-guide {
+        display: block !important;
+      }
+    `);
   }
 
   if (!globalNavigation.showProfile) {
@@ -169,6 +257,20 @@ function generateCreatorProfileCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show profile avatar when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #avatar-btn,
+      ytd-topbar-menu-button-renderer button#avatar-btn,
+      ytd-button-renderer#avatar-btn {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(#avatar-btn) {
+        display: flex !important;
+      }
+    `);
   }
 
   if (!globalNavigation.showNotifications) {
@@ -176,6 +278,19 @@ function generateCreatorProfileCSS(
       /* Hide notifications bell */
       ${CREATOR_PROFILE_SELECTORS.NOTIFICATIONS_BELL} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show notifications when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-notification-topbar-button-renderer,
+      #notification-button {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(ytd-notification-topbar-button-renderer) {
+        display: flex !important;
       }
     `);
   }
@@ -268,8 +383,9 @@ function filterCreatorProfileContent(pageSettings: CreatorProfilePageSettings): 
     element.removeAttribute('data-fockey-filtered');
   });
 
-  // Filter Community posts in Home tab if setting is disabled
-  if (!pageSettings.showCommunityInHome) {
+  // Filter Community posts only if BOTH showCommunityTab and showCommunityInHome are disabled
+  // If either is enabled, posts should be visible
+  if (!pageSettings.showCommunityTab && !pageSettings.showCommunityInHome) {
     // Hide individual community posts
     const communityPosts = document.querySelectorAll<HTMLElement>(
       CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS

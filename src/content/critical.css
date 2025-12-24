@@ -1,0 +1,371 @@
+/**
+ * Fockey Critical CSS - FOUC Prevention
+ *
+ * This stylesheet is injected at document_start (earliest possible time)
+ * to prevent Flash of Unstyled Content (FOUC) on all YouTube pages.
+ *
+ * Strategy: Hide ALL elements that are hidden by default in minimalist mode.
+ * The main content script will then selectively reveal elements based on
+ * user settings.
+ *
+ * IMPORTANT: This file contains ONLY the default-hidden elements.
+ * Do NOT include conditionally hidden elements here.
+ */
+
+/* ============================================
+   GLOBAL NAVIGATION (Hidden by default on all pages)
+   ============================================ */
+
+/* YouTube Logo */
+ytd-topbar-logo-renderer,
+#logo,
+#logo-icon {
+  display: none !important;
+}
+
+/* Hamburger Menu */
+#guide-button,
+ytd-guide-button-renderer,
+button#guide-button {
+  display: none !important;
+}
+
+/* Left Sidebar */
+#guide,
+ytd-guide-renderer,
+#guide-wrapper,
+ytd-mini-guide-renderer,
+#mini-guide {
+  display: none !important;
+}
+
+/* Profile Avatar */
+#avatar-btn,
+ytd-topbar-menu-button-renderer button#avatar-btn,
+ytd-button-renderer#avatar-btn {
+  display: none !important;
+}
+
+/* Notifications Bell */
+ytd-notification-topbar-button-renderer,
+#notification-button {
+  display: none !important;
+}
+
+/* Masthead Skeleton Icons (loading placeholders in top-right) */
+.masthead-skeleton-icon,
+#masthead-skeleton-icons .masthead-skeleton-icon {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Watch Page Skeleton Elements (video metadata loading placeholders) */
+#info-skeleton,
+.watch-skeleton,
+ytd-watch-flexy #info-skeleton,
+ytd-watch-flexy .watch-skeleton {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Skeleton background color elements (loading placeholders below video) */
+.skeleton-bg-color,
+.skeleton-light-border-bottom,
+ytd-watch-flexy .skeleton-bg-color,
+ytd-watch-flexy .skeleton-light-border-bottom {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Upload/Create Button */
+ytd-topbar-menu-button-renderer[aria-label*='Create'],
+#upload-button,
+ytd-topbar-menu-button-renderer ytd-button-renderer:has([aria-label*='Create']) {
+  display: none !important;
+}
+
+/* Skip Navigation (always hidden) */
+#skip-navigation,
+a.skip-nav {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Topbar Buttons (settings, sign in, etc.) */
+#buttons ytd-button-renderer:not(#avatar-btn):not(#notification-button) {
+  display: none !important;
+}
+
+/* Additional topbar menu buttons */
+ytd-topbar-menu-button-renderer:not(:has(#avatar-btn)):not(:has(#notification-button)) {
+  display: none !important;
+}
+
+/* ============================================
+   HOME PAGE (Minimalist Mode - Hide Feed)
+   ============================================ */
+
+/* Feed Container */
+ytd-browse[page-subtype='home'] ytd-rich-grid-renderer,
+ytd-browse[page-subtype='home'] ytd-two-column-browse-results-renderer,
+ytd-browse[page-subtype='subscriptions'] ytd-two-column-browse-results-renderer,
+ytd-browse[page-subtype='trending'] ytd-two-column-browse-results-renderer {
+  display: none !important;
+}
+
+/* Shorts Shelf */
+ytd-rich-shelf-renderer[is-shorts],
+ytd-reel-shelf-renderer {
+  display: none !important;
+}
+
+/* Home page filter chips bar */
+ytd-browse[page-subtype='home'] ytd-feed-filter-chip-bar-renderer,
+ytd-browse[page-subtype='home'] #chips-wrapper,
+ytd-browse[page-subtype='subscriptions'] ytd-feed-filter-chip-bar-renderer {
+  display: none !important;
+}
+
+/* ============================================
+   SEARCH PAGE (Default Hidden Elements)
+   ============================================ */
+
+/* Shorts in search results */
+ytd-search ytd-reel-shelf-renderer,
+ytd-search ytd-short-shelf-renderer,
+ytd-search ytd-shelf-renderer[is-shorts] {
+  display: none !important;
+}
+
+/* Community Posts in search results */
+ytd-search ytd-post-renderer,
+ytd-search ytd-backstage-post-renderer {
+  display: none !important;
+}
+
+/* Filter chips (All, Shorts, Videos, etc.) */
+ytd-search ytd-search-sub-menu-renderer #chips-wrapper,
+ytd-search ytd-chip-cloud-renderer,
+ytd-search #chips,
+ytd-search iron-selector#chips,
+ytd-search yt-chip-cloud-chip-renderer {
+  display: none !important;
+}
+
+/* Algorithmic suggestions */
+ytd-search ytd-shelf-renderer:not(:has(ytd-video-renderer)),
+ytd-search ytd-horizontal-card-list-renderer {
+  display: none !important;
+}
+
+/* Promotional banners */
+ytd-search ytd-banner-promo-renderer,
+ytd-search ytd-statement-banner-renderer {
+  display: none !important;
+}
+
+/* ============================================
+   CREATOR PROFILE PAGE (Default Hidden Elements)
+   ============================================ */
+
+/* Shorts Tab */
+ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Shorts'],
+ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Shorts'],
+tp-yt-paper-tab[title='Shorts'],
+ytd-tab-renderer[tab-title='Shorts'] {
+  display: none !important;
+}
+
+/* Community/Posts Tab */
+ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Community'],
+ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Posts'],
+ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Community'],
+ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Posts'],
+tp-yt-paper-tab[title='Community'],
+tp-yt-paper-tab[title='Posts'],
+ytd-tab-renderer[tab-title='Community'],
+ytd-tab-renderer[tab-title='Posts'] {
+  display: none !important;
+}
+
+/* Community posts and Shorts in Home tab (always hidden by default) */
+ytd-browse[page-subtype='channels'] ytd-post-renderer,
+ytd-browse[page-subtype='channels'] ytd-backstage-post-renderer,
+ytd-browse[page-subtype='channels'] ytd-reel-shelf-renderer,
+ytd-browse[page-subtype='channels'] ytd-rich-shelf-renderer[is-shorts] {
+  display: none !important;
+}
+
+/* Promotional banners */
+ytd-browse[page-subtype='channels'] ytd-banner-promo-renderer,
+ytd-browse[page-subtype='channels'] ytd-statement-banner-renderer {
+  display: none !important;
+}
+
+/* ============================================
+   WATCH PAGE (Default Hidden Elements)
+   ============================================ */
+
+/* Engagement Action Buttons (all hidden by default) */
+ytd-watch-flexy ytd-segmented-like-dislike-button-renderer,
+ytd-watch-flexy button[aria-label*='like this video'],
+ytd-watch-flexy button[aria-label*='Dislike this video'],
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']),
+ytd-watch-metadata-actions ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']) {
+  display: none !important;
+}
+
+/* More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) */
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Save']),
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Download']),
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Clip']),
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Thanks']),
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Report']),
+ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Ask']),
+ytd-watch-metadata-actions ytd-menu-renderer,
+ytd-watch-metadata-actions button[aria-label*='More actions'] {
+  display: none !important;
+}
+
+/* Subscription Actions (Subscribe, Join, Notifications, See Perks) */
+ytd-watch-flexy ytd-subscribe-button-renderer,
+ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Subscribe']),
+ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Join']),
+ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Notifications']),
+ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='See perks']),
+ytd-watch-metadata-actions ytd-subscribe-button-renderer,
+ytd-watch-metadata-actions ytd-membership-button-renderer,
+ytd-watch-metadata-actions ytd-notification-preferences-button-renderer {
+  display: none !important;
+}
+
+/* Comments Section */
+ytd-watch-flexy #comments,
+ytd-comments#comments {
+  display: none !important;
+}
+
+/* Related Videos Sidebar */
+ytd-watch-flexy #related,
+ytd-watch-next-secondary-results-renderer {
+  display: none !important;
+}
+
+/* Playlists */
+ytd-watch-flexy ytd-playlist-panel-renderer {
+  display: none !important;
+}
+
+/* Info Cards and Recommended Video Cards */
+ytd-watch-flexy ytd-info-cards-button-renderer,
+.ytp-ce-element,
+.ytp-cards-button,
+.ytp-ce-covering-overlay,
+.ytp-ce-element-show,
+.ytp-cards-teaser {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* End Screen Elements (always hidden, non-configurable) */
+.ytp-ce-element,
+.ytp-ce-video,
+.ytp-ce-playlist,
+.ytp-ce-channel,
+.ytp-ce-covering-overlay,
+.ytp-ce-element-show,
+.ytp-endscreen-content {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Live Chat (always hidden, non-configurable) */
+ytd-watch-flexy ytd-live-chat-frame,
+ytd-live-chat-frame#chat {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Shorts in Related Videos (always hidden) */
+ytd-watch-next-secondary-results-renderer ytd-reel-shelf-renderer {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Hide #secondary container when both playlists and related videos should be hidden */
+/* Note: This will be overridden by settings-based CSS if user enables either feature */
+ytd-watch-flexy #secondary.style-scope.ytd-watch-flexy {
+  display: none !important;
+}
+
+ytd-watch-flexy[flexy][theater] #primary.ytd-watch-flexy,
+ytd-watch-flexy[flexy][fullscreen] #primary.ytd-watch-flexy {
+  max-width: 100% !important;
+}
+
+/* ============================================
+   LAYOUT ADJUSTMENTS
+   ============================================ */
+
+/* Adjust page content to fill space when sidebar is hidden (all pages) */
+ytd-page-manager {
+  margin-left: 0 !important;
+}
+
+/* Center search bar in header (all pages) */
+#masthead-container.ytd-masthead {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Force start and end sections to take equal space for true centering */
+#start.ytd-masthead,
+#end.ytd-masthead {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+
+/* Center section maintains proper search box width */
+#center.ytd-masthead {
+  flex: 0 0 auto !important;
+  max-width: 732px !important;
+  width: 100% !important;
+}
+
+/* Align content within start and end sections */
+#start.ytd-masthead {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+}
+
+#end.ytd-masthead {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+
+/* Search form sizing */
+#search-form {
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 640px !important;
+}
+
+/* Reset asymmetric margins on search box components */
+.ytSearchboxComponentHost {
+  margin: 0 !important;
+}
+
+.ytSearchboxComponentInputBox {
+  margin-left: 0 !important;
+}

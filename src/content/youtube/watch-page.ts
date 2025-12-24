@@ -136,13 +136,24 @@ let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 let currentVideoId: string | null = null;
 
 /**
+ * Current settings state
+ * Stores the latest settings to ensure mutation observer uses up-to-date values
+ */
+let currentWatchPageSettings: WatchPageSettings | null = null;
+let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+
+/**
  * Generates CSS rules based on watch page settings
  * Returns CSS string with display: none rules for hidden elements
  *
  * @param settings - Watch page settings object
+ * @param globalNavigation - Global navigation settings object
  * @returns CSS string with rules for hiding/showing elements
  */
-function generateWatchPageCSS(settings: WatchPageSettings): string {
+function generateWatchPageCSS(
+  settings: WatchPageSettings,
+  globalNavigation: GlobalNavigationSettings
+): string {
   const rules: string[] = [];
 
   // ========================================
@@ -182,6 +193,16 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show Like/Dislike buttons when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy ytd-segmented-like-dislike-button-renderer,
+      ytd-watch-flexy button[aria-label*='like this video'],
+      ytd-watch-flexy button[aria-label*='Dislike this video'] {
+        display: flex !important;
+      }
+    `);
   }
 
   if (!settings.showShare) {
@@ -194,6 +215,15 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
       /* Also target via attribute selector */
       ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]) {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show Share button when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]),
+      ytd-watch-metadata-actions ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]) {
+        display: flex !important;
       }
     `);
   }
@@ -248,6 +278,21 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show More Actions buttons when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Save"]),
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Download"]),
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Clip"]),
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Thanks"]),
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Report"]),
+      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Ask"]),
+      ytd-watch-metadata-actions ytd-menu-renderer,
+      ytd-watch-metadata-actions button[aria-label*="More actions"] {
+        display: flex !important;
+      }
+    `);
   }
 
   // ========================================
@@ -275,6 +320,21 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show Subscription Actions when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy ytd-subscribe-button-renderer,
+      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Subscribe"]),
+      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Join"]),
+      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Notifications"]),
+      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="See perks"]),
+      ytd-watch-metadata-actions ytd-subscribe-button-renderer,
+      ytd-watch-metadata-actions ytd-membership-button-renderer,
+      ytd-watch-metadata-actions ytd-notification-preferences-button-renderer {
+        display: flex !important;
+      }
+    `);
   }
 
   // ========================================
@@ -286,12 +346,30 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show comments when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy #comments,
+      ytd-comments#comments {
+        display: block !important;
+      }
+    `);
   }
 
   if (!settings.showRelated) {
     rules.push(`
       ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show related videos when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy #related,
+      ytd-watch-next-secondary-results-renderer {
+        display: block !important;
       }
     `);
   }
@@ -315,17 +393,33 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show playlists when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-watch-flexy ytd-playlist-panel-renderer {
+        display: block !important;
+      }
+    `);
   }
 
   // ========================================
   // Hide #secondary container when BOTH playlists and related videos are disabled
-  // This ensures proper video centering
+  // Show it when either is enabled
   // ========================================
   if (!settings.showRelated && !settings.showPlaylists) {
     rules.push(`
       /* Hide secondary container when both playlists and related videos are disabled */
-      #secondary.style-scope.ytd-watch-flexy {
+      ytd-watch-flexy #secondary.style-scope.ytd-watch-flexy {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show secondary container when either related or playlists is enabled
+    // Must match the exact selector from critical.css for proper specificity
+    rules.push(`
+      ytd-watch-flexy #secondary.style-scope.ytd-watch-flexy {
+        display: block !important;
       }
     `);
   }
@@ -341,44 +435,132 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
         visibility: hidden !important;
       }
     `);
+  } else {
+    // Explicitly show Info Cards when enabled (overrides critical CSS)
+    rules.push(`
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_BUTTON},
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_TEASER},
+      ${WATCH_PAGE_SELECTORS.INFO_CARDS_OVERLAY} {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+    `);
   }
 
   // ========================================
-  // CRITICAL: ALWAYS hide navigation chrome (matching Home/Search page behavior)
-  // These are ALWAYS hidden by default to maintain minimalist consistency
+  // Global Navigation Elements (conditionally hidden based on globalNavigation settings)
+  // Note: Critical CSS hides these by default, so we need explicit show rules when enabled
   // ========================================
+  if (!globalNavigation.showLogo) {
+    rules.push(`
+      ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show logo when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    // IMPORTANT: ytd-topbar-logo-renderer needs proper flex layout for children (country code, etc.)
+    rules.push(`
+      ytd-topbar-logo-renderer {
+        display: flex !important;
+        align-items: center !important;
+        flex-direction: row !important;
+      }
+
+      ytd-topbar-logo-renderer * {
+        display: revert !important;
+        visibility: visible !important;
+      }
+
+      #logo,
+      #logo-icon {
+        display: block !important;
+      }
+    `);
+  }
+
+  if (!globalNavigation.showSidebar) {
+    rules.push(`
+      ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
+        display: none !important;
+      }
+
+      ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
+        display: none !important;
+      }
+
+      /* Adjust page content to fill space when sidebar is hidden */
+      ytd-page-manager {
+        margin-left: 0 !important;
+      }
+    `);
+  } else {
+    // Explicitly show sidebar and hamburger when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #guide-button,
+      ytd-guide-button-renderer,
+      button#guide-button {
+        display: flex !important;
+      }
+
+      #guide,
+      ytd-guide-renderer,
+      #guide-wrapper,
+      ytd-mini-guide-renderer,
+      #mini-guide {
+        display: block !important;
+      }
+    `);
+  }
+
+  if (!globalNavigation.showProfile) {
+    rules.push(`
+      ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show profile avatar when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #avatar-btn,
+      ytd-topbar-menu-button-renderer button#avatar-btn,
+      ytd-button-renderer#avatar-btn {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(#avatar-btn) {
+        display: flex !important;
+      }
+    `);
+  }
+
+  if (!globalNavigation.showNotifications) {
+    rules.push(`
+      ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
+        display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show notifications when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-notification-topbar-button-renderer,
+      #notification-button {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(ytd-notification-topbar-button-renderer) {
+        display: flex !important;
+      }
+    `);
+  }
+
+  // Always hide upload button and other topbar buttons (non-configurable)
   rules.push(`
-    /* ALWAYS hide YouTube logo */
-    ${WATCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide hamburger menu */
-    ${WATCH_PAGE_SELECTORS.HAMBURGER_MENU} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide left sidebar */
-    ${WATCH_PAGE_SELECTORS.LEFT_SIDEBAR} {
-      display: none !important;
-    }
-
-    /* Adjust page content to fill space when sidebar is hidden */
-    ytd-page-manager {
-      margin-left: 0 !important;
-    }
-
-    /* ALWAYS hide profile avatar */
-    ${WATCH_PAGE_SELECTORS.PROFILE_AVATAR} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide notifications button in topbar */
-    ${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR} {
-      display: none !important;
-    }
-
-    /* ALWAYS hide upload/create button */
     ${WATCH_PAGE_SELECTORS.UPLOAD_BUTTON} {
       display: none !important;
     }
@@ -388,8 +570,8 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
       display: none !important;
     }
 
-    /* Also hide topbar menu buttons */
-    ytd-topbar-menu-button-renderer {
+    /* Also hide topbar menu buttons except profile and notifications */
+    ytd-topbar-menu-button-renderer:not(:has(${WATCH_PAGE_SELECTORS.PROFILE_AVATAR})):not(:has(${WATCH_PAGE_SELECTORS.NOTIFICATIONS_TOPBAR})) {
       display: none !important;
     }
 
@@ -478,15 +660,17 @@ function generateWatchPageCSS(settings: WatchPageSettings): string {
  */
 export function applyWatchPageSettings(
   settings: WatchPageSettings,
-  globalNavigation?: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings
 ): void {
-  const css = generateWatchPageCSS(settings);
+  // Store current settings for mutation observer to use
+  currentWatchPageSettings = settings;
+  currentGlobalNavigation = globalNavigation;
+
+  const css = generateWatchPageCSS(settings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
 
-  // Update hover preview blocker settings if globalNavigation is provided
-  if (globalNavigation) {
-    hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
-  }
+  // Update hover preview blocker settings
+  hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 }
 
 /**
@@ -495,6 +679,8 @@ export function applyWatchPageSettings(
  */
 export function removeWatchPageStyles(): void {
   removeCSS(STYLE_TAG_ID);
+  currentWatchPageSettings = null;
+  currentGlobalNavigation = null;
 }
 
 /**
@@ -510,17 +696,21 @@ function getVideoId(): string | null {
  * Sets up MutationObserver to detect dynamic YouTube content loading
  * Re-applies CSS when new elements are added
  *
- * @param settings - Watch page settings object
+ * Note: Uses module-level currentWatchPageSettings and currentGlobalNavigation
+ * to ensure settings updates are reflected
  */
-function setupMutationObserver(settings: WatchPageSettings): void {
+function setupMutationObserver(): void {
   // Disconnect existing observer if any
   if (mutationObserver) {
     mutationObserver.disconnect();
   }
 
-  // Create debounced re-apply function
+  // Create debounced re-apply function that uses current settings
   const debouncedReapply = debounce(() => {
-    applyWatchPageSettings(settings);
+    // Use current settings from module-level variables, not captured parameters
+    if (currentWatchPageSettings && currentGlobalNavigation) {
+      applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+    }
   }, 200);
 
   // Create observer
@@ -568,9 +758,10 @@ function setupMutationObserver(settings: WatchPageSettings): void {
  * Sets up video navigation detection for SPA transitions
  * Detects when user navigates to a different video without full page reload
  *
- * @param settings - Watch page settings object
+ * Note: Uses module-level currentWatchPageSettings and currentGlobalNavigation
+ * to ensure settings updates are reflected
  */
-function setupVideoNavigationListener(settings: WatchPageSettings): void {
+function setupVideoNavigationListener(): void {
   // Listen for YouTube's SPA navigation event
   window.addEventListener('yt-navigate-finish', () => {
     const newVideoId = getVideoId();
@@ -580,8 +771,10 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
       currentVideoId = newVideoId;
       console.log(`[Fockey] Video changed to: ${newVideoId}`);
 
-      // Re-apply settings for new video
-      applyWatchPageSettings(settings);
+      // Re-apply settings for new video using current settings
+      if (currentWatchPageSettings && currentGlobalNavigation) {
+        applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+      }
     }
   });
 
@@ -592,7 +785,10 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
     if (newVideoId && newVideoId !== currentVideoId) {
       currentVideoId = newVideoId;
       console.log(`[Fockey] Video changed (popstate) to: ${newVideoId}`);
-      applyWatchPageSettings(settings);
+      // Re-apply settings using current settings
+      if (currentWatchPageSettings && currentGlobalNavigation) {
+        applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+      }
     }
   });
 }
@@ -602,10 +798,11 @@ function setupVideoNavigationListener(settings: WatchPageSettings): void {
  * Main entry point for watch page module
  *
  * @param settings - Watch page settings object
+ * @param globalNavigation - Global navigation settings object
  */
 export async function initWatchPageModule(
   settings: WatchPageSettings,
-  globalNavigation?: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings
 ): Promise<void> {
   try {
     // Wait for essential elements to load
@@ -614,20 +811,18 @@ export async function initWatchPageModule(
     // Store current video ID
     currentVideoId = getVideoId();
 
-    // Apply initial settings
-    applyWatchPageSettings(settings);
+    // Apply initial settings (this also stores them for mutation observer)
+    applyWatchPageSettings(settings, globalNavigation);
 
-    // Set up mutation observer for dynamic content
-    setupMutationObserver(settings);
+    // Set up mutation observer for dynamic content (uses stored settings)
+    setupMutationObserver();
 
-    // Set up video navigation detection
-    setupVideoNavigationListener(settings);
+    // Set up video navigation detection (uses stored settings)
+    setupVideoNavigationListener();
 
-    // Initialize hover preview blocker if globalNavigation is provided
-    if (globalNavigation) {
-      hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
-      hoverPreviewBlocker.init();
-    }
+    // Initialize hover preview blocker
+    hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
+    hoverPreviewBlocker.init();
 
     console.log('[Fockey] Watch page module initialized');
   } catch (error) {

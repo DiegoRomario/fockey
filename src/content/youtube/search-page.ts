@@ -156,11 +156,33 @@ function generateSearchPageCSS(
     }
   `);
 
-  // Conditionally hide global navigation elements based on global settings (default: hidden)
+  // Conditionally hide/show global navigation elements based on global settings
+  // Note: Critical CSS hides these by default, so we need explicit show rules when enabled
   if (!globalNavigation.showLogo) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.YOUTUBE_LOGO} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show logo when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    // IMPORTANT: ytd-topbar-logo-renderer needs proper flex layout for children (country code, etc.)
+    rules.push(`
+      ytd-topbar-logo-renderer {
+        display: flex !important;
+        align-items: center !important;
+        flex-direction: row !important;
+      }
+
+      ytd-topbar-logo-renderer * {
+        display: revert !important;
+        visibility: visible !important;
+      }
+
+      #logo,
+      #logo-icon {
+        display: block !important;
       }
     `);
   }
@@ -181,12 +203,44 @@ function generateSearchPageCSS(
         margin-left: 0 !important;
       }
     `);
+  } else {
+    // Explicitly show sidebar and hamburger when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #guide-button,
+      ytd-guide-button-renderer,
+      button#guide-button {
+        display: flex !important;
+      }
+
+      #guide,
+      ytd-guide-renderer,
+      #guide-wrapper,
+      ytd-mini-guide-renderer,
+      #mini-guide {
+        display: block !important;
+      }
+    `);
   }
 
   if (!globalNavigation.showProfile) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.PROFILE_AVATAR} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show profile avatar when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      #avatar-btn,
+      ytd-topbar-menu-button-renderer button#avatar-btn,
+      ytd-button-renderer#avatar-btn {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(#avatar-btn) {
+        display: flex !important;
       }
     `);
   }
@@ -197,13 +251,33 @@ function generateSearchPageCSS(
         display: none !important;
       }
     `);
+  } else {
+    // Explicitly show notifications when enabled (overrides critical CSS)
+    // Must match ALL selectors from critical.css
+    rules.push(`
+      ytd-notification-topbar-button-renderer,
+      #notification-button {
+        display: flex !important;
+      }
+      /* Also show the parent container */
+      ytd-topbar-menu-button-renderer:has(ytd-notification-topbar-button-renderer) {
+        display: flex !important;
+      }
+    `);
   }
 
-  // Conditionally hide content types based on page settings
+  // Conditionally hide/show content types based on page settings
   if (!pageSettings.showMixes) {
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.MIXES} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show mixes when enabled
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.MIXES} {
+        display: block !important;
       }
     `);
   }
@@ -212,6 +286,13 @@ function generateSearchPageCSS(
     rules.push(`
       ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
         display: none !important;
+      }
+    `);
+  } else {
+    // Explicitly show sponsored content when enabled
+    rules.push(`
+      ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
+        display: block !important;
       }
     `);
   }
