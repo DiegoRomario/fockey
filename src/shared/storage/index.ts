@@ -3,5 +3,18 @@
  * Provides type-safe settings management API
  */
 
-export { getSettings, updateSettings, resetToDefaults, watchSettings } from './settings-manager';
-export { validateSettings } from './validation';
+export {
+  getSettings,
+  updateSettings,
+  resetToDefaults,
+  watchSettings,
+  addBlockedChannel,
+  removeBlockedChannel,
+  getLockModeStatus,
+  activateLockMode,
+  extendLockMode,
+  unlockLockMode,
+  isLockModeActive,
+  getRemainingLockTime,
+} from './settings-manager';
+export { validateSettings, validateLockModeState } from './validation';

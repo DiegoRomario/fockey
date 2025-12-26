@@ -13,6 +13,8 @@ interface ImportExportButtonsProps {
   onError: (message: string) => void;
   /** Callback for showing success messages */
   onSuccess: (message: string) => void;
+  /** Disable import button (export always allowed) */
+  disabled?: boolean;
 }
 
 /**
@@ -24,6 +26,7 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
   onImport,
   onError,
   onSuccess,
+  disabled = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -125,7 +128,7 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
         <Download className="h-4 w-4 mr-2" />
         Export Settings
       </Button>
-      <Button onClick={handleImport} variant="outline" size="sm">
+      <Button onClick={handleImport} variant="outline" size="sm" disabled={disabled}>
         <Upload className="h-4 w-4 mr-2" />
         Import Settings
       </Button>

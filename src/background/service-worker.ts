@@ -3,14 +3,25 @@
  * Manifest V3 background script for lifecycle management and coordination
  */
 
-import { getSettings, updateSettings, resetToDefaults } from '../shared/storage';
-import { DEFAULT_SETTINGS, ExtensionSettings } from '../shared/types/settings';
+import {
+  getSettings,
+  updateSettings,
+  resetToDefaults,
+  getLockModeStatus,
+  activateLockMode,
+  extendLockMode,
+  unlockLockMode,
+} from '../shared/storage';
+import { DEFAULT_SETTINGS, ExtensionSettings, LockModeState } from '../shared/types/settings';
 import type {
   Message,
   MessageResponse,
   GetSettingsResponse,
   UpdateSettingsResponse,
   ResetSettingsResponse,
+  ActivateLockModeResponse,
+  ExtendLockModeResponse,
+  GetLockStateResponse,
 } from '../shared/types/messages';
 
 /**
@@ -71,6 +82,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 /**
  * Validate settings on startup
  * Subtask 5.3: onStartup handler with schema validation
+ *
+ * CRITICAL: Also recreates lock mode alarm if lock is active
+ * Chrome alarms DO NOT persist across browser restarts
  */
 chrome.runtime.onStartup.addListener(async () => {
   logger.info('Extension startup');
@@ -79,6 +93,10 @@ chrome.runtime.onStartup.addListener(async () => {
     // Validate settings schema
     await getSettings();
     logger.info('Settings loaded and validated successfully');
+
+    // CRITICAL: Recreate lock mode alarm if lock is active
+    // Chrome alarms don't persist across browser restarts
+    await recreateLockModeAlarmOnStartup();
   } catch (error) {
     logger.error('Failed during startup validation', error);
     // Attempt to reset to defaults as fallback
@@ -106,6 +124,108 @@ async function cleanupDeprecatedStorage(): Promise<void> {
     }
   } catch (error) {
     logger.error('Failed to cleanup deprecated storage', error);
+  }
+}
+
+// ==================== LOCK MODE ALARM MANAGEMENT ====================
+
+/**
+ * Lock mode alarm name constant
+ */
+const LOCK_MODE_ALARM_NAME = 'unlock-lock-mode';
+
+/**
+ * CRITICAL: Recreate lock mode alarm on service worker startup
+ * Chrome alarms DO NOT persist across browser restarts
+ *
+ * This function:
+ * 1. Checks if lock mode is currently active
+ * 2. If active and alarm doesn't exist, recreates it
+ * 3. If lock expired during shutdown, unlocks immediately
+ */
+async function recreateLockModeAlarmOnStartup(): Promise<void> {
+  try {
+    const lockState = await getLockModeStatus();
+
+    if (!lockState.isLocked || !lockState.lockEndTime) {
+      logger.info('No active lock mode on startup');
+      return;
+    }
+
+    const now = Date.now();
+    const timeRemaining = lockState.lockEndTime - now;
+
+    if (timeRemaining > 0) {
+      // Lock is still active - recreate alarm
+      await chrome.alarms.create(LOCK_MODE_ALARM_NAME, {
+        when: lockState.lockEndTime,
+      });
+
+      const minutesRemaining = Math.ceil(timeRemaining / 60000);
+      logger.info(
+        `Lock mode alarm recreated: ${minutesRemaining} minute(s) remaining until ${new Date(lockState.lockEndTime).toLocaleString()}`
+      );
+
+      // Broadcast lock status to popup/options
+      await broadcastLockStatusChange(lockState);
+    } else {
+      // Lock expired during shutdown - unlock immediately
+      logger.info('Lock mode expired during shutdown - unlocking now');
+      await unlockLockMode();
+      await broadcastLockStatusChange({
+        isLocked: false,
+        lockEndTime: null,
+        lockStartedAt: null,
+        originalDuration: null,
+      });
+    }
+  } catch (error) {
+    logger.error('Failed to recreate lock mode alarm on startup', error);
+  }
+}
+
+/**
+ * Create or update lock mode alarm
+ * Called when lock is activated or extended
+ */
+async function createLockModeAlarm(lockEndTime: number): Promise<void> {
+  try {
+    // Clear existing alarm if it exists
+    await chrome.alarms.clear(LOCK_MODE_ALARM_NAME);
+
+    // Create new alarm with exact unlock time
+    await chrome.alarms.create(LOCK_MODE_ALARM_NAME, {
+      when: lockEndTime,
+    });
+
+    logger.info(`Lock mode alarm created for ${new Date(lockEndTime).toLocaleString()}`);
+  } catch (error) {
+    logger.error('Failed to create lock mode alarm', error);
+    throw new Error('Failed to create lock mode alarm');
+  }
+}
+
+/**
+ * Broadcast lock status change to popup and options page
+ * Called when lock is activated, extended, or expires
+ */
+async function broadcastLockStatusChange(lockState: LockModeState): Promise<void> {
+  try {
+    // Send message to all extension contexts (popup, options)
+    await chrome.runtime
+      .sendMessage({
+        type: 'LOCK_STATUS_CHANGED',
+        lockState,
+      })
+      .catch(() => {
+        // No receivers, that's okay (popup/options might not be open)
+        logger.info('Lock status broadcast sent (no receivers)');
+      });
+
+    logger.info('Lock status broadcast:', lockState.isLocked ? 'LOCKED' : 'UNLOCKED');
+  } catch {
+    // Sending message when no receivers throws an error, which is expected
+    logger.info('Lock status change (no active listeners)');
   }
 }
 
@@ -189,6 +309,16 @@ async function handleMessage(
 
       case 'NAVIGATE_TO_HOME':
         return await handleNavigateToHome(sender.tab?.id);
+
+      // Lock mode message handlers
+      case 'ACTIVATE_LOCK_MODE':
+        return await handleActivateLockMode(message.durationMs);
+
+      case 'EXTEND_LOCK_MODE':
+        return await handleExtendLockMode(message.additionalMs);
+
+      case 'GET_LOCK_STATE':
+        return await handleGetLockState();
 
       default:
         throw new Error(`Unknown message type: ${(message as Message).type}`);
@@ -288,8 +418,96 @@ async function handleNavigateToHome(tabId?: number): Promise<MessageResponse> {
 }
 
 /**
+ * Handle ACTIVATE_LOCK_MODE message
+ * Activates lock mode for specified duration and creates alarm
+ */
+async function handleActivateLockMode(durationMs: number): Promise<ActivateLockModeResponse> {
+  try {
+    // Activate lock mode in storage
+    await activateLockMode(durationMs);
+
+    // Get updated lock state
+    const lockState = await getLockModeStatus();
+
+    if (!lockState.lockEndTime) {
+      throw new Error('Failed to activate lock mode: lockEndTime is null');
+    }
+
+    // Create alarm for automatic unlock
+    await createLockModeAlarm(lockState.lockEndTime);
+
+    // Broadcast lock status to popup/options
+    await broadcastLockStatusChange(lockState);
+
+    const minutesDuration = Math.ceil(durationMs / 60000);
+    logger.info(`Lock mode activated for ${minutesDuration} minute(s)`);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    logger.error('Failed to activate lock mode', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle EXTEND_LOCK_MODE message
+ * Extends active lock mode by adding additional time
+ */
+async function handleExtendLockMode(additionalMs: number): Promise<ExtendLockModeResponse> {
+  try {
+    // Extend lock mode in storage
+    await extendLockMode(additionalMs);
+
+    // Get updated lock state
+    const lockState = await getLockModeStatus();
+
+    if (!lockState.lockEndTime) {
+      throw new Error('Failed to extend lock mode: lockEndTime is null');
+    }
+
+    // Update alarm with new unlock time
+    await createLockModeAlarm(lockState.lockEndTime);
+
+    // Broadcast lock status to popup/options
+    await broadcastLockStatusChange(lockState);
+
+    const additionalMinutes = Math.ceil(additionalMs / 60000);
+    logger.info(`Lock mode extended by ${additionalMinutes} minute(s)`);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    logger.error('Failed to extend lock mode', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle GET_LOCK_STATE message
+ * Returns current lock mode state
+ */
+async function handleGetLockState(): Promise<GetLockStateResponse> {
+  try {
+    const lockState = await getLockModeStatus();
+
+    return {
+      success: true,
+      data: lockState,
+    };
+  } catch (error) {
+    logger.error('Failed to get lock state', error);
+    throw error;
+  }
+}
+
+/**
  * Service worker keep-alive strategy
  * Subtask 5.10: Keep-alive strategies with chrome.alarms
+ *
+ * CRITICAL: Also validates lock expiration (defense against system clock changes)
  */
 const KEEP_ALIVE_INTERVAL = 25; // minutes (less than 30-minute service worker timeout)
 
@@ -297,15 +515,79 @@ chrome.alarms.create('keep-alive', {
   periodInMinutes: KEEP_ALIVE_INTERVAL,
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'keep-alive') {
     logger.info('Keep-alive alarm triggered');
+
     // Perform lightweight operation to keep service worker alive
     chrome.storage.sync.get('fockey_settings', () => {
       logger.info('Keep-alive check completed');
     });
+
+    // CRITICAL: Periodic lock expiration validation
+    // Defense against system clock changes and missed alarms
+    await validateLockExpiration();
+  } else if (alarm.name === LOCK_MODE_ALARM_NAME) {
+    // Lock mode unlock alarm fired
+    logger.info('Lock mode unlock alarm triggered');
+    await handleLockModeUnlock();
   }
 });
+
+/**
+ * CRITICAL: Periodic validation of lock expiration
+ * Defense mechanism against:
+ * - System clock changes
+ * - Missed alarm events
+ * - Stale lock state
+ *
+ * Called every 25 minutes by keep-alive alarm
+ */
+async function validateLockExpiration(): Promise<void> {
+  try {
+    const lockState = await getLockModeStatus();
+
+    if (lockState.isLocked && lockState.lockEndTime) {
+      const now = Date.now();
+
+      if (now >= lockState.lockEndTime) {
+        // Lock has expired but alarm hasn't fired yet - manual unlock
+        logger.warn('Lock expired but alarm missed - manual unlock triggered');
+        await handleLockModeUnlock();
+      } else {
+        // Lock still valid
+        const minutesRemaining = Math.ceil((lockState.lockEndTime - now) / 60000);
+        logger.info(`Lock mode active: ${minutesRemaining} minute(s) remaining`);
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to validate lock expiration', error);
+  }
+}
+
+/**
+ * Handle lock mode unlock when alarm fires
+ * Silently unlocks (no notifications per user requirement)
+ */
+async function handleLockModeUnlock(): Promise<void> {
+  try {
+    logger.info('Unlocking Lock Mode');
+    await unlockLockMode();
+
+    // Broadcast unlock status to popup/options
+    const unlockedState: LockModeState = {
+      isLocked: false,
+      lockEndTime: null,
+      lockStartedAt: null,
+      originalDuration: null,
+    };
+    await broadcastLockStatusChange(unlockedState);
+
+    logger.info('Lock Mode unlocked successfully (silent unlock - no notification)');
+  } catch (error) {
+    logger.error('Failed to unlock Lock Mode', error);
+  }
+}
 
 // Log initialization
 logger.info('Service worker initialized successfully');

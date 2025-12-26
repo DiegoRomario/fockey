@@ -11,6 +11,7 @@ import {
   WatchPageSettings,
   CreatorProfilePageSettings,
   YouTubeModuleSettings,
+  LockModeState,
 } from '../types/settings';
 
 /**
@@ -193,6 +194,67 @@ export function validateSettings(settings: unknown): settings is ExtensionSettin
   // Validate YouTube module settings
   if (!validateYouTubeModuleSettings(settingsToValidate.youtube)) {
     return false;
+  }
+
+  return true;
+}
+
+/**
+ * Type guard to validate LockModeState structure
+ * Checks all required properties and consistency rules
+ *
+ * IMPORTANT: LockModeState is stored separately from ExtensionSettings
+ * in chrome.storage.local (device-specific, not synced)
+ *
+ * @param lockState - Lock mode state object to validate
+ * @returns True if lock state matches LockModeState interface
+ */
+export function validateLockModeState(lockState: unknown): lockState is LockModeState {
+  if (!lockState || typeof lockState !== 'object') {
+    console.error('Lock mode validation failed: lockState is not an object');
+    return false;
+  }
+
+  const stateToValidate = lockState as Record<string, unknown>;
+
+  // Validate isLocked is boolean
+  if (typeof stateToValidate.isLocked !== 'boolean') {
+    console.error('Lock mode validation failed: isLocked must be a boolean');
+    return false;
+  }
+
+  // Validate timestamp fields (must be null or number)
+  const timeFields = ['lockEndTime', 'lockStartedAt', 'originalDuration'];
+  for (const field of timeFields) {
+    const value = stateToValidate[field];
+    if (value !== null && typeof value !== 'number') {
+      console.error(`Lock mode validation failed: ${field} must be null or number`);
+      return false;
+    }
+  }
+
+  // Consistency check: if locked, all time fields must be numbers (not null)
+  if (stateToValidate.isLocked === true) {
+    if (
+      typeof stateToValidate.lockEndTime !== 'number' ||
+      typeof stateToValidate.lockStartedAt !== 'number' ||
+      typeof stateToValidate.originalDuration !== 'number'
+    ) {
+      console.error(
+        'Lock mode validation failed: when isLocked=true, all time fields must be numbers'
+      );
+      return false;
+    }
+
+    // Additional sanity check: lockEndTime should be greater than lockStartedAt
+    if (
+      typeof stateToValidate.lockEndTime === 'number' &&
+      typeof stateToValidate.lockStartedAt === 'number' &&
+      stateToValidate.lockEndTime <= stateToValidate.lockStartedAt
+    ) {
+      console.error('Lock mode validation failed: lockEndTime must be greater than lockStartedAt');
+      return false;
+    }
   }
 
   return true;

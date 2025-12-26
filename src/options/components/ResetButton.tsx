@@ -13,13 +13,15 @@ import { RotateCcw } from 'lucide-react';
 interface ResetButtonProps {
   /** Callback when reset is confirmed */
   onReset: () => void;
+  /** Disable reset button when locked */
+  disabled?: boolean;
 }
 
 /**
  * Reset to defaults button with confirmation dialog
  * Provides safe reset functionality with user confirmation
  */
-export const ResetButton: React.FC<ResetButtonProps> = ({ onReset }) => {
+export const ResetButton: React.FC<ResetButtonProps> = ({ onReset, disabled = false }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleConfirmReset = () => {
@@ -29,7 +31,12 @@ export const ResetButton: React.FC<ResetButtonProps> = ({ onReset }) => {
 
   return (
     <>
-      <Button onClick={() => setIsDialogOpen(true)} variant="destructive" size="sm">
+      <Button
+        onClick={() => setIsDialogOpen(true)}
+        variant="destructive"
+        size="sm"
+        disabled={disabled}
+      >
         <RotateCcw className="h-4 w-4 mr-2" />
         Reset to Defaults
       </Button>

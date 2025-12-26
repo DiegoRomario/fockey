@@ -13,14 +13,16 @@ import { Check, Loader2 } from 'lucide-react';
 import { SettingToggle } from './components/SettingToggle';
 import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
+import { LockModeSection } from './components/LockModeSection';
 import {
   getSettings,
   updateSettings,
   resetToDefaults,
   addBlockedChannel,
   removeBlockedChannel,
+  getLockModeStatus,
 } from '@/shared/storage/settings-manager';
-import { ExtensionSettings, BlockedChannel } from '@/shared/types/settings';
+import { ExtensionSettings, BlockedChannel, LockModeState } from '@/shared/types/settings';
 import { normalizeChannelInput } from '@/shared/utils/channel-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +35,7 @@ const Options: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [blockChannelInput, setBlockChannelInput] = useState('');
   const [isBlockingChannel, setIsBlockingChannel] = useState(false);
+  const [lockState, setLockState] = useState<LockModeState | null>(null);
   const { toast } = useToast();
 
   // Load settings on mount
@@ -50,6 +53,31 @@ const Options: React.FC = () => {
         });
       });
   }, [toast]);
+
+  // Load lock state on mount and listen for changes
+  useEffect(() => {
+    // Load initial lock state
+    getLockModeStatus()
+      .then((loadedLockState) => {
+        setLockState(loadedLockState);
+      })
+      .catch((error) => {
+        console.error('Failed to load lock state:', error);
+      });
+
+    // Listen for lock status changes from service worker
+    const handleMessage = (message: { type: string; lockState?: LockModeState }) => {
+      if (message.type === 'LOCK_STATUS_CHANGED' && message.lockState) {
+        setLockState(message.lockState);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, []);
 
   // Handle setting changes with auto-save
   const handleSettingChange = async (path: string[], value: boolean): Promise<void> => {
@@ -135,6 +163,34 @@ const Options: React.FC = () => {
         description: 'Failed to import settings. Please try again.',
         variant: 'destructive',
       });
+    }
+  };
+
+  // Handle lock mode activation
+  const handleActivateLockMode = async (durationMs: number): Promise<void> => {
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'ACTIVATE_LOCK_MODE',
+        durationMs,
+      });
+      // Lock state will be updated via LOCK_STATUS_CHANGED message
+    } catch (error) {
+      console.error('Failed to activate lock mode:', error);
+      throw error;
+    }
+  };
+
+  // Handle lock mode extension
+  const handleExtendLockMode = async (additionalMs: number): Promise<void> => {
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'EXTEND_LOCK_MODE',
+        additionalMs,
+      });
+      // Lock state will be updated via LOCK_STATUS_CHANGED message
+    } catch (error) {
+      console.error('Failed to extend lock mode:', error);
+      throw error;
     }
   };
 
@@ -247,8 +303,9 @@ const Options: React.FC = () => {
                 toast({ title: 'Error', description: message, variant: 'destructive' })
               }
               onSuccess={(message) => toast({ title: 'Success', description: message })}
+              disabled={lockState?.isLocked === true}
             />
-            <ResetButton onReset={handleReset} />
+            <ResetButton onReset={handleReset} disabled={lockState?.isLocked === true} />
           </div>
         </div>
 
@@ -271,6 +328,15 @@ const Options: React.FC = () => {
 
           {/* YouTube Module Settings */}
           <TabsContent value="youtube" className="space-y-6">
+            {/* Lock Mode Section */}
+            {lockState && (
+              <LockModeSection
+                lockState={lockState}
+                onActivate={handleActivateLockMode}
+                onExtend={handleExtendLockMode}
+              />
+            )}
+
             <Accordion
               type="multiple"
               defaultValue={[
@@ -304,6 +370,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'globalNavigation', 'showLogo'], checked)
                       }
                       tooltip="Applies to all YouTube pages"
+                      disabled={lockState?.isLocked === true}
                     />
 
                     <SettingToggle
@@ -315,6 +382,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'globalNavigation', 'showSidebar'], checked)
                       }
                       tooltip="Controls both sidebar and hamburger menu across all pages"
+                      disabled={lockState?.isLocked === true}
                     />
 
                     <SettingToggle
@@ -326,6 +394,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'globalNavigation', 'showProfile'], checked)
                       }
                       tooltip="Applies to all YouTube pages"
+                      disabled={lockState?.isLocked === true}
                     />
 
                     <SettingToggle
@@ -340,6 +409,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="Applies to all YouTube pages"
+                      disabled={lockState?.isLocked === true}
                     />
 
                     <SettingToggle
@@ -354,6 +424,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
+                      disabled={lockState?.isLocked === true}
                     />
                   </div>
                 </AccordionContent>
@@ -381,6 +452,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
                       }
                       tooltip="Short-form vertical videos (YouTube Shorts)"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="search-community"
@@ -394,6 +466,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="Text, image, and poll posts from creators"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="search-mixes"
@@ -404,6 +477,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
                       }
                       tooltip="Auto-generated mixes and user-created playlists"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="search-blur"
@@ -414,6 +488,7 @@ const Options: React.FC = () => {
                         handleSettingChange(['youtube', 'searchPage', 'blurThumbnails'], checked)
                       }
                       tooltip="Reduces visual stimulation while keeping structural awareness"
+                      disabled={lockState?.isLocked === true}
                     />
                   </div>
                 </AccordionContent>
@@ -439,6 +514,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showLikeDislike'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-subscription-actions"
@@ -451,6 +527,7 @@ const Options: React.FC = () => {
                           checked
                         )
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-share"
@@ -460,6 +537,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-comments"
@@ -469,6 +547,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-related"
@@ -478,6 +557,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-playlists"
@@ -487,6 +567,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showPlaylists'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-recommended-video"
@@ -499,6 +580,7 @@ const Options: React.FC = () => {
                           checked
                         )
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="watch-more-actions"
@@ -508,6 +590,7 @@ const Options: React.FC = () => {
                       onChange={(checked) =>
                         handleSettingChange(['youtube', 'watchPage', 'showMoreActions'], checked)
                       }
+                      disabled={lockState?.isLocked === true}
                     />
                   </div>
                 </AccordionContent>
@@ -540,6 +623,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="The tab that shows the creator's Shorts videos"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="creator-community-tab"
@@ -553,6 +637,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="The tab that shows community posts and updates"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="creator-community-in-home"
@@ -566,6 +651,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="Text, image, and poll posts shown on the channel's Home tab"
+                      disabled={lockState?.isLocked === true}
                     />
                     <SettingToggle
                       id="creator-shorts-in-home"
@@ -579,6 +665,7 @@ const Options: React.FC = () => {
                         )
                       }
                       tooltip="Shorts shelf shown on the channel's Home tab"
+                      disabled={lockState?.isLocked === true}
                     />
                   </div>
                 </AccordionContent>
@@ -654,6 +741,7 @@ const Options: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 className="shrink-0 ml-2 hover:bg-destructive/10 hover:text-destructive"
+                                disabled={lockState?.isLocked === true}
                               >
                                 <X className="h-4 w-4" />
                                 Unblock

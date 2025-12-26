@@ -129,6 +129,47 @@ export interface BlockedChannel {
 }
 
 /**
+ * Lock Mode State
+ * Stores the current lock mode status and timing information
+ *
+ * IMPORTANT: This is stored separately in chrome.storage.local (device-specific),
+ * NOT in chrome.storage.sync like other settings. This prevents cross-device
+ * sync race conditions and makes lock a device-specific commitment tool.
+ *
+ * Storage key: 'fockey_lock_state'
+ */
+export interface LockModeState {
+  /** Whether lock mode is currently active */
+  isLocked: boolean;
+  /**
+   * Unix timestamp (ms) when lock should expire
+   * This is the single source of truth for lock enforcement
+   */
+  lockEndTime: number | null;
+  /**
+   * Unix timestamp (ms) when lock was activated
+   * Used for UI display purposes only
+   */
+  lockStartedAt: number | null;
+  /**
+   * Original lock duration in milliseconds
+   * Used to validate lock extensions (new duration must be longer)
+   */
+  originalDuration: number | null;
+}
+
+/**
+ * Default lock mode state
+ * Used when initializing lock mode for the first time
+ */
+export const DEFAULT_LOCK_STATE: Readonly<LockModeState> = {
+  isLocked: false,
+  lockEndTime: null,
+  lockStartedAt: null,
+  originalDuration: null,
+} as const;
+
+/**
  * Root settings interface for the extension
  * Contains all extension-wide settings
  */

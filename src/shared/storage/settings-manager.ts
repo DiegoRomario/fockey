@@ -3,13 +3,25 @@
  * Provides type-safe Chrome Storage API wrapper with sync support
  */
 
-import { ExtensionSettings, DEFAULT_SETTINGS, BlockedChannel } from '../types/settings';
+import {
+  ExtensionSettings,
+  DEFAULT_SETTINGS,
+  BlockedChannel,
+  LockModeState,
+  DEFAULT_LOCK_STATE,
+} from '../types/settings';
 import { validateSettings } from './validation';
 
 /**
  * Storage key used for persisting settings
  */
 const SETTINGS_KEY = 'fockey_settings';
+
+/**
+ * Storage key used for persisting lock mode state
+ * IMPORTANT: Uses chrome.storage.local (device-specific), NOT chrome.storage.sync
+ */
+const LOCK_STATE_KEY = 'fockey_lock_state';
 
 /**
  * Deep merge utility for combining partial settings with defaults
@@ -117,8 +129,19 @@ const UPDATE_DEBOUNCE_MS = 300;
  * @param partial - Partial settings object with changes to apply
  * @returns Promise that resolves when settings are updated
  * @throws Error if both sync and local storage fail
+ * @throws Error if lock mode is active
  */
 export async function updateSettings(partial: Partial<ExtensionSettings>): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Reject ALL settings changes when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Settings are locked for ${minutesRemaining} more minute${minutesRemaining !== 1 ? 's' : ''}. Changes cannot be made until lock expires.`
+    );
+  }
+
   // Clear existing debounce timeout
   if (updateTimeout) {
     clearTimeout(updateTimeout);
@@ -178,8 +201,19 @@ export async function updateSettings(partial: Partial<ExtensionSettings>): Promi
  *
  * @returns Promise resolving to the default settings after reset
  * @throws Error if both sync and local storage fail
+ * @throws Error if lock mode is active
  */
 export async function resetToDefaults(): Promise<ExtensionSettings> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent resetting settings when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Settings are locked for ${minutesRemaining} more minute${minutesRemaining !== 1 ? 's' : ''}. Cannot reset until lock expires.`
+    );
+  }
+
   try {
     // Try to clear and reset sync storage first
     await chrome.storage.sync.remove(SETTINGS_KEY);
@@ -283,8 +317,20 @@ export async function addBlockedChannel(channel: BlockedChannel): Promise<void> 
  *
  * @param channelId - Channel ID or handle to remove
  * @returns Promise that resolves when channel is removed
+ * @throws Error if lock mode is active
  */
 export async function removeBlockedChannel(channelId: string): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent unblocking channels when lock mode is active
+  // Users can still ADD blocks during lock mode, but cannot REMOVE them
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot unblock channels while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining). You can still block additional channels.`
+    );
+  }
+
   const settings = await getSettings();
 
   // Filter out the channel by ID or handle (case-insensitive)
@@ -334,4 +380,192 @@ export async function isChannelBlocked(channelId: string): Promise<boolean> {
       c.id.toLowerCase() === channelId.toLowerCase() ||
       c.handle.toLowerCase() === channelId.toLowerCase()
   );
+}
+
+// ==================== LOCK MODE FUNCTIONS ====================
+
+/**
+ * Retrieves current lock mode state from chrome.storage.local
+ * Returns DEFAULT_LOCK_STATE if no lock state exists
+ *
+ * @returns Promise resolving to current lock mode state
+ */
+export async function getLockModeStatus(): Promise<LockModeState> {
+  try {
+    const result = await chrome.storage.local.get(LOCK_STATE_KEY);
+
+    if (result[LOCK_STATE_KEY]) {
+      const lockState = result[LOCK_STATE_KEY] as LockModeState;
+
+      // Validate lock hasn't expired (defense against stale state)
+      if (lockState.isLocked && lockState.lockEndTime) {
+        const now = Date.now();
+        if (now >= lockState.lockEndTime) {
+          // Lock expired but state wasn't cleaned up - auto-unlock
+          await unlockLockMode();
+          return { ...DEFAULT_LOCK_STATE };
+        }
+      }
+
+      return lockState;
+    }
+
+    return { ...DEFAULT_LOCK_STATE };
+  } catch (error) {
+    console.error('Failed to retrieve lock mode status:', error);
+    return { ...DEFAULT_LOCK_STATE };
+  }
+}
+
+/**
+ * CRITICAL: Centralized lock mode guard function
+ * Checks if lock mode is currently active and enforces lock restrictions
+ *
+ * This function is the single source of truth for lock enforcement.
+ * ALL settings mutation functions MUST call this before allowing changes.
+ *
+ * @returns Promise resolving to true if lock mode is active
+ */
+export async function isLockModeActive(): Promise<boolean> {
+  const lockState = await getLockModeStatus();
+
+  if (!lockState.isLocked) {
+    return false;
+  }
+
+  // Defense: Verify lock hasn't expired (handles stale state and clock changes)
+  if (lockState.lockEndTime) {
+    const now = Date.now();
+    if (now >= lockState.lockEndTime) {
+      // Lock expired - clean up stale state
+      await unlockLockMode();
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Calculates remaining time until lock expires
+ *
+ * @returns Promise resolving to milliseconds remaining (0 if not locked or expired)
+ */
+export async function getRemainingLockTime(): Promise<number> {
+  const lockState = await getLockModeStatus();
+
+  if (!lockState.isLocked || !lockState.lockEndTime) {
+    return 0;
+  }
+
+  const now = Date.now();
+  const remaining = lockState.lockEndTime - now;
+
+  return remaining > 0 ? remaining : 0;
+}
+
+/**
+ * Activates lock mode for a specified duration
+ * Creates lock state in chrome.storage.local and triggers alarm creation in service worker
+ *
+ * @param durationMs - Lock duration in milliseconds
+ * @returns Promise that resolves when lock is activated
+ * @throws Error if lock is already active or duration is invalid
+ */
+export async function activateLockMode(durationMs: number): Promise<void> {
+  // Validate duration
+  if (durationMs <= 0) {
+    throw new Error('Lock duration must be greater than 0');
+  }
+
+  // Check if lock is already active
+  const currentLock = await getLockModeStatus();
+  if (currentLock.isLocked) {
+    throw new Error('Lock mode is already active. Use extendLockMode() to extend the lock.');
+  }
+
+  const now = Date.now();
+  const lockState: LockModeState = {
+    isLocked: true,
+    lockEndTime: now + durationMs,
+    lockStartedAt: now,
+    originalDuration: durationMs,
+  };
+
+  try {
+    await chrome.storage.local.set({ [LOCK_STATE_KEY]: lockState });
+    console.info(
+      `Lock mode activated for ${durationMs}ms until ${new Date(lockState.lockEndTime!).toLocaleString()}`
+    );
+  } catch (error) {
+    console.error('Failed to activate lock mode:', error);
+    throw new Error('Failed to activate lock mode: storage operation failed');
+  }
+}
+
+/**
+ * Extends active lock mode by adding additional time
+ * Validates that the new expiration time is in the future
+ *
+ * @param additionalMs - Additional time to add in milliseconds
+ * @returns Promise that resolves when lock is extended
+ * @throws Error if lock is not active, or new time is not greater than current expiration
+ */
+export async function extendLockMode(additionalMs: number): Promise<void> {
+  // Validate additional time
+  if (additionalMs <= 0) {
+    throw new Error('Extension duration must be greater than 0');
+  }
+
+  const currentLock = await getLockModeStatus();
+
+  // Lock must be active to extend
+  if (!currentLock.isLocked || !currentLock.lockEndTime) {
+    throw new Error('Lock mode is not active. Use activateLockMode() to activate lock.');
+  }
+
+  const newEndTime = currentLock.lockEndTime + additionalMs;
+  const now = Date.now();
+
+  // Validate new end time is in the future
+  if (newEndTime <= now) {
+    throw new Error('Extension would result in a lock that has already expired');
+  }
+
+  const updatedLockState: LockModeState = {
+    ...currentLock,
+    lockEndTime: newEndTime,
+    // originalDuration remains unchanged - tracks the initial lock duration
+  };
+
+  try {
+    await chrome.storage.local.set({ [LOCK_STATE_KEY]: updatedLockState });
+    console.info(
+      `Lock mode extended by ${additionalMs}ms until ${new Date(newEndTime).toLocaleString()}`
+    );
+  } catch (error) {
+    console.error('Failed to extend lock mode:', error);
+    throw new Error('Failed to extend lock mode: storage operation failed');
+  }
+}
+
+/**
+ * Unlocks lock mode (internal function)
+ * Called by Chrome alarm when lock expires or by validation when stale state detected
+ *
+ * IMPORTANT: This function should only be called by:
+ * - Service worker alarm listener when lock expires
+ * - isLockModeActive() when detecting expired/stale lock state
+ * - Service worker startup validation
+ *
+ * @returns Promise that resolves when lock is cleared
+ */
+export async function unlockLockMode(): Promise<void> {
+  try {
+    await chrome.storage.local.remove(LOCK_STATE_KEY);
+    console.info('Lock mode deactivated');
+  } catch (error) {
+    console.error('Failed to unlock lock mode:', error);
+    throw new Error('Failed to unlock lock mode: storage operation failed');
+  }
 }

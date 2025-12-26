@@ -4,13 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Lock } from 'lucide-react';
 import {
   getSettings,
   updateSettings,
   addBlockedChannel,
   removeBlockedChannel,
+  getLockModeStatus,
 } from '@/shared/storage/settings-manager';
-import { ExtensionSettings, BlockedChannel } from '@/shared/types/settings';
+import { ExtensionSettings, BlockedChannel, LockModeState } from '@/shared/types/settings';
+import {
+  formatCountdown,
+  calculateRemainingTime,
+  formatExpirationTime,
+} from '@/shared/utils/lock-mode-utils';
 import LoadingState from './components/LoadingState';
 import SettingsTabs from './components/SettingsTabs';
 
@@ -30,6 +37,8 @@ const Popup: React.FC = () => {
   } | null>(null);
   const [isCurrentChannelBlocked, setIsCurrentChannelBlocked] = useState(false);
   const [isBlockingChannel, setIsBlockingChannel] = useState(false);
+  const [lockState, setLockState] = useState<LockModeState | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
 
   // Debounce timer ref for batching rapid toggle changes
   const debounceTimerRef = useRef<number | null>(null);
@@ -201,6 +210,56 @@ const Popup: React.FC = () => {
       detectChannel();
     }
   }, [settings]);
+
+  /**
+   * Load lock state on mount and listen for changes
+   */
+  useEffect(() => {
+    // Load initial lock state
+    getLockModeStatus()
+      .then((loadedLockState) => {
+        setLockState(loadedLockState);
+      })
+      .catch((error) => {
+        console.error('Failed to load lock state:', error);
+      });
+
+    // Listen for lock status changes from service worker
+    const handleMessage = (message: { type: string; lockState?: LockModeState }) => {
+      if (message.type === 'LOCK_STATUS_CHANGED' && message.lockState) {
+        setLockState(message.lockState);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, []);
+
+  /**
+   * Update remaining time every second when locked
+   */
+  useEffect(() => {
+    if (!lockState?.isLocked || !lockState.lockEndTime) {
+      setRemainingTime(0);
+      return;
+    }
+
+    // Initial calculation
+    const updateRemainingTime = () => {
+      const remaining = calculateRemainingTime(lockState.lockEndTime!);
+      setRemainingTime(remaining);
+    };
+
+    updateRemainingTime();
+
+    // Update every second
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [lockState?.isLocked, lockState?.lockEndTime]);
 
   /**
    * Handle block/unblock channel
@@ -464,16 +523,37 @@ const Popup: React.FC = () => {
                   checked={settings.youtube.enabled}
                   onCheckedChange={handleModuleToggle}
                   className="data-[state=checked]:bg-primary"
+                  disabled={lockState?.isLocked}
                 />
               </div>
             </div>
+
+            {/* Lock Mode Status Indicator */}
+            {lockState?.isLocked && lockState.lockEndTime && (
+              <div className="mt-3 p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-600/20">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                      Settings Locked
+                    </div>
+                    <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      {formatCountdown(remainingTime)} remaining
+                    </div>
+                    <div className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                      Until {formatExpirationTime(lockState.lockEndTime)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-4 pt-4">
             {/* Tabbed Settings Interface - All 32 Settings */}
             <SettingsTabs
               settings={settings}
-              disabled={!settings.youtube.enabled}
+              disabled={!settings.youtube.enabled || lockState?.isLocked === true}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               onGlobalNavigationToggle={handleGlobalNavigationToggle}
@@ -498,7 +578,10 @@ const Popup: React.FC = () => {
                       </div>
                       <Button
                         onClick={handleBlockChannel}
-                        disabled={isBlockingChannel}
+                        disabled={
+                          isBlockingChannel ||
+                          (isCurrentChannelBlocked && lockState?.isLocked === true)
+                        }
                         variant={isCurrentChannelBlocked ? 'outline' : 'destructive'}
                         size="sm"
                         className="shrink-0"
@@ -506,7 +589,9 @@ const Popup: React.FC = () => {
                         {isBlockingChannel
                           ? 'Processing...'
                           : isCurrentChannelBlocked
-                            ? 'Unblock'
+                            ? lockState?.isLocked
+                              ? 'Locked'
+                              : 'Unblock'
                             : 'Block Channel'}
                       </Button>
                     </div>

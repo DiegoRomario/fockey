@@ -962,6 +962,265 @@ The Channel Blocking feature is considered **successfully implemented** when:
 
 ---
 
+## Lock Mode Feature
+
+### Overview
+
+Lock Mode is a time-based commitment system that prevents impulsive configuration changes by temporarily locking all extension settings for a user-defined duration. This feature aligns with Fockey's core philosophy of intentional focus and minimalism by helping users commit to their carefully chosen settings and avoid constant tweaking.
+
+When activated, Lock Mode transforms the extension into a **read-only state** where all configuration changes are blocked until the lock period expires. Users can set the lock duration and extend it, but cannot unlock early—creating an absolute commitment mechanism that reinforces focus and productivity.
+
+---
+
+### Feature Goals
+
+**Primary Goals:**
+- Prevent impulsive settings changes that disrupt focus and productivity
+- Enforce commitment to carefully chosen configurations
+- Reduce decision fatigue by eliminating constant re-configuration temptation
+- Support long-term focus by making settings changes deliberately difficult during lock periods
+
+**Secondary Goals:**
+- Provide flexible lock durations (minutes, hours, days)
+- Allow lock extension for continued commitment
+- Display clear visual feedback about lock status and remaining time
+- Maintain usability while preventing configuration changes
+
+---
+
+### Lock Mode Behavior
+
+Once Lock Mode is activated, the following restrictions and behaviors apply:
+
+#### 1. **Settings Enforcement**
+
+**Locked Operations (Blocked):**
+- All settings toggles and switches are **disabled** (grayed out, unclickable)
+- Reset to Defaults button is **disabled**
+- Import Settings functionality is **blocked**
+- Channel unblocking is **blocked** (cannot remove existing blocks)
+- Any attempt to modify settings via storage or messages is **rejected**
+
+**Allowed Operations (Exceptions):**
+- **Channel blocking** — Users can still add new channel blocks (commitment to focus)
+- **Lock extension** — Users can extend the lock duration (add more time only, not shorten)
+- **Read-only access** — All settings remain visible for reference
+
+**Error Handling:**
+- Any blocked operation shows a clear error message: "Settings are locked for X more minutes"
+- Disabled UI controls display tooltips explaining the lock status
+- No silent failures—users always understand why an action is blocked
+
+#### 2. **Lock Duration & Time Management**
+
+**Activation:**
+- Lock duration set via numeric input + unit selector (Minutes / Hours / Days)
+- Minimum duration: **1 minute**
+- Maximum duration: **365 days**
+- Validation prevents invalid inputs (zero, negative, or extreme values)
+- Immediate activation upon confirmation—no delay or grace period
+
+**Active Lock:**
+- **Live countdown timer** updates every second (format: "9h 23m 15s" or "2d 5h 30m")
+- **Expiration timestamp** displayed (e.g., "Unlocks at Dec 26, 2025 10:30 PM")
+- **Motivational messaging** reinforces commitment and focus
+- **Warning color** when less than 1 hour remaining (amber/gold)
+
+**Lock Extension:**
+- Activated locks can be **extended** by adding additional time
+- Validation ensures new expiration time is in the future
+- Extension immediately updates countdown and expiration timestamp
+- Success feedback confirms new unlock time
+
+**Unlock:**
+- **Automatic unlock** when countdown reaches zero
+- **Silent unlock** — no notifications, toasts, or alerts
+- UI controls automatically re-enabled
+- Lock Mode section returns to activation state
+- User discovers unlock when they next interact with settings
+
+#### 3. **Lock Persistence & Robustness**
+
+**Persistence Across Sessions:**
+- Lock state survives browser restarts
+- Chrome alarms recreated on service worker startup
+- Lock state verified on every extension load
+- Expired locks automatically cleared on startup
+
+**Defense Against Bypass:**
+- **Dual unlock mechanism:**
+  1. Primary: Chrome alarm fires at scheduled time
+  2. Backup: Periodic validation in keep-alive alarm (every 25 minutes)
+  3. Startup: Immediate check on service worker initialization
+- **Device-specific lock:** Stored in `chrome.storage.local` (not synced across devices)
+- **Centralized validation:** All settings mutations check `isLockModeActive()` guard function
+- **Time drift handling:** Validates lock expiration on every check
+
+---
+
+### Lock Mode UI
+
+#### Options Page — Lock Mode Control Panel
+
+**Location:**
+- Dedicated section in the Settings (Options) page
+- Positioned prominently to emphasize its importance
+- Card-based design with lock icon and clear status indicators
+
+**Unlocked State:**
+- **Lock icon** (open/unlocked) in muted colors
+- **Title:** "Lock Mode"
+- **Description:** "Prevent configuration changes for a set period to commit to your settings and stay focused."
+- **Duration input:** Numeric field with validation
+- **Unit selector:** Dropdown (Minutes / Hours / Days)
+- **Activate button:** Primary variant, disabled until valid input provided
+- **Validation message:** "Examples: 30 minutes, 2 hours, or 1 day (minimum: 1 minute, maximum: 365 days)"
+
+**Locked State:**
+- **Lock icon** (closed) in amber/gold color with circular badge background
+- **Title:** "Settings are locked"
+- **Live countdown timer:**
+  - Large, prominent display (4xl font size)
+  - Format: "9h 23m 15s", "2d 5h 30m", or "23m 45s"
+  - Updates every second
+  - Amber color when < 1 hour remaining
+- **Expiration time:** "Unlocks at [formatted date/time]"
+- **Motivational message:** "Stay focused. Your commitment helps you avoid impulsive changes and maintain productivity."
+- **Extension controls:**
+  - Duration input field (same as activation)
+  - Unit selector (Minutes / Hours / Days)
+  - "Extend Lock" button (outline variant)
+  - Informational text: "You can add more time, but cannot shorten or cancel the lock"
+- **No early unlock option** — absolute commitment enforced
+
+**Visual Design:**
+- Card component with border-2 for emphasis
+- Color-coded lock icons (muted when unlocked, amber when locked)
+- Clear visual hierarchy (countdown as focal point when locked)
+- Smooth transitions between unlocked/locked states
+- Consistent spacing and typography matching shadcn/ui design system
+
+#### Popup — Lock Status Indicator
+
+**Purpose:**
+- Display **read-only** lock status
+- No lock activation controls (Options page only)
+- Show remaining time and expiration in compact format
+
+**Visual Elements:**
+- **Lock icon badge** appears when locked (amber/gold color)
+- **Compact countdown** below master toggle
+- **Status text:** "Settings Locked"
+- **Remaining time:** "9h 23m remaining"
+- **Expiration time:** "Until Dec 26, 2025 10:30 PM" (in tooltip or secondary text)
+
+**Disabled Controls:**
+- Master toggle for YouTube module **disabled** when locked
+- All setting tabs and toggles **disabled** when locked
+- Visual feedback: Reduced opacity, not-allowed cursor
+- Tooltip on hover: "Locked until [time]"
+
+**Important:**
+- Popup does **NOT** include lock activation controls
+- Lock can only be activated from the Options page
+- Popup is purely informational when locked
+
+---
+
+### Settings Page Integration
+
+Lock Mode is integrated into the Options page as a dedicated, prominent section.
+
+**Section Layout:**
+
+**Positioning:**
+- Appears at the top of the Settings page (high visibility)
+- Card-based layout with clear visual boundaries
+- Grouped with other global settings (not page-specific)
+
+**Section Components:**
+- Lock Mode Control Panel (as described above)
+- Clear separation from other settings sections
+- Accordion-style expansion possible for advanced settings (future)
+
+**Disabled Settings During Lock:**
+- **All SettingToggle components** across all sections (Global Nav, Search, Watch, Creator Profile)
+- **Import Settings button** (disabled completely)
+- **Reset to Defaults button** (disabled completely)
+- **Unblock buttons** in Blocked Channels section (disabled completely)
+
+**Visual Indicators:**
+- Disabled switches with reduced opacity
+- Lock icon overlay on disabled sections (optional)
+- Tooltip on disabled controls: "Locked until [time]"
+- Grayed-out labels for all disabled elements
+
+---
+
+### Device-Specific Behavior
+
+Lock Mode is **device-specific** and does not sync across browsers or devices. This design decision:
+- Treats the lock as a **local commitment tool** tied to a specific device
+- Prevents users from bypassing locks by accessing settings on another device
+- Avoids synchronization conflicts and timing issues across devices
+
+---
+
+### Edge Cases
+
+**1. Browser Restart:**
+- Lock state persists across browser restarts
+- Active locks automatically resume countdown
+- Expired locks (during shutdown) are automatically cleared
+
+**2. Extension Updates:**
+- Lock state survives extension updates
+- Active locks continue without interruption
+- No loss of lock commitment during updates
+
+**3. System Clock Changes:**
+- Lock expiration is based on absolute time, not elapsed duration
+- Manual system clock changes do not bypass the lock
+- Lock expires at the originally scheduled time
+
+**4. Concurrent Lock Attempts:**
+- When locked, activation controls are replaced with extension controls
+- Only one lock can be active at a time
+- Cannot activate a new lock until the current one expires
+
+**5. Invalid Duration Inputs:**
+- Input validation enforces: minimum 1 minute, maximum 365 days
+- Non-numeric, negative, or zero values show inline error messages
+- Activation button remains disabled until valid input is provided
+
+**6. Lock Bypass Attempts:**
+- **Accepted Limitation:** Lock Mode is a **commitment tool**, not a security feature
+- Users can bypass locks via browser developer tools or by disabling the extension
+- The feature relies on user commitment and intentionality, not technical enforcement
+
+---
+
+### Success Criteria
+
+The Lock Mode feature is considered **successfully implemented** when:
+
+- ✅ Users can activate Lock Mode from the Options page with custom durations (minutes, hours, or days)
+- ✅ Users can extend active locks by adding more time (cannot shorten or cancel)
+- ✅ All settings controls are disabled and unclickable during an active lock
+- ✅ Channel blocking remains available during lock (add new blocks only, cannot unblock)
+- ✅ Live countdown timer displays accurate remaining time and updates in real-time
+- ✅ Lock state persists across browser restarts and extension updates
+- ✅ Lock expires silently without notifications when countdown reaches zero
+- ✅ Popup displays read-only lock status with remaining time and expiration timestamp
+- ✅ Options page shows clear lock status with motivational messaging
+- ✅ Clear user feedback for all lock-related actions (activation, extension, blocked operations)
+- ✅ Edge cases handled gracefully (invalid input, browser restart, system clock changes)
+- ✅ UI is polished, professional, and visually consistent with the rest of the extension
+- ✅ Lock Mode is fully keyboard-accessible and screen reader-friendly
+- ✅ Lock Mode does not degrade extension performance when active or inactive
+
+---
+
 ## Settings & Configuration
 
 ### Access Points
@@ -996,6 +1255,11 @@ The Channel Blocking feature is considered **successfully implemented** when:
 | **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
 | **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |
+| **Lock Mode**              | Activate lock              | Off     | Yes          | All pages      |
+| **Lock Mode**              | Extend lock                | N/A     | Yes          | All pages      |
+| **Lock Mode**              | Silent unlock              | On      | No           | All pages      |
+| **Lock Mode**              | Block settings changes     | On      | No           | All pages      |
+| **Lock Mode**              | Allow channel blocking     | On      | No           | All pages      |
 | **Home**            | Search bar                 | On      | No           | Home only      |
 | **Home**            | Feed, Shorts               | Off     | N/A          | Home only      |
 | **Search**          | Search bar, Results        | On      | No           | Search only    |

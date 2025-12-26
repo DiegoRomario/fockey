@@ -3,7 +3,7 @@
  * Used by service worker, popup, options page, and content scripts
  */
 
-import { ExtensionSettings } from './settings';
+import { ExtensionSettings, LockModeState } from './settings';
 
 /**
  * Message type identifiers for chrome.runtime.sendMessage
@@ -14,7 +14,11 @@ export type MessageType =
   | 'RESET_SETTINGS'
   | 'RELOAD_CONTENT_SCRIPT'
   | 'SETTINGS_UPDATED'
-  | 'NAVIGATE_TO_HOME';
+  | 'NAVIGATE_TO_HOME'
+  | 'ACTIVATE_LOCK_MODE'
+  | 'EXTEND_LOCK_MODE'
+  | 'GET_LOCK_STATE'
+  | 'LOCK_STATUS_CHANGED';
 
 /**
  * Base message structure
@@ -71,6 +75,44 @@ export interface NavigateToHomeMessage extends BaseMessage {
 }
 
 /**
+ * Request to activate lock mode
+ * Sent from options page to service worker
+ */
+export interface ActivateLockModeMessage extends BaseMessage {
+  type: 'ACTIVATE_LOCK_MODE';
+  /** Duration in milliseconds */
+  durationMs: number;
+}
+
+/**
+ * Request to extend active lock mode
+ * Sent from options page to service worker
+ * Only allows adding time, not shortening
+ */
+export interface ExtendLockModeMessage extends BaseMessage {
+  type: 'EXTEND_LOCK_MODE';
+  /** Additional duration to add in milliseconds */
+  additionalMs: number;
+}
+
+/**
+ * Request to get current lock mode state
+ * Sent from popup/options to service worker
+ */
+export interface GetLockStateMessage extends BaseMessage {
+  type: 'GET_LOCK_STATE';
+}
+
+/**
+ * Broadcast message when lock status changes
+ * Sent from service worker to popup and options page
+ */
+export interface LockStatusChangedMessage extends BaseMessage {
+  type: 'LOCK_STATUS_CHANGED';
+  lockState: LockModeState;
+}
+
+/**
  * Union type of all possible messages
  */
 export type Message =
@@ -79,7 +121,11 @@ export type Message =
   | ResetSettingsMessage
   | ReloadContentScriptMessage
   | SettingsUpdatedMessage
-  | NavigateToHomeMessage;
+  | NavigateToHomeMessage
+  | ActivateLockModeMessage
+  | ExtendLockModeMessage
+  | GetLockStateMessage
+  | LockStatusChangedMessage;
 
 /**
  * Response structure for messages
@@ -109,4 +155,25 @@ export interface UpdateSettingsResponse extends MessageResponse {
  */
 export interface ResetSettingsResponse extends MessageResponse<ExtensionSettings> {
   data: ExtensionSettings;
+}
+
+/**
+ * Response for ACTIVATE_LOCK_MODE
+ */
+export interface ActivateLockModeResponse extends MessageResponse {
+  success: boolean;
+}
+
+/**
+ * Response for EXTEND_LOCK_MODE
+ */
+export interface ExtendLockModeResponse extends MessageResponse {
+  success: boolean;
+}
+
+/**
+ * Response for GET_LOCK_STATE
+ */
+export interface GetLockStateResponse extends MessageResponse<LockModeState> {
+  data: LockModeState;
 }
