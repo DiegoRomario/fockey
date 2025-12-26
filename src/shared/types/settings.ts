@@ -45,8 +45,6 @@ export interface SearchPageSettings {
   showCommunityPosts: boolean;
   /** Show/hide Mixes/Playlists in search results */
   showMixes: boolean;
-  /** Show/hide Sponsored content in search results */
-  showSponsored: boolean;
 
   // Visual adjustments
   /** Blur thumbnails instead of hiding them */
@@ -170,7 +168,6 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showShorts: false,
       showCommunityPosts: false,
       showMixes: false,
-      showSponsored: false,
       // Visual adjustments
       blurThumbnails: false,
     },

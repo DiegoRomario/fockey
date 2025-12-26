@@ -425,16 +425,6 @@ const Options: React.FC = () => {
                         }
                         tooltip="Auto-generated mixes and user-created playlists"
                       />
-                      <SettingToggle
-                        id="search-sponsored"
-                        label="Show Sponsored Content"
-                        description="Display sponsored/promoted content"
-                        checked={settings.youtube.searchPage.showSponsored}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showSponsored'], checked)
-                        }
-                        tooltip="Paid promotional content in search results"
-                      />
                     </div>
 
                     <Separator className="my-4" />

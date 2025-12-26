@@ -110,14 +110,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="search-sponsored"
-            label="Show Sponsored Content"
-            tooltip="Paid promotional content in search results"
-            checked={settings.youtube.searchPage.showSponsored}
-            onChange={(checked) => onSearchPageToggle('showSponsored', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
             id="search-blur"
             label="Blur Thumbnails"
             tooltip="Reduces visual stimulation while keeping structural awareness"

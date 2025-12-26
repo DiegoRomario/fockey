@@ -28,7 +28,6 @@ export const SEARCH_PAGE_SELECTORS = {
     'ytd-reel-shelf-renderer, ytd-short-renderer, ytd-rich-shelf-renderer[is-shorts], ytd-grid-video-renderer[is-shorts], ytd-rich-item-renderer[is-shorts], ytd-reel-item-renderer, grid-shelf-view-model, ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model, ytd-video-renderer:has(a[href*="/shorts/"])',
   COMMUNITY_POSTS: 'ytd-backstage-post-thread-renderer, ytd-post-renderer',
   MIXES: 'ytd-radio-renderer, yt-lockup-view-model:not(:has(ytd-video-renderer))',
-  SPONSORED_CONTENT: 'ytd-ad-slot-renderer',
   ALGORITHMIC_SUGGESTIONS:
     'ytd-shelf-renderer[modern-typography], ytd-horizontal-card-list-renderer',
   PROMOTIONAL_BANNERS: 'ytd-banner-promo-renderer, ytd-statement-banner-renderer',
@@ -305,21 +304,6 @@ function generateSearchPageCSS(
     `);
   }
 
-  if (!pageSettings.showSponsored) {
-    rules.push(`
-      ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
-        display: none !important;
-      }
-    `);
-  } else {
-    // Explicitly show sponsored content when enabled
-    rules.push(`
-      ${SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT} {
-        display: block !important;
-      }
-    `);
-  }
-
   // Always hide upload button and other topbar buttons
   rules.push(`
     ${SEARCH_PAGE_SELECTORS.UPLOAD_BUTTON} {
@@ -511,13 +495,11 @@ function setupMutationObserver(): void {
               node.matches(SEARCH_PAGE_SELECTORS.SHORTS) ||
               node.matches(SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS) ||
               node.matches(SEARCH_PAGE_SELECTORS.MIXES) ||
-              node.matches(SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT) ||
               node.matches(SEARCH_PAGE_SELECTORS.FILTER_CHIPS) ||
               node.querySelector(SEARCH_PAGE_SELECTORS.VIDEO_RENDERER) ||
               node.querySelector(SEARCH_PAGE_SELECTORS.SHORTS) ||
               node.querySelector(SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS) ||
               node.querySelector(SEARCH_PAGE_SELECTORS.MIXES) ||
-              node.querySelector(SEARCH_PAGE_SELECTORS.SPONSORED_CONTENT) ||
               node.querySelector(SEARCH_PAGE_SELECTORS.FILTER_CHIPS)
             ) {
               shouldReapply = true;

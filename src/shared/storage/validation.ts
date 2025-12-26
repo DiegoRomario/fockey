@@ -70,7 +70,6 @@ function validateSearchPageSettings(settings: unknown): settings is SearchPageSe
     'showShorts',
     'showCommunityPosts',
     'showMixes',
-    'showSponsored',
     'blurThumbnails',
   ]);
 }
