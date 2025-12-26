@@ -64,6 +64,7 @@
     "vite": "^7.2.6"
   },
   "devDependencies": {
+    "@playwright/mcp": "^0.0.53",
     "@types/chrome": "^0.1.32",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
