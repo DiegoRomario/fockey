@@ -27,7 +27,7 @@ export const SEARCH_PAGE_SELECTORS = {
   SHORTS:
     'ytd-reel-shelf-renderer, ytd-short-renderer, ytd-rich-shelf-renderer[is-shorts], ytd-grid-video-renderer[is-shorts], ytd-rich-item-renderer[is-shorts], ytd-reel-item-renderer, grid-shelf-view-model, ytm-shorts-lockup-view-model-v2, ytm-shorts-lockup-view-model, ytd-video-renderer:has(a[href*="/shorts/"])',
   COMMUNITY_POSTS: 'ytd-backstage-post-thread-renderer, ytd-post-renderer',
-  MIXES: 'ytd-radio-renderer',
+  MIXES: 'ytd-radio-renderer, yt-lockup-view-model:not(:has(ytd-video-renderer))',
   SPONSORED_CONTENT: 'ytd-ad-slot-renderer',
   ALGORITHMIC_SUGGESTIONS:
     'ytd-shelf-renderer[modern-typography], ytd-horizontal-card-list-renderer',

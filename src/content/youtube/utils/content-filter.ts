@@ -54,7 +54,7 @@ export function isLongFormVideo(element: Element | null | undefined): boolean {
 export function isMixPlaylist(element: Element | null | undefined): boolean {
   if (!element) return false;
 
-  return element.matches('ytd-radio-renderer');
+  return element.matches('ytd-radio-renderer, yt-lockup-view-model:not(:has(ytd-video-renderer))');
 }
 
 /**
