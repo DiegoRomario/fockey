@@ -218,6 +218,7 @@ function generateCreatorProfileCSS(
     // Explicitly show logo when enabled (overrides critical CSS)
     // Must match ALL selectors from critical.css
     // IMPORTANT: ytd-topbar-logo-renderer needs proper flex layout for children (country code, etc.)
+    // #logo must use display: flex (not block) to keep country code inline
     rules.push(`
       ytd-topbar-logo-renderer {
         display: flex !important;
@@ -225,14 +226,21 @@ function generateCreatorProfileCSS(
         flex-direction: row !important;
       }
 
-      ytd-topbar-logo-renderer * {
-        display: revert !important;
+      ytd-topbar-logo-renderer > * {
         visibility: visible !important;
       }
 
-      #logo,
+      #logo {
+        display: flex !important;
+      }
+
       #logo-icon {
         display: block !important;
+      }
+
+      #country-code {
+        display: inline !important;
+        align-self: flex-start !important;
       }
     `);
   }
