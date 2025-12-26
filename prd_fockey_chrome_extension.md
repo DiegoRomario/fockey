@@ -328,7 +328,6 @@ These settings apply globally across all YouTube pages, not just the Search page
 - ☑️ Show Shorts in search results
 - ☑️ Show Community posts
 - ☑️ Show Mixes / Playlists
-- ☑️ Show sponsored content (if detectable)
 
 **Page-Specific Visual Adjustments:**
 - ☑️ **Thumbnail blur** (instead of hide) — reduces visual stimulation while keeping structural awareness of thumbnails
@@ -593,6 +592,7 @@ The Watch Page is where the user watches a selected video.
 - ✅ Video description
 - ✅ Channel avatar (profile picture)
 - ✅ Channel name and subscriber count
+- ✅ **Subscription Action Buttons** (Subscribe, Join, Notifications, See Perks) — visible by default for basic channel interaction
 
 **Hidden Elements (Default):**
 
@@ -608,13 +608,6 @@ The Watch Page is where the user watches a selected video.
   - Report button (may be grouped in three-dots overflow menu)
   - Ask button (YouTube AI assistant feature)
   - Three-dots overflow menu
-
-**Subscription Action Buttons (Unified Group):**
-- Subscription Actions — unified group controlled by a single toggle
-  - Subscribe button
-  - Notifications (bell) button (appears only when subscribed to channel)
-  - Join button (channel membership — appears when channel offers memberships and user is not a member)
-  - See Perks button (appears only when user has active channel membership)
 
 **Social & Discovery Elements:**
 - Comments section
@@ -663,9 +656,9 @@ Users can selectively re-enable hidden elements via extension settings. Most ele
 
 - ☑️ Like / Dislike buttons (unified toggle for both Like and Dislike)
 - ☑️ Share button
-- ☑️ **Subscription Actions** (unified toggle for Subscribe, Join, Notifications, See Perks)
+- ☑️ **Subscription Actions** (unified toggle for Subscribe, Join, Notifications, See Perks) — **enabled by default**
   - Includes: Subscribe, Notifications (bell), Join/Membership, See Perks buttons
-  - When enabled, all subscription-related buttons become visible (subject to YouTube's conditional rendering)
+  - When enabled (default), all subscription-related buttons become visible (subject to YouTube's conditional rendering)
   - When disabled, all subscription-related buttons are hidden
 
 **Social Elements**
@@ -687,10 +680,10 @@ Users can selectively re-enable hidden elements via extension settings. Most ele
 
 **Default Behavior & Conditional Rules:**
 
-- **All listed engagement and social elements are hidden by default** in minimalist mode
-- **Conditional buttons** (e.g., Notifications, See Perks, Download, Thanks) are hidden regardless of their native visibility state
+- **Most engagement and social elements are hidden by default** in minimalist mode, with **Subscription Actions visible by default** to maintain basic channel interaction functionality
+- **Conditional buttons** (e.g., Notifications, See Perks, Download, Thanks) follow their toggle settings regardless of their native visibility state
 - **If a button is enabled in settings** but YouTube doesn't render it (e.g., Join button when channel has no memberships), the extension does nothing — it simply doesn't hide the button if/when YouTube decides to show it
-- **Subscription Actions unified toggle:** When enabled, all subscription-related buttons (Subscribe, Join, Notifications, See Perks) become visible; when disabled, all are hidden
+- **Subscription Actions unified toggle:** Enabled by default, all subscription-related buttons (Subscribe, Join, Notifications, See Perks) are visible; when disabled, all are hidden
 - **More Actions unified toggle:** When enabled, all included buttons (Save, Download, Clip, Thanks, Report, Ask AI, and Overflow Menu) become visible; when disabled, all are hidden
 - **Simplified settings management:** The Subscription Actions and More Actions unified toggles reduce cognitive load by grouping related buttons, resulting in 8 clean toggles instead of 12 individual controls on the Watch page
 
@@ -1014,6 +1007,7 @@ The Channel Blocking feature is considered **successfully implemented** when:
 | **Watch**           | Video player               | On      | No           | Watch only     |
 | **Watch**           | Channel info section       | On      | Yes          | Watch only     |
 | **Watch**           | Engagement buttons         | Off     | Yes          | Watch only     |
+| **Watch**           | Subscription Actions       | On      | Yes          | Watch only     |
 | **Watch**           | Comments / Recommendations | Off     | Yes          | Watch only     |
 
 ---
