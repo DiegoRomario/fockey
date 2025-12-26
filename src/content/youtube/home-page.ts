@@ -29,6 +29,12 @@ export const HOME_PAGE_SELECTORS = {
     'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
   TOPBAR_BUTTONS: '#buttons ytd-button-renderer',
 
+  // Sidebar items (always hidden)
+  SIDEBAR_SHORTS:
+    'ytd-guide-renderer a[href="/shorts/"], ytd-mini-guide-renderer a[href="/shorts/"]',
+  SIDEBAR_SUBSCRIPTIONS:
+    'ytd-guide-renderer a[href="/feed/subscriptions"], ytd-mini-guide-renderer a[href="/feed/subscriptions"]',
+
   // Search bar and header
   SEARCH_BAR: '#search',
   SEARCH_FORM: '#search-form',
@@ -95,6 +101,15 @@ function generateHomePageCSS(
     /* Hide filters/chips bar under the search bar on home page */
     ${HOME_PAGE_SELECTORS.HOME_FILTERS_BAR} {
       display: none !important;
+    }
+
+    /* ALWAYS hide Shorts and Subscriptions in sidebar (non-configurable) */
+    ${HOME_PAGE_SELECTORS.SIDEBAR_SHORTS},
+    ${HOME_PAGE_SELECTORS.SIDEBAR_SUBSCRIPTIONS} {
+      display: none !important;
+      pointer-events: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
   `);
 

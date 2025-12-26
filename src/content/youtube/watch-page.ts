@@ -111,6 +111,12 @@ export const WATCH_PAGE_SELECTORS = {
   UPLOAD_BUTTON:
     'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
 
+  // Sidebar items (always hidden)
+  SIDEBAR_SHORTS:
+    'ytd-guide-renderer a[href="/shorts/"], ytd-mini-guide-renderer a[href="/shorts/"]',
+  SIDEBAR_SUBSCRIPTIONS:
+    'ytd-guide-renderer a[href="/feed/subscriptions"], ytd-mini-guide-renderer a[href="/feed/subscriptions"]',
+
   // Skip navigation button (hide and remove from tab order)
   SKIP_NAVIGATION: 'button[aria-label="Skip navigation"]',
 } as const;
@@ -170,6 +176,15 @@ function generateWatchPageCSS(
 
     /* ALWAYS hide live chat (non-configurable) */
     ${WATCH_PAGE_SELECTORS.LIVE_CHAT_ALWAYS} {
+      display: none !important;
+      pointer-events: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    /* ALWAYS hide Shorts and Subscriptions in sidebar (non-configurable) */
+    ${WATCH_PAGE_SELECTORS.SIDEBAR_SHORTS},
+    ${WATCH_PAGE_SELECTORS.SIDEBAR_SUBSCRIPTIONS} {
       display: none !important;
       pointer-events: none !important;
       opacity: 0 !important;
