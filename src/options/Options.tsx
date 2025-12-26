@@ -9,7 +9,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Youtube, Settings, Lock, Database, Info, X, Menu } from 'lucide-react';
 import { SettingToggle } from './components/SettingToggle';
 import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
@@ -26,9 +26,26 @@ import { ExtensionSettings, BlockedChannel, LockModeState } from '@/shared/types
 import { normalizeChannelInput } from '@/shared/utils/channel-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+type PrimaryTab = 'youtube' | 'general' | 'lockMode' | 'manageSettings' | 'about';
+
+interface SidebarItem {
+  id: PrimaryTab;
+  label: string;
+  icon: React.ElementType;
+  disabled?: boolean;
+}
+
+const sidebarItems: SidebarItem[] = [
+  { id: 'youtube', label: 'YouTube', icon: Youtube },
+  { id: 'general', label: 'General', icon: Settings, disabled: true },
+  { id: 'lockMode', label: 'Lock Mode', icon: Lock },
+  { id: 'manageSettings', label: 'Manage Settings', icon: Database },
+  { id: 'about', label: 'About', icon: Info },
+];
 
 const Options: React.FC = () => {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
@@ -36,6 +53,8 @@ const Options: React.FC = () => {
   const [blockChannelInput, setBlockChannelInput] = useState('');
   const [isBlockingChannel, setIsBlockingChannel] = useState(false);
   const [lockState, setLockState] = useState<LockModeState | null>(null);
+  const [activeTab, setActiveTab] = useState<PrimaryTab>('youtube');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
   // Load settings on mount
@@ -267,422 +286,499 @@ const Options: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Fockey Settings</h1>
-              <p className="text-muted-foreground mt-1">
-                Configure your distraction-free YouTube experience
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {saveStatus === 'saving' && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </div>
-              )}
-              {saveStatus === 'saved' && (
-                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-500">
-                  <Check className="h-4 w-4" />
-                  Saved
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border/40 shadow-lg hover:bg-accent/50 transition-colors"
+        aria-label="Toggle menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <div className="flex">
+        {/* Vertical Sidebar Navigation */}
+        <aside
+          className={cn(
+            'w-64 min-h-screen bg-card border-r border-border/40 shadow-lg sticky top-0 flex flex-col',
+            'lg:translate-x-0 transition-transform duration-300 ease-in-out',
+            'fixed lg:relative z-40',
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          )}
+        >
+          {/* Sidebar Header */}
+          <div className="p-6 border-b border-border/40">
+            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Fockey Settings
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">Distraction-free YouTube</p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <ImportExportButtons
-              settings={settings}
-              onImport={handleImport}
-              onError={(message) =>
-                toast({ title: 'Error', description: message, variant: 'destructive' })
-              }
-              onSuccess={(message) => toast({ title: 'Success', description: message })}
-              disabled={lockState?.isLocked === true}
-            />
-            <ResetButton onReset={handleReset} disabled={lockState?.isLocked === true} />
-          </div>
-        </div>
+          {/* Navigation Items */}
+          <nav className="flex-1 p-4 space-y-1">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (!item.disabled) {
+                      setActiveTab(item.id);
+                      setIsMobileMenuOpen(false);
+                    }
+                  }}
+                  disabled={item.disabled}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                    'hover:bg-accent/50 active:scale-[0.98]',
+                    isActive && 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90',
+                    !isActive && 'text-muted-foreground hover:text-foreground',
+                    item.disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent'
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-        <Separator className="mb-8" />
-
-        {/* Module Tabs */}
-        <Tabs defaultValue="youtube" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="youtube">YouTube</TabsTrigger>
-            <TabsTrigger value="twitter" disabled>
-              Twitter (Soon)
-            </TabsTrigger>
-            <TabsTrigger value="reddit" disabled>
-              Reddit (Soon)
-            </TabsTrigger>
-            <TabsTrigger value="other" disabled>
-              Other (Soon)
-            </TabsTrigger>
-          </TabsList>
-
-          {/* YouTube Module Settings */}
-          <TabsContent value="youtube" className="space-y-6">
-            {/* Lock Mode Section */}
-            {lockState && (
-              <LockModeSection
-                lockState={lockState}
-                onActivate={handleActivateLockMode}
-                onExtend={handleExtendLockMode}
-              />
+          {/* Save Status Indicator */}
+          <div className="p-4 border-t border-border/40">
+            {saveStatus === 'saving' && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Saving changes...
+              </div>
             )}
+            {saveStatus === 'saved' && (
+              <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-500">
+                <Check className="h-3 w-3" />
+                All changes saved
+              </div>
+            )}
+            {saveStatus === 'idle' && <div className="text-xs text-muted-foreground">Ready</div>}
+          </div>
+        </aside>
 
-            <Accordion
-              type="multiple"
-              defaultValue={[
-                'globalNavigation',
-                'search',
-                'watch',
-                'creatorProfile',
-                'blockedChannels',
-              ]}
-              className="w-full"
-            >
-              {/* Global Navigation Elements */}
-              <AccordionItem value="globalNavigation">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Global Navigation Elements
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      These settings apply to <strong>all YouTube pages</strong> (Home, Search,
-                      Watch). Control persistent header and sidebar navigation elements that appear
-                      consistently across all pages.
-                    </p>
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 pt-16 lg:p-8 lg:pt-8 w-full max-w-6xl mx-auto">
+          {/* YouTube Tab Content */}
+          {activeTab === 'youtube' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                <h2 className="text-2xl font-semibold mb-2">YouTube Settings</h2>
+                <p className="text-sm text-muted-foreground">
+                  Customize your minimalist YouTube experience
+                </p>
+              </div>
 
-                    <SettingToggle
-                      id="global-logo"
-                      label="YouTube Logo"
-                      description="Show the YouTube logo in the top-left corner"
-                      checked={settings.youtube.globalNavigation.showLogo}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'globalNavigation', 'showLogo'], checked)
-                      }
-                      tooltip="Applies to all YouTube pages"
-                      disabled={lockState?.isLocked === true}
-                    />
+              {/* YouTube Sub-Tabs (Horizontal) */}
+              <Tabs defaultValue="elements" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-lg border border-border/40 shadow-sm">
+                  <TabsTrigger
+                    value="elements"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                  >
+                    Elements Settings
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="blockedChannels"
+                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+                  >
+                    Blocked Channels
+                  </TabsTrigger>
+                </TabsList>
 
-                    <SettingToggle
-                      id="global-sidebar"
-                      label="Left Sidebar"
-                      description="Show the navigation sidebar and hamburger menu (unified component)"
-                      checked={settings.youtube.globalNavigation.showSidebar}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'globalNavigation', 'showSidebar'], checked)
-                      }
-                      tooltip="Controls both sidebar and hamburger menu across all pages"
-                      disabled={lockState?.isLocked === true}
-                    />
+                {/* Elements Settings Sub-Tab */}
+                <TabsContent value="elements" className="space-y-4 animate-in fade-in duration-200">
+                  <Accordion
+                    type="multiple"
+                    defaultValue={['globalNavigation', 'search', 'watch', 'creatorProfile']}
+                    className="w-full space-y-3"
+                  >
+                    {/* Global Navigation Elements */}
+                    <AccordionItem
+                      value="globalNavigation"
+                      className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
+                    >
+                      <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
+                        Global Navigation Elements
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="space-y-1 pt-2">
+                          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
+                            These settings apply to <strong>all YouTube pages</strong> (Home,
+                            Search, Watch). Control persistent header and sidebar navigation
+                            elements that appear consistently across all pages.
+                          </p>
 
-                    <SettingToggle
-                      id="global-profile"
-                      label="Profile Avatar"
-                      description="Show your account profile picture"
-                      checked={settings.youtube.globalNavigation.showProfile}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'globalNavigation', 'showProfile'], checked)
-                      }
-                      tooltip="Applies to all YouTube pages"
-                      disabled={lockState?.isLocked === true}
-                    />
+                          <SettingToggle
+                            id="global-logo"
+                            label="YouTube Logo"
+                            description="Show the YouTube logo in the top-left corner"
+                            checked={settings.youtube.globalNavigation.showLogo}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'showLogo'],
+                                checked
+                              )
+                            }
+                            tooltip="Applies to all YouTube pages"
+                            disabled={lockState?.isLocked === true}
+                          />
 
-                    <SettingToggle
-                      id="global-notifications"
-                      label="Notifications Bell"
-                      description="Show the notifications bell icon"
-                      checked={settings.youtube.globalNavigation.showNotifications}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'globalNavigation', 'showNotifications'],
-                          checked
-                        )
-                      }
-                      tooltip="Applies to all YouTube pages"
-                      disabled={lockState?.isLocked === true}
-                    />
+                          <SettingToggle
+                            id="global-sidebar"
+                            label="Left Sidebar"
+                            description="Show the navigation sidebar and hamburger menu (unified component)"
+                            checked={settings.youtube.globalNavigation.showSidebar}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'showSidebar'],
+                                checked
+                              )
+                            }
+                            tooltip="Controls both sidebar and hamburger menu across all pages"
+                            disabled={lockState?.isLocked === true}
+                          />
 
-                    <SettingToggle
-                      id="global-hover-previews"
-                      label="Hover Previews"
-                      description="Enable video preview autoplay when hovering over thumbnails"
-                      checked={settings.youtube.globalNavigation.enableHoverPreviews}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'globalNavigation', 'enableHoverPreviews'],
-                          checked
-                        )
-                      }
-                      tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
-                      disabled={lockState?.isLocked === true}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                          <SettingToggle
+                            id="global-profile"
+                            label="Profile Avatar"
+                            description="Show your account profile picture"
+                            checked={settings.youtube.globalNavigation.showProfile}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'showProfile'],
+                                checked
+                              )
+                            }
+                            tooltip="Applies to all YouTube pages"
+                            disabled={lockState?.isLocked === true}
+                          />
 
-              {/* Search Page Settings */}
-              <AccordionItem value="search">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Search Page Settings
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Control which content appears in YouTube search results. By default, only
-                      long-form videos are shown. Use <strong>Global Navigation Elements</strong>{' '}
-                      above to control header and sidebar elements.
-                    </p>
+                          <SettingToggle
+                            id="global-notifications"
+                            label="Notifications Bell"
+                            description="Show the notifications bell icon"
+                            checked={settings.youtube.globalNavigation.showNotifications}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'showNotifications'],
+                                checked
+                              )
+                            }
+                            tooltip="Applies to all YouTube pages"
+                            disabled={lockState?.isLocked === true}
+                          />
 
-                    <SettingToggle
-                      id="search-shorts"
-                      label="Show Shorts"
-                      description="Display YouTube Shorts in search results"
-                      checked={settings.youtube.searchPage.showShorts}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
-                      }
-                      tooltip="Short-form vertical videos (YouTube Shorts)"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="search-community"
-                      label="Show Community Posts"
-                      description="Display community posts in search results"
-                      checked={settings.youtube.searchPage.showCommunityPosts}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'searchPage', 'showCommunityPosts'],
-                          checked
-                        )
-                      }
-                      tooltip="Text, image, and poll posts from creators"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="search-mixes"
-                      label="Show Mixes/Playlists"
-                      description="Display mixes and playlists in search results"
-                      checked={settings.youtube.searchPage.showMixes}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
-                      }
-                      tooltip="Auto-generated mixes and user-created playlists"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="search-blur"
-                      label="Blur Thumbnails"
-                      description="Blur video thumbnails instead of showing them clearly"
-                      checked={settings.youtube.searchPage.blurThumbnails}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'searchPage', 'blurThumbnails'], checked)
-                      }
-                      tooltip="Reduces visual stimulation while keeping structural awareness"
-                      disabled={lockState?.isLocked === true}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                          <SettingToggle
+                            id="global-hover-previews"
+                            label="Hover Previews"
+                            description="Enable video preview autoplay when hovering over thumbnails"
+                            checked={settings.youtube.globalNavigation.enableHoverPreviews}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'enableHoverPreviews'],
+                                checked
+                              )
+                            }
+                            tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
+                            disabled={lockState?.isLocked === true}
+                          />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-              {/* Watch Page Settings */}
-              <AccordionItem value="watch">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Watch Page Settings
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Control which buttons and elements are visible while watching videos. Video
-                      player controls are always preserved.
-                    </p>
+                    {/* Search Page Settings */}
+                    <AccordionItem
+                      value="search"
+                      className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
+                    >
+                      <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
+                        Search Page Settings
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="space-y-1 pt-2">
+                          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
+                            Control which content appears in YouTube search results. By default,
+                            only long-form videos are shown. Use{' '}
+                            <strong>Global Navigation Elements</strong> above to control header and
+                            sidebar elements.
+                          </p>
 
-                    <SettingToggle
-                      id="watch-like-dislike"
-                      label="Like/Dislike Buttons"
-                      description="Thumbs up and thumbs down buttons"
-                      checked={settings.youtube.watchPage.showLikeDislike}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showLikeDislike'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-subscription-actions"
-                      label="Subscription Actions"
-                      description="Subscribe, Join, Notifications, See Perks"
-                      checked={settings.youtube.watchPage.showSubscriptionActions}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'watchPage', 'showSubscriptionActions'],
-                          checked
-                        )
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-share"
-                      label="Share Button"
-                      description="Share video with others"
-                      checked={settings.youtube.watchPage.showShare}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-comments"
-                      label="Comments Section"
-                      description="User comments and discussion area"
-                      checked={settings.youtube.watchPage.showComments}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-related"
-                      label="Related Videos Sidebar"
-                      description="Recommended and related videos"
-                      checked={settings.youtube.watchPage.showRelated}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-playlists"
-                      label="Playlists Sidebar"
-                      description="When watching a video from a playlist"
-                      checked={settings.youtube.watchPage.showPlaylists}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showPlaylists'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-recommended-video"
-                      label="Recommended Video Cards"
-                      description="Creator-placed video recommendations during playback"
-                      checked={settings.youtube.watchPage.showRecommendedVideo}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'watchPage', 'showRecommendedVideo'],
-                          checked
-                        )
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="watch-more-actions"
-                      label="More Actions"
-                      description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
-                      checked={settings.youtube.watchPage.showMoreActions}
-                      onChange={(checked) =>
-                        handleSettingChange(['youtube', 'watchPage', 'showMoreActions'], checked)
-                      }
-                      disabled={lockState?.isLocked === true}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                          <SettingToggle
+                            id="search-shorts"
+                            label="Show Shorts"
+                            description="Display YouTube Shorts in search results"
+                            checked={settings.youtube.searchPage.showShorts}
+                            onChange={(checked) =>
+                              handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
+                            }
+                            tooltip="Short-form vertical videos (YouTube Shorts)"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="search-community"
+                            label="Show Community Posts"
+                            description="Display community posts in search results"
+                            checked={settings.youtube.searchPage.showCommunityPosts}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'searchPage', 'showCommunityPosts'],
+                                checked
+                              )
+                            }
+                            tooltip="Text, image, and poll posts from creators"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="search-mixes"
+                            label="Show Mixes/Playlists"
+                            description="Display mixes and playlists in search results"
+                            checked={settings.youtube.searchPage.showMixes}
+                            onChange={(checked) =>
+                              handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
+                            }
+                            tooltip="Auto-generated mixes and user-created playlists"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="search-blur"
+                            label="Blur Thumbnails"
+                            description="Blur video thumbnails instead of showing them clearly"
+                            checked={settings.youtube.searchPage.blurThumbnails}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'searchPage', 'blurThumbnails'],
+                                checked
+                              )
+                            }
+                            tooltip="Reduces visual stimulation while keeping structural awareness"
+                            disabled={lockState?.isLocked === true}
+                          />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-              {/* Creator Profile Page Settings */}
-              <AccordionItem value="creatorProfile">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Creator Profile Page Settings
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Control which tabs and content appear on YouTube channel/creator profile
-                      pages. Channel action buttons (Subscribe, Join, Notifications, See Perks) are
-                      always visible on creator profiles. Use{' '}
-                      <strong>Global Navigation Elements</strong> above to control header and
-                      sidebar elements.
-                    </p>
+                    {/* Watch Page Settings */}
+                    <AccordionItem
+                      value="watch"
+                      className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
+                    >
+                      <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
+                        Watch Page Settings
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="space-y-1 pt-2">
+                          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
+                            Control which buttons and elements are visible while watching videos.
+                            Video player controls are always preserved.
+                          </p>
 
-                    <SettingToggle
-                      id="creator-shorts-tab"
-                      label="Show Shorts Tab"
-                      description="Display the Shorts tab on creator profiles"
-                      checked={settings.youtube.creatorProfilePage.showShortsTab}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'creatorProfilePage', 'showShortsTab'],
-                          checked
-                        )
-                      }
-                      tooltip="The tab that shows the creator's Shorts videos"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="creator-community-tab"
-                      label="Show Posts Tab"
-                      description="Display the Community/Posts tab"
-                      checked={settings.youtube.creatorProfilePage.showCommunityTab}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'creatorProfilePage', 'showCommunityTab'],
-                          checked
-                        )
-                      }
-                      tooltip="The tab that shows community posts and updates"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="creator-community-in-home"
-                      label="Show Community Posts in Home Tab"
-                      description="Display community posts in the Home tab"
-                      checked={settings.youtube.creatorProfilePage.showCommunityInHome}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
-                          checked
-                        )
-                      }
-                      tooltip="Text, image, and poll posts shown on the channel's Home tab"
-                      disabled={lockState?.isLocked === true}
-                    />
-                    <SettingToggle
-                      id="creator-shorts-in-home"
-                      label="Show Shorts in Home Tab"
-                      description="Display Shorts content in the Home tab"
-                      checked={settings.youtube.creatorProfilePage.showShortsInHome}
-                      onChange={(checked) =>
-                        handleSettingChange(
-                          ['youtube', 'creatorProfilePage', 'showShortsInHome'],
-                          checked
-                        )
-                      }
-                      tooltip="Shorts shelf shown on the channel's Home tab"
-                      disabled={lockState?.isLocked === true}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                          <SettingToggle
+                            id="watch-like-dislike"
+                            label="Like/Dislike Buttons"
+                            description="Thumbs up and thumbs down buttons"
+                            checked={settings.youtube.watchPage.showLikeDislike}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'watchPage', 'showLikeDislike'],
+                                checked
+                              )
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-subscription-actions"
+                            label="Subscription Actions"
+                            description="Subscribe, Join, Notifications, See Perks"
+                            checked={settings.youtube.watchPage.showSubscriptionActions}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'watchPage', 'showSubscriptionActions'],
+                                checked
+                              )
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-share"
+                            label="Share Button"
+                            description="Share video with others"
+                            checked={settings.youtube.watchPage.showShare}
+                            onChange={(checked) =>
+                              handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-comments"
+                            label="Comments Section"
+                            description="User comments and discussion area"
+                            checked={settings.youtube.watchPage.showComments}
+                            onChange={(checked) =>
+                              handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-related"
+                            label="Related Videos Sidebar"
+                            description="Recommended and related videos"
+                            checked={settings.youtube.watchPage.showRelated}
+                            onChange={(checked) =>
+                              handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-playlists"
+                            label="Playlists Sidebar"
+                            description="When watching a video from a playlist"
+                            checked={settings.youtube.watchPage.showPlaylists}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'watchPage', 'showPlaylists'],
+                                checked
+                              )
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-recommended-video"
+                            label="Recommended Video Cards"
+                            description="Creator-placed video recommendations during playback"
+                            checked={settings.youtube.watchPage.showRecommendedVideo}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'watchPage', 'showRecommendedVideo'],
+                                checked
+                              )
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="watch-more-actions"
+                            label="More Actions"
+                            description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+                            checked={settings.youtube.watchPage.showMoreActions}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'watchPage', 'showMoreActions'],
+                                checked
+                              )
+                            }
+                            disabled={lockState?.isLocked === true}
+                          />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
 
-              {/* Blocked Channels */}
-              <AccordionItem value="blockedChannels">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Blocked YouTube Channels
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-2">
-                    <p className="text-sm text-muted-foreground">
-                      Block specific YouTube channels to prevent access to their content across all
-                      pages. You can block by channel handle (@username), channel URL, or channel
-                      name.
-                    </p>
+                    {/* Creator Profile Page Settings */}
+                    <AccordionItem
+                      value="creatorProfile"
+                      className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
+                    >
+                      <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
+                        Creator Profile Page Settings
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="space-y-1 pt-2">
+                          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
+                            Control which tabs and content appear on YouTube channel/creator profile
+                            pages. Channel action buttons (Subscribe, Join, Notifications, See
+                            Perks) are always visible on creator profiles. Use{' '}
+                            <strong>Global Navigation Elements</strong> above to control header and
+                            sidebar elements.
+                          </p>
+
+                          <SettingToggle
+                            id="creator-shorts-tab"
+                            label="Show Shorts Tab"
+                            description="Display the Shorts tab on creator profiles"
+                            checked={settings.youtube.creatorProfilePage.showShortsTab}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'creatorProfilePage', 'showShortsTab'],
+                                checked
+                              )
+                            }
+                            tooltip="The tab that shows the creator's Shorts videos"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="creator-community-tab"
+                            label="Show Posts Tab"
+                            description="Display the Community/Posts tab"
+                            checked={settings.youtube.creatorProfilePage.showCommunityTab}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'creatorProfilePage', 'showCommunityTab'],
+                                checked
+                              )
+                            }
+                            tooltip="The tab that shows community posts and updates"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="creator-community-in-home"
+                            label="Show Community Posts in Home Tab"
+                            description="Display community posts in the Home tab"
+                            checked={settings.youtube.creatorProfilePage.showCommunityInHome}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
+                                checked
+                              )
+                            }
+                            tooltip="Text, image, and poll posts shown on the channel's Home tab"
+                            disabled={lockState?.isLocked === true}
+                          />
+                          <SettingToggle
+                            id="creator-shorts-in-home"
+                            label="Show Shorts in Home Tab"
+                            description="Display Shorts content in the Home tab"
+                            checked={settings.youtube.creatorProfilePage.showShortsInHome}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'creatorProfilePage', 'showShortsInHome'],
+                                checked
+                              )
+                            }
+                            tooltip="Shorts shelf shown on the channel's Home tab"
+                            disabled={lockState?.isLocked === true}
+                          />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </TabsContent>
+
+                {/* Blocked Channels Sub-Tab */}
+                <TabsContent
+                  value="blockedChannels"
+                  className="space-y-4 animate-in fade-in duration-200"
+                >
+                  <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6 space-y-4">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-2">Blocked YouTube Channels</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Block specific YouTube channels to prevent access to their content across
+                        all pages. You can block by channel handle (@username), channel URL, or
+                        channel name.
+                      </p>
+                    </div>
 
                     {/* Block Channel Input */}
                     <div className="flex gap-2">
@@ -697,35 +793,43 @@ const Options: React.FC = () => {
                             handleBlockChannelSubmit();
                           }
                         }}
-                        className="flex-1"
+                        className="flex-1 shadow-sm"
                       />
                       <Button
                         onClick={handleBlockChannelSubmit}
                         disabled={!blockChannelInput.trim() || isBlockingChannel}
                         variant="destructive"
+                        className="shadow-sm"
                       >
                         {isBlockingChannel ? 'Blocking...' : 'Block'}
                       </Button>
                     </div>
 
+                    <Separator className="my-4" />
+
                     {/* Blocked Channels List */}
                     {settings.blockedChannels.length === 0 ? (
-                      <div className="text-center py-8 border border-dashed rounded-lg">
-                        <p className="text-sm text-muted-foreground">No blocked channels yet</p>
+                      <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                          <Youtube className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          No blocked channels yet
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Add a channel above to get started
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="text-sm font-medium">
                           Blocked Channels ({settings.blockedChannels.length})
                         </div>
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                           {settings.blockedChannels.map((channel) => (
                             <div
                               key={channel.id}
-                              className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                              className="flex items-center justify-between p-4 rounded-lg border border-border/40 bg-card shadow-sm hover:shadow-md transition-all duration-200"
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-sm truncate">{channel.name}</div>
@@ -740,10 +844,10 @@ const Options: React.FC = () => {
                                 onClick={() => handleUnblockChannel(channel.id, channel.name)}
                                 variant="ghost"
                                 size="sm"
-                                className="shrink-0 ml-2 hover:bg-destructive/10 hover:text-destructive"
+                                className="shrink-0 ml-2 hover:bg-destructive/10 hover:text-destructive transition-colors"
                                 disabled={lockState?.isLocked === true}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4 mr-1" />
                                 Unblock
                               </Button>
                             </div>
@@ -752,11 +856,130 @@ const Options: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </TabsContent>
-        </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          {/* Lock Mode Tab Content */}
+          {activeTab === 'lockMode' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                <h2 className="text-2xl font-semibold mb-2">Lock Mode</h2>
+                <p className="text-sm text-muted-foreground">
+                  Prevent impulsive changes by locking your settings for a set period
+                </p>
+              </div>
+
+              {lockState && (
+                <LockModeSection
+                  lockState={lockState}
+                  onActivate={handleActivateLockMode}
+                  onExtend={handleExtendLockMode}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Manage Settings Tab Content */}
+          {activeTab === 'manageSettings' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                <h2 className="text-2xl font-semibold mb-2">Manage Settings</h2>
+                <p className="text-sm text-muted-foreground">
+                  Import, export, or reset your extension settings
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">Import & Export</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Save your settings to a file or load them from a previous export
+                    </p>
+                  </div>
+                  <ImportExportButtons
+                    settings={settings}
+                    onImport={handleImport}
+                    onError={(message) =>
+                      toast({ title: 'Error', description: message, variant: 'destructive' })
+                    }
+                    onSuccess={(message) => toast({ title: 'Success', description: message })}
+                    disabled={lockState?.isLocked === true}
+                  />
+                </div>
+
+                <div className="bg-card rounded-xl shadow-sm border-2 border-destructive/20 p-6 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1 text-destructive">
+                      Reset to Defaults
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Restore all settings to their original default values. This action cannot be
+                      undone.
+                    </p>
+                  </div>
+                  <ResetButton onReset={handleReset} disabled={lockState?.isLocked === true} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* About Tab Content */}
+          {activeTab === 'about' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                <h2 className="text-2xl font-semibold mb-2">About Fockey</h2>
+                <p className="text-sm text-muted-foreground">
+                  Minimalist, distraction-free YouTube experience
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Version</span>
+                    <span className="text-sm text-muted-foreground font-mono">0.1.0</span>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl shadow-sm border border-primary/20 p-6">
+                  <h3 className="font-semibold text-lg mb-3">What is Fockey?</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Fockey is a productivity-focused Chrome extension designed to transform complex,
+                    noisy websites into intent-driven, minimalistic experiences. The extension
+                    allows you to remove cognitive distractions and interact with content only when
+                    you explicitly choose to.
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 rounded-xl shadow-sm border border-amber-500/20 p-6">
+                  <h3 className="font-semibold text-lg mb-3">Core Philosophy</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">
+                      Minimal by default. Everything else is opt-in.
+                    </strong>
+                    <br />
+                    <br />
+                    Fockey enforces a clean, distraction-free default experience while preserving
+                    full user control through configurable settings.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* General Tab Content (Disabled) */}
+          {activeTab === 'general' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                <h2 className="text-2xl font-semibold mb-2">General Settings</h2>
+                <p className="text-sm text-muted-foreground">Coming soon...</p>
+              </div>
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Toast Notifications */}
