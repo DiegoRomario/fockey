@@ -275,7 +275,6 @@ const Options: React.FC = () => {
               type="multiple"
               defaultValue={[
                 'globalNavigation',
-                'home',
                 'search',
                 'watch',
                 'creatorProfile',
@@ -360,22 +359,6 @@ const Options: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Home Page Settings */}
-              <AccordionItem value="home">
-                <AccordionTrigger className="text-lg font-semibold">
-                  Home Page Settings
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 pt-2">
-                    <p className="text-sm text-muted-foreground">
-                      No page-specific settings available yet. Use{' '}
-                      <strong>Global Navigation Elements</strong> above to control navigation
-                      elements on the Home page.
-                    </p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
               {/* Search Page Settings */}
               <AccordionItem value="search">
                 <AccordionTrigger className="text-lg font-semibold">
@@ -389,60 +372,49 @@ const Options: React.FC = () => {
                       above to control header and sidebar elements.
                     </p>
 
-                    {/* Content Options */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Content Options</h4>
-                      <SettingToggle
-                        id="search-shorts"
-                        label="Show Shorts"
-                        description="Display YouTube Shorts in search results"
-                        checked={settings.youtube.searchPage.showShorts}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
-                        }
-                        tooltip="Short-form vertical videos (YouTube Shorts)"
-                      />
-                      <SettingToggle
-                        id="search-community"
-                        label="Show Community Posts"
-                        description="Display community posts in search results"
-                        checked={settings.youtube.searchPage.showCommunityPosts}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'searchPage', 'showCommunityPosts'],
-                            checked
-                          )
-                        }
-                        tooltip="Text, image, and poll posts from creators"
-                      />
-                      <SettingToggle
-                        id="search-mixes"
-                        label="Show Mixes/Playlists"
-                        description="Display mixes and playlists in search results"
-                        checked={settings.youtube.searchPage.showMixes}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
-                        }
-                        tooltip="Auto-generated mixes and user-created playlists"
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Visual Adjustments */}
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Visual Adjustments</h4>
-                      <SettingToggle
-                        id="search-blur"
-                        label="Blur Thumbnails"
-                        description="Blur video thumbnails instead of showing them clearly"
-                        checked={settings.youtube.searchPage.blurThumbnails}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'searchPage', 'blurThumbnails'], checked)
-                        }
-                        tooltip="Reduces visual stimulation while keeping structural awareness"
-                      />
-                    </div>
+                    <SettingToggle
+                      id="search-shorts"
+                      label="Show Shorts"
+                      description="Display YouTube Shorts in search results"
+                      checked={settings.youtube.searchPage.showShorts}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
+                      }
+                      tooltip="Short-form vertical videos (YouTube Shorts)"
+                    />
+                    <SettingToggle
+                      id="search-community"
+                      label="Show Community Posts"
+                      description="Display community posts in search results"
+                      checked={settings.youtube.searchPage.showCommunityPosts}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'searchPage', 'showCommunityPosts'],
+                          checked
+                        )
+                      }
+                      tooltip="Text, image, and poll posts from creators"
+                    />
+                    <SettingToggle
+                      id="search-mixes"
+                      label="Show Mixes/Playlists"
+                      description="Display mixes and playlists in search results"
+                      checked={settings.youtube.searchPage.showMixes}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
+                      }
+                      tooltip="Auto-generated mixes and user-created playlists"
+                    />
+                    <SettingToggle
+                      id="search-blur"
+                      label="Blur Thumbnails"
+                      description="Blur video thumbnails instead of showing them clearly"
+                      checked={settings.youtube.searchPage.blurThumbnails}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'searchPage', 'blurThumbnails'], checked)
+                      }
+                      tooltip="Reduces visual stimulation while keeping structural awareness"
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -459,92 +431,84 @@ const Options: React.FC = () => {
                       player controls are always preserved.
                     </p>
 
-                    {/* Engagement Buttons */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Engagement Buttons</h4>
-                      <SettingToggle
-                        id="watch-like-dislike"
-                        label="Like/Dislike Buttons"
-                        checked={settings.youtube.watchPage.showLikeDislike}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showLikeDislike'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-subscription-actions"
-                        label="Subscription Actions"
-                        description="Subscribe, Join, Notifications, See Perks"
-                        checked={settings.youtube.watchPage.showSubscriptionActions}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'watchPage', 'showSubscriptionActions'],
-                            checked
-                          )
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-share"
-                        label="Share Button"
-                        checked={settings.youtube.watchPage.showShare}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
-                        }
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Social & Discovery */}
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Social & Discovery</h4>
-                      <SettingToggle
-                        id="watch-comments"
-                        label="Comments Section"
-                        checked={settings.youtube.watchPage.showComments}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-related"
-                        label="Related Videos Sidebar"
-                        description="Recommended and related videos"
-                        checked={settings.youtube.watchPage.showRelated}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-playlists"
-                        label="Playlists Sidebar"
-                        description="When watching a video from a playlist"
-                        checked={settings.youtube.watchPage.showPlaylists}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showPlaylists'], checked)
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-recommended-video"
-                        label="Recommended Video Cards"
-                        description="Creator-placed video recommendations during playback"
-                        checked={settings.youtube.watchPage.showRecommendedVideo}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'watchPage', 'showRecommendedVideo'],
-                            checked
-                          )
-                        }
-                      />
-                      <SettingToggle
-                        id="watch-more-actions"
-                        label="More Actions"
-                        description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
-                        checked={settings.youtube.watchPage.showMoreActions}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showMoreActions'], checked)
-                        }
-                      />
-                    </div>
+                    <SettingToggle
+                      id="watch-like-dislike"
+                      label="Like/Dislike Buttons"
+                      description="Thumbs up and thumbs down buttons"
+                      checked={settings.youtube.watchPage.showLikeDislike}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showLikeDislike'], checked)
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-subscription-actions"
+                      label="Subscription Actions"
+                      description="Subscribe, Join, Notifications, See Perks"
+                      checked={settings.youtube.watchPage.showSubscriptionActions}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'watchPage', 'showSubscriptionActions'],
+                          checked
+                        )
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-share"
+                      label="Share Button"
+                      description="Share video with others"
+                      checked={settings.youtube.watchPage.showShare}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-comments"
+                      label="Comments Section"
+                      description="User comments and discussion area"
+                      checked={settings.youtube.watchPage.showComments}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-related"
+                      label="Related Videos Sidebar"
+                      description="Recommended and related videos"
+                      checked={settings.youtube.watchPage.showRelated}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-playlists"
+                      label="Playlists Sidebar"
+                      description="When watching a video from a playlist"
+                      checked={settings.youtube.watchPage.showPlaylists}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showPlaylists'], checked)
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-recommended-video"
+                      label="Recommended Video Cards"
+                      description="Creator-placed video recommendations during playback"
+                      checked={settings.youtube.watchPage.showRecommendedVideo}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'watchPage', 'showRecommendedVideo'],
+                          checked
+                        )
+                      }
+                    />
+                    <SettingToggle
+                      id="watch-more-actions"
+                      label="More Actions"
+                      description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+                      checked={settings.youtube.watchPage.showMoreActions}
+                      onChange={(checked) =>
+                        handleSettingChange(['youtube', 'watchPage', 'showMoreActions'], checked)
+                      }
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -564,69 +528,58 @@ const Options: React.FC = () => {
                       sidebar elements.
                     </p>
 
-                    {/* Tab Visibility */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Tab Visibility</h4>
-                      <SettingToggle
-                        id="creator-shorts-tab"
-                        label="Show Shorts Tab"
-                        description="Display the Shorts tab on creator profiles"
-                        checked={settings.youtube.creatorProfilePage.showShortsTab}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'creatorProfilePage', 'showShortsTab'],
-                            checked
-                          )
-                        }
-                        tooltip="The tab that shows the creator's Shorts videos"
-                      />
-                      <SettingToggle
-                        id="creator-community-tab"
-                        label="Show Posts Tab"
-                        description="Display the Community/Posts tab"
-                        checked={settings.youtube.creatorProfilePage.showCommunityTab}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'creatorProfilePage', 'showCommunityTab'],
-                            checked
-                          )
-                        }
-                        tooltip="The tab that shows community posts and updates"
-                      />
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Content Filtering (Home Tab) */}
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Home Tab Content</h4>
-                      <SettingToggle
-                        id="creator-community-in-home"
-                        label="Show Community Posts in Home Tab"
-                        description="Display community posts in the Home tab"
-                        checked={settings.youtube.creatorProfilePage.showCommunityInHome}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
-                            checked
-                          )
-                        }
-                        tooltip="Text, image, and poll posts shown on the channel's Home tab"
-                      />
-                      <SettingToggle
-                        id="creator-shorts-in-home"
-                        label="Show Shorts in Home Tab"
-                        description="Display Shorts content in the Home tab"
-                        checked={settings.youtube.creatorProfilePage.showShortsInHome}
-                        onChange={(checked) =>
-                          handleSettingChange(
-                            ['youtube', 'creatorProfilePage', 'showShortsInHome'],
-                            checked
-                          )
-                        }
-                        tooltip="Shorts shelf shown on the channel's Home tab"
-                      />
-                    </div>
+                    <SettingToggle
+                      id="creator-shorts-tab"
+                      label="Show Shorts Tab"
+                      description="Display the Shorts tab on creator profiles"
+                      checked={settings.youtube.creatorProfilePage.showShortsTab}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'creatorProfilePage', 'showShortsTab'],
+                          checked
+                        )
+                      }
+                      tooltip="The tab that shows the creator's Shorts videos"
+                    />
+                    <SettingToggle
+                      id="creator-community-tab"
+                      label="Show Posts Tab"
+                      description="Display the Community/Posts tab"
+                      checked={settings.youtube.creatorProfilePage.showCommunityTab}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'creatorProfilePage', 'showCommunityTab'],
+                          checked
+                        )
+                      }
+                      tooltip="The tab that shows community posts and updates"
+                    />
+                    <SettingToggle
+                      id="creator-community-in-home"
+                      label="Show Community Posts in Home Tab"
+                      description="Display community posts in the Home tab"
+                      checked={settings.youtube.creatorProfilePage.showCommunityInHome}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
+                          checked
+                        )
+                      }
+                      tooltip="Text, image, and poll posts shown on the channel's Home tab"
+                    />
+                    <SettingToggle
+                      id="creator-shorts-in-home"
+                      label="Show Shorts in Home Tab"
+                      description="Display Shorts content in the Home tab"
+                      checked={settings.youtube.creatorProfilePage.showShortsInHome}
+                      onChange={(checked) =>
+                        handleSettingChange(
+                          ['youtube', 'creatorProfilePage', 'showShortsInHome'],
+                          checked
+                        )
+                      }
+                      tooltip="Shorts shelf shown on the channel's Home tab"
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
