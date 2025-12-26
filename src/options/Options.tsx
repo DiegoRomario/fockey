@@ -471,14 +471,6 @@ const Options: React.FC = () => {
                         }
                       />
                       <SettingToggle
-                        id="watch-share"
-                        label="Share Button"
-                        checked={settings.youtube.watchPage.showShare}
-                        onChange={(checked) =>
-                          handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
-                        }
-                      />
-                      <SettingToggle
                         id="watch-subscription-actions"
                         label="Subscription Actions"
                         description="Subscribe, Join, Notifications, See Perks"
@@ -488,6 +480,14 @@ const Options: React.FC = () => {
                             ['youtube', 'watchPage', 'showSubscriptionActions'],
                             checked
                           )
+                        }
+                      />
+                      <SettingToggle
+                        id="watch-share"
+                        label="Share Button"
+                        checked={settings.youtube.watchPage.showShare}
+                        onChange={(checked) =>
+                          handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
                         }
                       />
                     </div>

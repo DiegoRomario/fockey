@@ -130,19 +130,19 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="watch-share"
-            label="Share"
-            tooltip="Share video via link or social media"
-            checked={settings.youtube.watchPage.showShare}
-            onChange={(checked) => onWatchPageToggle('showShare', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
             id="watch-subscription-actions"
             label="Subscription Actions"
             tooltip="Subscribe, Join, Notifications, See Perks"
             checked={settings.youtube.watchPage.showSubscriptionActions}
             onChange={(checked) => onWatchPageToggle('showSubscriptionActions', checked)}
+            disabled={disabled}
+          />
+          <ModuleToggle
+            id="watch-share"
+            label="Share"
+            tooltip="Share video via link or social media"
+            checked={settings.youtube.watchPage.showShare}
+            onChange={(checked) => onWatchPageToggle('showShare', checked)}
             disabled={disabled}
           />
           <ModuleToggle
