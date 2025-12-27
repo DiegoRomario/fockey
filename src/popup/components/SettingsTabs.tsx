@@ -39,7 +39,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
 
       {/* Scrollable container for tab content */}
       <div className="max-h-[400px] overflow-y-auto pr-1">
-        {/* Global Tab - 5 settings */}
+        {/* Global Tab - 6 settings */}
         <TabsContent value="global" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="global-logo"
@@ -79,6 +79,14 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             tooltip="Video preview autoplay when hovering over thumbnails"
             checked={settings.youtube.globalNavigation.enableHoverPreviews}
             onChange={(checked) => onGlobalNavigationToggle('enableHoverPreviews', checked)}
+            disabled={disabled}
+          />
+          <ModuleToggle
+            id="global-enable-shorts-urls"
+            label="Enable Shorts URLs"
+            tooltip="Allow direct navigation to Shorts URLs (/shorts/...). Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles (use page-specific toggles for those)."
+            checked={settings.youtube.globalNavigation.enableShortsUrls}
+            onChange={(checked) => onGlobalNavigationToggle('enableShortsUrls', checked)}
             disabled={disabled}
           />
         </TabsContent>

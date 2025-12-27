@@ -109,6 +109,7 @@ YouTube's persistent navigation elements appear consistently across all pages. T
 - **Hamburger menu** (button that toggles the sidebar)
 - **Profile avatar** (account button in top-right)
 - **Notifications bell** (notification icon in top-right)
+- **Shorts URL blocking** (controls whether direct Shorts URLs are accessible)
 
 ### Unified Control
 
@@ -143,6 +144,7 @@ By default, **all global navigation elements are hidden** to create a distractio
 - Hamburger menu: **Hidden** (unified with sidebar)
 - Profile avatar: **Hidden**
 - Notifications bell: **Hidden**
+- Shorts URLs: **Blocked** (direct navigation to `/shorts/...` URLs redirects to block page)
 
 Users can selectively re-enable any element via the extension settings.
 
@@ -150,8 +152,8 @@ Users can selectively re-enable any element via the extension settings.
 
 **Global Navigation Settings:**
 - Apply to **all YouTube pages** simultaneously
-- Control persistent navigation elements
-- Examples: Logo, sidebar, profile avatar, notifications bell
+- Control persistent navigation elements and global blocking rules
+- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts URL blocking
 
 **Page-Specific Settings:**
 - Apply to **individual page types** only
@@ -163,6 +165,96 @@ Users can selectively re-enable any element via the extension settings.
 In the extension settings, global navigation controls appear in a dedicated section positioned **above** page-specific settings to emphasize their global scope.
 
 The section is clearly labeled to indicate these controls affect all YouTube pages, not just one page type.
+
+---
+
+### Shorts URL Blocking Feature
+
+#### Overview
+
+The Shorts URL Blocking feature provides users with **global control over YouTube Shorts accessibility** by blocking direct navigation to Shorts URLs (`/shorts/...`). This feature is part of the Global Navigation Settings and applies uniformly across all YouTube pages.
+
+#### Key Characteristics
+
+- **Scope:** Global setting that affects all YouTube pages
+- **Default Behavior:** **Shorts URLs are blocked by default** (minimalist principle)
+- **Independence:** This setting **only controls direct Shorts URL navigation**, not Shorts visibility in search results or creator profile pages
+- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect)
+
+#### Behavior Details
+
+**When Shorts URLs are Blocked (Default):**
+- Direct navigation to any `/shorts/...` URL (e.g., `https://www.youtube.com/shorts/TUNcmnOYYTg`) is **intercepted**
+- User is immediately redirected to the **blocked page** (`blocked/index.html`)
+- Block page displays a Shorts-specific message: "YouTube Shorts are blocked."
+- Blocked URL is shown for reference
+- "Go Back" button navigates user to YouTube Home
+
+**When Shorts URLs are Enabled:**
+- Direct Shorts URLs function normally
+- No redirection occurs
+- Shorts videos play as expected
+
+#### Distinction from Page-Specific Shorts Toggles
+
+**Important:** The Shorts URL Blocking feature is **completely independent** from page-specific Shorts visibility settings:
+
+| Feature | Scope | Controls |
+|---------|-------|----------|
+| **Shorts URL Blocking** (Global) | All pages | Direct navigation to `/shorts/...` URLs |
+| **Show Shorts** (Search Page) | Search page only | Shorts visibility in search results |
+| **Show Shorts Tab** (Creator Profile) | Creator profile only | Shorts tab visibility on channel pages |
+| **Show Shorts in Home Tab** (Creator Profile) | Creator profile only | Shorts shelf in channel Home tab |
+
+**Example Scenario:**
+- User has Shorts URL Blocking **enabled** (Shorts URLs accessible)
+- User has "Show Shorts" (Search Page) **disabled**
+- **Result:** User can navigate directly to Shorts URLs, but Shorts won't appear in search results
+
+#### User Interface
+
+**Settings Location:**
+- **Options Page:** Global Navigation Elements section (after "Hover Previews")
+- **Popup:** Global tab (after "Enable Hover Previews")
+
+**Toggle Details:**
+- **Label:** "Enable Shorts URLs"
+- **Description (Options):** "Allow direct navigation to YouTube Shorts URLs (/shorts/...)"
+- **Tooltip:** "When disabled (default), direct Shorts URLs are blocked. Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profile pages (use page-specific toggles for those)."
+- **Default State:** `false` (blocked)
+
+#### Technical Implementation
+
+**Detection Logic:**
+- Checks if URL path starts with `/shorts/`
+- Runs on initial page load and SPA navigation
+- Executes **after** channel blocking checks
+
+**Redirect Mechanism:**
+- Uses same block page as channel blocking (`blocked/index.html`)
+- Passes query parameters: `blockType=shorts`, `blockedUrl=[original URL]`
+- Block page detects `blockType` and displays appropriate message
+
+**Storage:**
+- Setting stored in: `settings.youtube.globalNavigation.enableShortsUrls`
+- Type: `boolean`
+- Default: `false`
+- Syncs via Chrome Storage API
+
+#### Success Criteria
+
+The Shorts URL Blocking feature is considered **successfully implemented** when:
+
+- ✅ Direct Shorts URLs (`/shorts/...`) are blocked by default
+- ✅ Blocked Shorts URLs redirect to the block page with correct message
+- ✅ Block page clearly states "YouTube Shorts are blocked" with instructions
+- ✅ Enabling the toggle allows Shorts URLs to function normally
+- ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
+- ✅ Tooltip explains the feature scope (URL-only, not search/profile Shorts)
+- ✅ Feature is completely independent of page-specific Shorts toggles
+- ✅ No performance impact or flickering during URL checks
+- ✅ Works correctly with YouTube SPA navigation
+- ✅ All code passes lint, format, and type checks
 
 ---
 
@@ -1252,6 +1344,7 @@ The Lock Mode feature is considered **successfully implemented** when:
 | **Global Navigation**      | Left Sidebar (+ Hamburger) | Off     | Yes          | All pages      |
 | **Global Navigation**      | Profile Avatar             | Off     | Yes          | All pages      |
 | **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
+| **Global Navigation**      | Enable Shorts URLs         | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
 | **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |

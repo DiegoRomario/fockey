@@ -37,6 +37,30 @@ let channelBlocker: ChannelBlocker | null = null;
 let isHandlingNavigation = false;
 
 /**
+ * Check if current URL is a Shorts URL and redirect to blocked page if Shorts are disabled
+ * @param settings - Current extension settings
+ */
+function checkAndBlockShortsUrl(settings: ExtensionSettings): void {
+  const currentUrl = window.location.href;
+  const path = window.location.pathname;
+
+  // Check if current URL is a Shorts URL
+  if (path.startsWith('/shorts/')) {
+    // Check if Shorts URLs are disabled (blocked by default)
+    if (!settings.youtube.globalNavigation.enableShortsUrls) {
+      // Redirect to blocked page with Shorts-specific message
+      const params = new URLSearchParams({
+        blockType: 'shorts',
+        blockedUrl: currentUrl,
+      });
+
+      const blockedPageUrl = chrome.runtime.getURL(`blocked/index.html?${params.toString()}`);
+      window.location.href = blockedPageUrl;
+    }
+  }
+}
+
+/**
  * Determines the current page type based on URL pathname
  * Analyzes window.location to identify YouTube page type
  *
@@ -178,6 +202,11 @@ async function handlePageChange(settings: ExtensionSettings): Promise<void> {
       channelBlocker.checkAndBlock();
       // Note: if page is blocked, checkAndBlock() will redirect and this code won't continue
     }
+
+    // CRITICAL: Check if current URL is a Shorts URL and block if disabled
+    // This check runs AFTER channel blocking but BEFORE module initialization
+    checkAndBlockShortsUrl(settings);
+    // Note: if Shorts URL is blocked, checkAndBlockShortsUrl() will redirect and this code won't continue
 
     const newPageType = detectYouTubePage();
 
@@ -346,6 +375,9 @@ async function initialize(): Promise<void> {
 
     // Check if current page should be blocked FIRST (before initializing modules)
     channelBlocker.checkAndBlock();
+
+    // Check if current URL is a Shorts URL and block if disabled
+    checkAndBlockShortsUrl(settings);
 
     // Initialize current page
     await handlePageChange(settings);

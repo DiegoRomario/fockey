@@ -496,6 +496,21 @@ const Options: React.FC = () => {
                             tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
                             disabled={lockState?.isLocked === true}
                           />
+
+                          <SettingToggle
+                            id="global-enable-shorts-urls"
+                            label="Enable Shorts URLs"
+                            description="Allow direct navigation to YouTube Shorts URLs (/shorts/...)"
+                            checked={settings.youtube.globalNavigation.enableShortsUrls}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'enableShortsUrls'],
+                                checked
+                              )
+                            }
+                            tooltip="When disabled (default), direct Shorts URLs are blocked. Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profile pages (use page-specific toggles for those)."
+                            disabled={lockState?.isLocked === true}
+                          />
                         </div>
                       </AccordionContent>
                     </AccordionItem>

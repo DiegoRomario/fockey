@@ -17,6 +17,11 @@
     },
     {
       "matches": ["*://*.youtube.com/*"],
+      "js": ["src/content/shorts-blocker.ts"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
       "js": ["src/content/content.ts"],
       "run_at": "document_idle"
     }

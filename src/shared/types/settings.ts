@@ -19,6 +19,12 @@ export interface GlobalNavigationSettings {
   showNotifications: boolean;
   /** Enable hover previews on video thumbnails */
   enableHoverPreviews: boolean;
+  /**
+   * Enable direct navigation to Shorts URLs (/shorts/...)
+   * When false (default), direct Shorts URLs are blocked and redirected to the block page
+   * Note: This setting only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles
+   */
+  enableShortsUrls: boolean;
 }
 
 /**
@@ -200,6 +206,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showProfile: false,
       showNotifications: false,
       enableHoverPreviews: false, // Disabled by default (minimalist principle)
+      enableShortsUrls: false, // Disabled by default (Shorts URLs blocked)
     },
     homePage: {
       // Empty for now - future expansion point
