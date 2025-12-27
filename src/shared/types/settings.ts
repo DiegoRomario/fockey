@@ -25,6 +25,12 @@ export interface GlobalNavigationSettings {
    * Note: This setting only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles
    */
   enableShortsUrls: boolean;
+  /**
+   * Enable direct navigation to Posts URLs (/post/...)
+   * When false (default), direct Posts URLs are blocked and redirected to the block page
+   * Note: This setting only affects direct Posts URL navigation, not Posts visibility in search results or creator profiles
+   */
+  enablePostsUrls: boolean;
 }
 
 /**
@@ -207,6 +213,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showNotifications: false,
       enableHoverPreviews: false, // Disabled by default (minimalist principle)
       enableShortsUrls: false, // Disabled by default (Shorts URLs blocked)
+      enablePostsUrls: false, // Disabled by default (Posts URLs blocked)
     },
     homePage: {
       // Empty for now - future expansion point

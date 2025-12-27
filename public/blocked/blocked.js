@@ -7,7 +7,7 @@
 
 // Parse query parameters from URL
 const params = new URLSearchParams(window.location.search);
-const blockType = params.get('blockType') || 'channel'; // 'channel' or 'shorts'
+const blockType = params.get('blockType') || 'channel'; // 'channel', 'shorts', or 'posts'
 const channelName = params.get('channelName') || 'Unknown Channel';
 const blockedUrl = params.get('blockedUrl') || '';
 
@@ -21,6 +21,10 @@ const goBackButton = document.getElementById('goBackButton');
 if (blockType === 'shorts') {
   if (blockMessageElement) {
     blockMessageElement.innerHTML = 'YouTube Shorts are blocked.';
+  }
+} else if (blockType === 'posts') {
+  if (blockMessageElement) {
+    blockMessageElement.innerHTML = 'YouTube Posts are blocked.';
   }
 } else {
   // Channel block (default behavior)

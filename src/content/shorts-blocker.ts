@@ -1,6 +1,6 @@
 /**
- * Early Shorts URL Blocker
- * Runs at document_start to immediately block Shorts URLs before page renders
+ * Early Content URL Blocker
+ * Runs at document_start to immediately block Shorts and Posts URLs before page renders
  * This prevents any flickering or brief video playback before blocking
  * Also handles SPA navigation by monitoring URL changes
  */
@@ -12,21 +12,26 @@
   }
 
   /**
-   * Check and block if current URL is a Shorts URL
+   * Check and block if current URL is a Shorts or Posts URL
    */
-  function checkAndBlockShorts(): void {
-    const isShortUrl = window.location.pathname.startsWith('/shorts/');
+  function checkAndBlockContent(): void {
+    const path = window.location.pathname;
+    const isShortUrl = path.startsWith('/shorts/');
+    const isPostUrl = path.startsWith('/post/');
 
-    if (!isShortUrl) {
+    if (!isShortUrl && !isPostUrl) {
       return;
     }
+
+    const blockType = isShortUrl ? 'shorts' : 'posts';
+    const settingKey = isShortUrl ? 'enableShortsUrls' : 'enablePostsUrls';
 
     // Get settings from chrome.storage.local (synchronous check with callback)
     // Use local storage for instant access (settings are synced there as fallback)
     chrome.storage.local.get('fockey_settings', (result) => {
       const settings = result.fockey_settings as Record<string, unknown> | undefined;
 
-      // Default behavior: block Shorts URLs (minimalist principle)
+      // Default behavior: block content URLs (minimalist principle)
       let shouldBlock = true;
 
       if (
@@ -38,16 +43,18 @@
         'globalNavigation' in settings.youtube &&
         settings.youtube.globalNavigation &&
         typeof settings.youtube.globalNavigation === 'object' &&
-        'enableShortsUrls' in settings.youtube.globalNavigation &&
-        settings.youtube.globalNavigation.enableShortsUrls === true
+        settingKey in settings.youtube.globalNavigation
       ) {
-        shouldBlock = false;
+        const globalNav = settings.youtube.globalNavigation as Record<string, unknown>;
+        if (globalNav[settingKey] === true) {
+          shouldBlock = false;
+        }
       }
 
       if (shouldBlock) {
         // Immediately redirect to blocked page before any content renders
         const params = new URLSearchParams({
-          blockType: 'shorts',
+          blockType: blockType,
           blockedUrl: window.location.href,
         });
 
@@ -61,7 +68,8 @@
       const settings = result.fockey_settings as Record<string, unknown> | undefined;
 
       // Only redirect if we haven't already been redirected
-      if (window.location.pathname.startsWith('/shorts/')) {
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith('/shorts/') || currentPath.startsWith('/post/')) {
         let shouldBlock = true;
 
         if (
@@ -73,15 +81,17 @@
           'globalNavigation' in settings.youtube &&
           settings.youtube.globalNavigation &&
           typeof settings.youtube.globalNavigation === 'object' &&
-          'enableShortsUrls' in settings.youtube.globalNavigation &&
-          settings.youtube.globalNavigation.enableShortsUrls === true
+          settingKey in settings.youtube.globalNavigation
         ) {
-          shouldBlock = false;
+          const globalNav = settings.youtube.globalNavigation as Record<string, unknown>;
+          if (globalNav[settingKey] === true) {
+            shouldBlock = false;
+          }
         }
 
         if (shouldBlock) {
           const params = new URLSearchParams({
-            blockType: 'shorts',
+            blockType: blockType,
             blockedUrl: window.location.href,
           });
 
@@ -93,12 +103,12 @@
   }
 
   // Initial check on page load
-  checkAndBlockShorts();
+  checkAndBlockContent();
 
   // Monitor for SPA navigation (YouTube's custom navigation event)
   window.addEventListener('yt-navigate-start', () => {
     // Small delay to let URL update
-    setTimeout(checkAndBlockShorts, 0);
+    setTimeout(checkAndBlockContent, 0);
   });
 
   // Also monitor History API changes (backup detection)
@@ -107,16 +117,16 @@
 
   history.pushState = function (...args) {
     originalPushState.apply(this, args);
-    setTimeout(checkAndBlockShorts, 0);
+    setTimeout(checkAndBlockContent, 0);
   };
 
   history.replaceState = function (...args) {
     originalReplaceState.apply(this, args);
-    setTimeout(checkAndBlockShorts, 0);
+    setTimeout(checkAndBlockContent, 0);
   };
 
   // Monitor popstate (back/forward navigation)
   window.addEventListener('popstate', () => {
-    setTimeout(checkAndBlockShorts, 0);
+    setTimeout(checkAndBlockContent, 0);
   });
 })();

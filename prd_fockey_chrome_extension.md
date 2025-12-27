@@ -110,6 +110,7 @@ YouTube's persistent navigation elements appear consistently across all pages. T
 - **Profile avatar** (account button in top-right)
 - **Notifications bell** (notification icon in top-right)
 - **Shorts URL blocking** (controls whether direct Shorts URLs are accessible)
+- **Posts URL blocking** (controls whether direct Posts URLs are accessible)
 
 ### Unified Control
 
@@ -145,6 +146,7 @@ By default, **all global navigation elements are hidden** to create a distractio
 - Profile avatar: **Hidden**
 - Notifications bell: **Hidden**
 - Shorts URLs: **Blocked** (direct navigation to `/shorts/...` URLs redirects to block page)
+- Posts URLs: **Blocked** (direct navigation to `/post/...` URLs redirects to block page)
 
 Users can selectively re-enable any element via the extension settings.
 
@@ -153,7 +155,7 @@ Users can selectively re-enable any element via the extension settings.
 **Global Navigation Settings:**
 - Apply to **all YouTube pages** simultaneously
 - Control persistent navigation elements and global blocking rules
-- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts URL blocking
+- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts URL blocking, Posts URL blocking
 
 **Page-Specific Settings:**
 - Apply to **individual page types** only
@@ -252,6 +254,96 @@ The Shorts URL Blocking feature is considered **successfully implemented** when:
 - ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
 - ✅ Tooltip explains the feature scope (URL-only, not search/profile Shorts)
 - ✅ Feature is completely independent of page-specific Shorts toggles
+- ✅ No performance impact or flickering during URL checks
+- ✅ Works correctly with YouTube SPA navigation
+- ✅ All code passes lint, format, and type checks
+
+---
+
+### Posts URL Blocking Feature
+
+#### Overview
+
+The Posts URL Blocking feature provides users with **global control over YouTube Community Posts accessibility** by blocking direct navigation to Posts URLs (`/post/...`). This feature is part of the Global Navigation Settings and applies uniformly across all YouTube pages.
+
+#### Key Characteristics
+
+- **Scope:** Global setting that affects all YouTube pages
+- **Default Behavior:** **Posts URLs are blocked by default** (minimalist principle)
+- **Independence:** This setting **only controls direct Posts URL navigation**, not Posts visibility in search results or creator profile pages
+- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect)
+
+#### Behavior Details
+
+**When Posts URLs are Blocked (Default):**
+- Direct navigation to any `/post/...` URL (e.g., `https://www.youtube.com/post/Ugkx9qLawJCXRvR27Us6sFIOcHEvm8jk3_-2`) is **intercepted**
+- User is immediately redirected to the **blocked page** (`blocked/index.html`)
+- Block page displays a Posts-specific message: "YouTube Posts are blocked."
+- Blocked URL is shown for reference
+- "Go Back" button navigates user to YouTube Home
+
+**When Posts URLs are Enabled:**
+- Direct Posts URLs function normally
+- No redirection occurs
+- Posts content displays as expected
+
+#### Distinction from Page-Specific Posts Toggles
+
+**Important:** The Posts URL Blocking feature is **completely independent** from page-specific Posts visibility settings:
+
+| Feature | Scope | Controls |
+|---------|-------|----------|
+| **Posts URL Blocking** (Global) | All pages | Direct navigation to `/post/...` URLs |
+| **Show Community Posts** (Search Page) | Search page only | Community Posts visibility in search results |
+| **Show Posts Tab** (Creator Profile) | Creator profile only | Posts tab visibility on channel pages |
+| **Show Community Posts in Home Tab** (Creator Profile) | Creator profile only | Posts content in channel Home tab |
+
+**Example Scenario:**
+- User has Posts URL Blocking **enabled** (Posts URLs accessible)
+- User has "Show Community Posts" (Search Page) **disabled**
+- **Result:** User can navigate directly to Posts URLs, but Posts won't appear in search results
+
+#### User Interface
+
+**Settings Location:**
+- **Options Page:** Global Navigation Elements section (after "Enable Shorts URLs")
+- **Popup:** Global tab (after "Enable Shorts URLs")
+
+**Toggle Details:**
+- **Label:** "Enable Posts URLs"
+- **Description (Options):** "Allow direct navigation to YouTube Posts URLs (/post/...)"
+- **Tooltip:** "When disabled (default), direct Posts URLs are blocked. Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profile pages (use page-specific toggles for those)."
+- **Default State:** `false` (blocked)
+
+#### Technical Implementation
+
+**Detection Logic:**
+- Checks if URL path starts with `/post/`
+- Runs on initial page load and SPA navigation
+- Executes in parallel with Shorts URL checking
+
+**Redirect Mechanism:**
+- Uses same block page as channel and Shorts blocking (`blocked/index.html`)
+- Passes query parameters: `blockType=posts`, `blockedUrl=[original URL]`
+- Block page detects `blockType` and displays appropriate message
+
+**Storage:**
+- Setting stored in: `settings.youtube.globalNavigation.enablePostsUrls`
+- Type: `boolean`
+- Default: `false`
+- Syncs via Chrome Storage API
+
+#### Success Criteria
+
+The Posts URL Blocking feature is considered **successfully implemented** when:
+
+- ✅ Direct Posts URLs (`/post/...`) are blocked by default
+- ✅ Blocked Posts URLs redirect to the block page with correct message
+- ✅ Block page clearly states "YouTube Posts are blocked"
+- ✅ Enabling the toggle allows Posts URLs to function normally
+- ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
+- ✅ Tooltip explains the feature scope (URL-only, not search/profile Posts)
+- ✅ Feature is completely independent of page-specific Posts toggles
 - ✅ No performance impact or flickering during URL checks
 - ✅ Works correctly with YouTube SPA navigation
 - ✅ All code passes lint, format, and type checks
@@ -1345,6 +1437,7 @@ The Lock Mode feature is considered **successfully implemented** when:
 | **Global Navigation**      | Profile Avatar             | Off     | Yes          | All pages      |
 | **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
 | **Global Navigation**      | Enable Shorts URLs         | Off     | Yes          | All pages      |
+| **Global Navigation**      | Enable Posts URLs          | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
 | **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |

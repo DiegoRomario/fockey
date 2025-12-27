@@ -511,6 +511,21 @@ const Options: React.FC = () => {
                             tooltip="When disabled (default), direct Shorts URLs are blocked. Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profile pages (use page-specific toggles for those)."
                             disabled={lockState?.isLocked === true}
                           />
+
+                          <SettingToggle
+                            id="global-enable-posts-urls"
+                            label="Enable Posts URLs"
+                            description="Allow direct navigation to YouTube Posts URLs (/post/...)"
+                            checked={settings.youtube.globalNavigation.enablePostsUrls}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'enablePostsUrls'],
+                                checked
+                              )
+                            }
+                            tooltip="When disabled (default), direct Posts URLs are blocked. Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profile pages (use page-specific toggles for those)."
+                            disabled={lockState?.isLocked === true}
+                          />
                         </div>
                       </AccordionContent>
                     </AccordionItem>

@@ -39,7 +39,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
 
       {/* Scrollable container for tab content */}
       <div className="max-h-[400px] overflow-y-auto pr-1">
-        {/* Global Tab - 6 settings */}
+        {/* Global Tab - 7 settings */}
         <TabsContent value="global" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="global-logo"
@@ -87,6 +87,14 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             tooltip="Allow direct navigation to Shorts URLs (/shorts/...). Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles (use page-specific toggles for those)."
             checked={settings.youtube.globalNavigation.enableShortsUrls}
             onChange={(checked) => onGlobalNavigationToggle('enableShortsUrls', checked)}
+            disabled={disabled}
+          />
+          <ModuleToggle
+            id="global-enable-posts-urls"
+            label="Enable Posts URLs"
+            tooltip="Allow direct navigation to Posts URLs (/post/...). Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profiles (use page-specific toggles for those)."
+            checked={settings.youtube.globalNavigation.enablePostsUrls}
+            onChange={(checked) => onGlobalNavigationToggle('enablePostsUrls', checked)}
             disabled={disabled}
           />
         </TabsContent>
