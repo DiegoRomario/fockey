@@ -107,8 +107,8 @@ function generateSearchPageCSS(
 ): string {
   const rules: string[] = [];
 
-  // Conditionally hide or show Shorts based on settings
-  if (!pageSettings.showShorts) {
+  // Conditionally hide or show Shorts based on global settings
+  if (!globalNavigation.enableShorts) {
     rules.push(`
       /* Hide Shorts in search results */
       ${SEARCH_PAGE_SELECTORS.SHORTS} {
@@ -125,8 +125,8 @@ function generateSearchPageCSS(
     `);
   }
 
-  // Conditionally hide or show Community posts based on settings
-  if (!pageSettings.showCommunityPosts) {
+  // Conditionally hide or show Community posts based on global settings
+  if (!globalNavigation.enablePosts) {
     rules.push(`
       /* Hide Community posts in search results */
       ${SEARCH_PAGE_SELECTORS.COMMUNITY_POSTS} {

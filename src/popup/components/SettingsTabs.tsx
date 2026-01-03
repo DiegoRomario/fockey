@@ -11,12 +11,11 @@ interface SettingsTabsProps {
   onGlobalNavigationToggle: (key: string, value: boolean) => void;
   onSearchPageToggle: (key: string, value: boolean) => void;
   onWatchPageToggle: (key: string, value: boolean) => void;
-  onCreatorProfilePageToggle: (key: string, value: boolean) => void;
 }
 
 /**
  * Tabbed settings interface for the Popup
- * Provides access to all 21 YouTube settings organized across 4 tabs
+ * Provides access to YouTube settings organized across 3 tabs
  */
 export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   settings,
@@ -26,20 +25,18 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   onGlobalNavigationToggle,
   onSearchPageToggle,
   onWatchPageToggle,
-  onCreatorProfilePageToggle,
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-4 mb-3">
+      <TabsList className="grid w-full grid-cols-3 mb-3">
         <TabsTrigger value="global">Global</TabsTrigger>
         <TabsTrigger value="search">Search</TabsTrigger>
         <TabsTrigger value="watch">Watch</TabsTrigger>
-        <TabsTrigger value="profile">Profile</TabsTrigger>
       </TabsList>
 
       {/* Scrollable container for tab content */}
       <div className="max-h-[400px] overflow-y-auto pr-1">
-        {/* Global Tab - 7 settings */}
+        {/* Global Tab */}
         <TabsContent value="global" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="global-logo"
@@ -82,41 +79,25 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="global-enable-shorts-urls"
-            label="Enable Shorts URLs"
-            tooltip="Allow direct navigation to Shorts URLs (/shorts/...). Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles (use page-specific toggles for those)."
-            checked={settings.youtube.globalNavigation.enableShortsUrls}
-            onChange={(checked) => onGlobalNavigationToggle('enableShortsUrls', checked)}
+            id="global-enable-shorts"
+            label="Enable Shorts"
+            tooltip="Enable YouTube Shorts globally. When disabled (default), all Shorts content is blocked including direct Shorts URLs, Shorts in search results, Shorts tabs on creator profiles, and Shorts in creator profile home tabs."
+            checked={settings.youtube.globalNavigation.enableShorts}
+            onChange={(checked) => onGlobalNavigationToggle('enableShorts', checked)}
             disabled={disabled}
           />
           <ModuleToggle
-            id="global-enable-posts-urls"
-            label="Enable Posts URLs"
-            tooltip="Allow direct navigation to Posts URLs (/post/...). Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profiles (use page-specific toggles for those)."
-            checked={settings.youtube.globalNavigation.enablePostsUrls}
-            onChange={(checked) => onGlobalNavigationToggle('enablePostsUrls', checked)}
+            id="global-enable-posts"
+            label="Enable Posts"
+            tooltip="Enable YouTube Posts globally. When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
+            checked={settings.youtube.globalNavigation.enablePosts}
+            onChange={(checked) => onGlobalNavigationToggle('enablePosts', checked)}
             disabled={disabled}
           />
         </TabsContent>
 
-        {/* Search Tab - 5 settings */}
+        {/* Search Tab */}
         <TabsContent value="search" className="space-y-0.5 mt-0">
-          <ModuleToggle
-            id="search-shorts"
-            label="Show Shorts"
-            tooltip="Short-form vertical videos (YouTube Shorts)"
-            checked={settings.youtube.searchPage.showShorts}
-            onChange={(checked) => onSearchPageToggle('showShorts', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="search-community-posts"
-            label="Show Community Posts"
-            tooltip="Text, image, and poll posts from creators"
-            checked={settings.youtube.searchPage.showCommunityPosts}
-            onChange={(checked) => onSearchPageToggle('showCommunityPosts', checked)}
-            disabled={disabled}
-          />
           <ModuleToggle
             id="search-mixes"
             label="Show Mixes/Playlists"
@@ -135,7 +116,7 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
           />
         </TabsContent>
 
-        {/* Watch Tab - 7 settings in single column */}
+        {/* Watch Tab */}
         <TabsContent value="watch" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="watch-like-dislike"
@@ -199,42 +180,6 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             tooltip="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
             checked={settings.youtube.watchPage.showMoreActions}
             onChange={(checked) => onWatchPageToggle('showMoreActions', checked)}
-            disabled={disabled}
-          />
-        </TabsContent>
-
-        {/* Profile Tab - 4 settings */}
-        <TabsContent value="profile" className="space-y-0.5 mt-0">
-          <ModuleToggle
-            id="profile-shorts-tab"
-            label="Shorts Tab"
-            tooltip="The tab that shows the creator's Shorts videos"
-            checked={settings.youtube.creatorProfilePage.showShortsTab}
-            onChange={(checked) => onCreatorProfilePageToggle('showShortsTab', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="profile-community-tab"
-            label="Posts Tab"
-            tooltip="The tab that shows community posts and updates"
-            checked={settings.youtube.creatorProfilePage.showCommunityTab}
-            onChange={(checked) => onCreatorProfilePageToggle('showCommunityTab', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="profile-community-in-home"
-            label="Posts in Home"
-            tooltip="Text, image, and poll posts shown on the channel's Home tab"
-            checked={settings.youtube.creatorProfilePage.showCommunityInHome}
-            onChange={(checked) => onCreatorProfilePageToggle('showCommunityInHome', checked)}
-            disabled={disabled}
-          />
-          <ModuleToggle
-            id="profile-shorts-in-home"
-            label="Shorts in Home"
-            tooltip="Shorts shelf shown on the channel's Home tab"
-            checked={settings.youtube.creatorProfilePage.showShortsInHome}
-            onChange={(checked) => onCreatorProfilePageToggle('showShortsInHome', checked)}
             disabled={disabled}
           />
         </TabsContent>

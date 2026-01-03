@@ -20,17 +20,23 @@ export interface GlobalNavigationSettings {
   /** Enable hover previews on video thumbnails */
   enableHoverPreviews: boolean;
   /**
-   * Enable direct navigation to Shorts URLs (/shorts/...)
-   * When false (default), direct Shorts URLs are blocked and redirected to the block page
-   * Note: This setting only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profiles
+   * Enable YouTube Shorts globally
+   * When false (default), all Shorts content is blocked including:
+   * - Direct Shorts URLs (/shorts/...)
+   * - Shorts in search results
+   * - Shorts tabs on creator profiles
+   * - Shorts in creator profile home tabs
    */
-  enableShortsUrls: boolean;
+  enableShorts: boolean;
   /**
-   * Enable direct navigation to Posts URLs (/post/...)
-   * When false (default), direct Posts URLs are blocked and redirected to the block page
-   * Note: This setting only affects direct Posts URL navigation, not Posts visibility in search results or creator profiles
+   * Enable YouTube Posts globally
+   * When false (default), all Posts content is blocked including:
+   * - Direct Posts URLs (/post/...)
+   * - Community Posts in search results
+   * - Posts tabs on creator profiles
+   * - Posts in creator profile home tabs
    */
-  enablePostsUrls: boolean;
+  enablePosts: boolean;
 }
 
 /**
@@ -47,14 +53,10 @@ export interface HomePageSettings {
 /**
  * Settings for YouTube Search Page
  * Controls visibility of UI elements in search results
- * Note: Global navigation elements are controlled via GlobalNavigationSettings
+ * Note: Global navigation elements and Shorts/Posts visibility are controlled via GlobalNavigationSettings
  */
 export interface SearchPageSettings {
   // Content controls
-  /** Show/hide Shorts in search results */
-  showShorts: boolean;
-  /** Show/hide Community posts in search results */
-  showCommunityPosts: boolean;
   /** Show/hide Mixes/Playlists in search results */
   showMixes: boolean;
 
@@ -89,21 +91,13 @@ export interface WatchPageSettings {
 /**
  * Settings for YouTube Creator Profile Page
  * Controls visibility of UI elements on channel/creator profile pages
- * Note: Global navigation elements are controlled via GlobalNavigationSettings
+ * Note: Global navigation elements, Shorts, and Posts visibility are controlled via GlobalNavigationSettings
  * Channel action buttons (Subscribe, Join, Notifications, See Perks) are always visible on creator profiles
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface CreatorProfilePageSettings {
-  // Tab visibility controls
-  /** Show/hide Shorts tab */
-  showShortsTab: boolean;
-  /** Show/hide Community/Posts tab */
-  showCommunityTab: boolean;
-
-  // Content filtering controls (Home tab only)
-  /** Show/hide Community posts in Home tab */
-  showCommunityInHome: boolean;
-  /** Show/hide Shorts in Home tab */
-  showShortsInHome: boolean;
+  // Empty for now - Shorts and Posts are controlled globally via GlobalNavigationSettings
+  // Future expansion point for creator profile-specific features
 }
 
 /**
@@ -212,16 +206,14 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showProfile: false,
       showNotifications: false,
       enableHoverPreviews: false, // Disabled by default (minimalist principle)
-      enableShortsUrls: false, // Disabled by default (Shorts URLs blocked)
-      enablePostsUrls: false, // Disabled by default (Posts URLs blocked)
+      enableShorts: false, // Disabled by default (all Shorts blocked globally)
+      enablePosts: false, // Disabled by default (all Posts blocked globally)
     },
     homePage: {
       // Empty for now - future expansion point
     },
     searchPage: {
       // Content (hidden by default - minimalist principle)
-      showShorts: false,
-      showCommunityPosts: false,
       showMixes: false,
       // Visual adjustments
       blurThumbnails: false,
@@ -237,12 +229,8 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       showRecommendedVideo: false, // Info Cards and teasers during playback
     },
     creatorProfilePage: {
-      // Tab visibility (hidden by default - minimalist principle)
-      showShortsTab: false,
-      showCommunityTab: false,
-      // Content filtering in Home tab (hidden by default - minimalist principle)
-      showCommunityInHome: false,
-      showShortsInHome: false,
+      // Empty for now - Shorts and Posts are controlled globally via GlobalNavigationSettings
+      // Future expansion point for creator profile-specific features
     },
   },
   blockedChannels: [],

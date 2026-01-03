@@ -101,7 +101,15 @@ const Popup: React.FC = () => {
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-        if (!tab?.id || !tab.url?.includes('youtube.com')) {
+        // Only proceed if we're actually on a YouTube page (not a chrome-extension:// page)
+        if (
+          !tab?.id ||
+          !tab.url ||
+          !(
+            tab.url.startsWith('https://www.youtube.com') ||
+            tab.url.startsWith('http://www.youtube.com')
+          )
+        ) {
           return;
         }
 
@@ -374,10 +382,7 @@ const Popup: React.FC = () => {
               ...prev.youtube.watchPage,
               ...(updates.youtube?.watchPage || {}),
             },
-            creatorProfilePage: {
-              ...prev.youtube.creatorProfilePage,
-              ...(updates.youtube?.creatorProfilePage || {}),
-            },
+            creatorProfilePage: {},
           },
         };
       });
@@ -449,22 +454,6 @@ const Popup: React.FC = () => {
           ...settings.youtube,
           watchPage: {
             ...settings.youtube.watchPage,
-            [key]: value,
-          },
-        },
-      });
-    },
-    [settings, handleSettingsChange]
-  );
-
-  const handleCreatorProfilePageToggle = useCallback(
-    (key: string, value: boolean) => {
-      if (!settings) return;
-      handleSettingsChange({
-        youtube: {
-          ...settings.youtube,
-          creatorProfilePage: {
-            ...settings.youtube.creatorProfilePage,
             [key]: value,
           },
         },
@@ -559,7 +548,6 @@ const Popup: React.FC = () => {
               onGlobalNavigationToggle={handleGlobalNavigationToggle}
               onSearchPageToggle={handleSearchPageToggle}
               onWatchPageToggle={handleWatchPageToggle}
-              onCreatorProfilePageToggle={handleCreatorProfilePageToggle}
             />
 
             {/* Channel Blocking Section */}

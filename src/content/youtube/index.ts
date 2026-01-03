@@ -47,7 +47,7 @@ function checkAndBlockContentUrl(settings: ExtensionSettings): void {
   // Check if current URL is a Shorts URL
   if (path.startsWith('/shorts/')) {
     // Check if Shorts URLs are disabled (blocked by default)
-    if (!settings.youtube.globalNavigation.enableShortsUrls) {
+    if (!settings.youtube.globalNavigation.enableShorts) {
       // Redirect to blocked page with Shorts-specific message
       const params = new URLSearchParams({
         blockType: 'shorts',
@@ -62,7 +62,7 @@ function checkAndBlockContentUrl(settings: ExtensionSettings): void {
   // Check if current URL is a Posts URL
   if (path.startsWith('/post/')) {
     // Check if Posts URLs are disabled (blocked by default)
-    if (!settings.youtube.globalNavigation.enablePostsUrls) {
+    if (!settings.youtube.globalNavigation.enablePosts) {
       // Redirect to blocked page with Posts-specific message
       const params = new URLSearchParams({
         blockType: 'posts',

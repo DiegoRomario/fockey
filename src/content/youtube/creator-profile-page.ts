@@ -76,12 +76,7 @@ let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
 /**
  * Current settings state
  * Stores the latest settings to ensure mutation observer uses up-to-date values
- * Note: currentGlobalNavigation is stored for consistency and potential future use,
- * but is not directly used by the mutation observer (which only filters content).
- * Global navigation is handled by CSS which is applied via applyCreatorProfileSettings.
  */
-let currentPageSettings: CreatorProfilePageSettings | null = null;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let currentGlobalNavigation: GlobalNavigationSettings | null = null;
 
 /**
@@ -98,8 +93,8 @@ function generateCreatorProfileCSS(
 ): string {
   const rules: string[] = [];
 
-  // Hide/show Shorts tab based on settings
-  if (!pageSettings.showShortsTab) {
+  // Hide/show Shorts tab based on global settings
+  if (!globalNavigation.enableShorts) {
     rules.push(`
       /* Hide Shorts tab */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_TAB} {
@@ -119,8 +114,8 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide/show Community/Posts tab based on settings
-  if (!pageSettings.showCommunityTab) {
+  // Hide/show Community/Posts tab based on global settings
+  if (!globalNavigation.enablePosts) {
     rules.push(`
       /* Hide Community/Posts tab */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_TAB} {
@@ -144,21 +139,17 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide/show Community posts based on settings
-  // Posts should be visible if EITHER:
-  // 1. showCommunityTab is true (user wants the Posts tab, so posts must be visible in that tab)
-  // 2. showCommunityInHome is true (user wants posts in the Home tab)
-  // Only hide if BOTH are false
-  if (!pageSettings.showCommunityTab && !pageSettings.showCommunityInHome) {
+  // Hide/show Community posts based on global settings
+  if (!globalNavigation.enablePosts) {
     rules.push(`
-      /* Hide Community posts when both Posts tab and Posts in Home are disabled */
+      /* Hide Community posts */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS},
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS_SECTION} {
         display: none !important;
       }
     `);
   } else {
-    // Explicitly show Community posts when either setting is enabled (overrides critical CSS)
+    // Explicitly show Community posts when enabled (overrides critical CSS)
     // Must match ALL selectors from critical.css
     rules.push(`
       ytd-browse[page-subtype='channels'] ytd-post-renderer,
@@ -168,16 +159,16 @@ function generateCreatorProfileCSS(
     `);
   }
 
-  // Hide/show Shorts in Home tab based on settings
-  if (!pageSettings.showShortsInHome) {
+  // Hide/show Shorts content based on global settings
+  if (!globalNavigation.enableShorts) {
     rules.push(`
-      /* Hide Shorts in Home tab */
+      /* Hide Shorts content */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_CONTENT} {
         display: none !important;
       }
     `);
   } else {
-    // Explicitly show Shorts in Home tab when enabled (overrides critical CSS)
+    // Explicitly show Shorts when enabled (overrides critical CSS)
     // Must match ALL selectors from critical.css
     rules.push(`
       ytd-browse[page-subtype='channels'] ytd-reel-shelf-renderer,
@@ -392,13 +383,13 @@ function generateCreatorProfileCSS(
 }
 
 /**
- * Filters creator profile content based on settings
+ * Filters creator profile content based on global settings
  * Applies dynamic hiding to content that can't be controlled via CSS alone
  * Also restores previously hidden content when settings are enabled
  *
- * @param pageSettings - Creator profile page settings
+ * @param globalNavigation - Global navigation settings
  */
-function filterCreatorProfileContent(pageSettings: CreatorProfilePageSettings): void {
+function filterCreatorProfileContent(globalNavigation: GlobalNavigationSettings): void {
   // First, restore all previously filtered content
   const filteredElements = document.querySelectorAll<HTMLElement>('[data-fockey-filtered]');
   filteredElements.forEach((element) => {
@@ -406,9 +397,8 @@ function filterCreatorProfileContent(pageSettings: CreatorProfilePageSettings): 
     element.removeAttribute('data-fockey-filtered');
   });
 
-  // Filter Community posts only if BOTH showCommunityTab and showCommunityInHome are disabled
-  // If either is enabled, posts should be visible
-  if (!pageSettings.showCommunityTab && !pageSettings.showCommunityInHome) {
+  // Filter Community posts if Posts are disabled globally
+  if (!globalNavigation.enablePosts) {
     // Hide individual community posts
     const communityPosts = document.querySelectorAll<HTMLElement>(
       CREATOR_PROFILE_SELECTORS.COMMUNITY_POSTS
@@ -428,8 +418,8 @@ function filterCreatorProfileContent(pageSettings: CreatorProfilePageSettings): 
     });
   }
 
-  // Filter Shorts in Home tab if setting is disabled
-  if (!pageSettings.showShortsInHome) {
+  // Filter Shorts if disabled globally
+  if (!globalNavigation.enableShorts) {
     const shortsElements = document.querySelectorAll<HTMLElement>(
       CREATOR_PROFILE_SELECTORS.SHORTS_CONTENT
     );
@@ -453,8 +443,8 @@ function setupCreatorProfileObserver(): MutationObserver {
   // Debounced content filtering to prevent excessive calls
   const debouncedFilter = debounce(() => {
     // Use current settings from module-level variables, not captured parameters
-    if (currentPageSettings) {
-      filterCreatorProfileContent(currentPageSettings);
+    if (currentGlobalNavigation) {
+      filterCreatorProfileContent(currentGlobalNavigation);
     }
   }, 100);
 
@@ -495,7 +485,6 @@ export async function initCreatorProfileModule(
   });
 
   // Store current settings for mutation observer to use
-  currentPageSettings = pageSettings;
   currentGlobalNavigation = globalNavigation;
 
   // Generate and inject CSS
@@ -503,7 +492,7 @@ export async function initCreatorProfileModule(
   injectCSS(css, STYLE_TAG_ID);
 
   // Apply initial content filtering
-  filterCreatorProfileContent(pageSettings);
+  filterCreatorProfileContent(globalNavigation);
 
   // Set up mutation observer for dynamic content (uses stored settings)
   mutationObserver = setupCreatorProfileObserver();
@@ -532,7 +521,6 @@ export function applyCreatorProfileSettings(
   });
 
   // Store current settings for mutation observer to use
-  currentPageSettings = pageSettings;
   currentGlobalNavigation = globalNavigation;
 
   // Regenerate and inject CSS with updated settings
@@ -540,7 +528,7 @@ export function applyCreatorProfileSettings(
   injectCSS(css, STYLE_TAG_ID);
 
   // Re-apply content filtering
-  filterCreatorProfileContent(pageSettings);
+  filterCreatorProfileContent(globalNavigation);
 
   // Update hover preview blocker settings
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
@@ -559,7 +547,6 @@ export function cleanupCreatorProfileModule(): void {
   removeCSS(STYLE_TAG_ID);
 
   // Clear current settings
-  currentPageSettings = null;
   currentGlobalNavigation = null;
 
   // Disconnect mutation observer

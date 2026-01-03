@@ -48,6 +48,8 @@ function validateGlobalNavigationSettings(settings: unknown): settings is Global
     'showProfile',
     'showNotifications',
     'enableHoverPreviews',
+    'enableShorts',
+    'enablePosts',
   ]);
 }
 
@@ -67,12 +69,7 @@ function validateHomePageSettings(settings: unknown): settings is HomePageSettin
  * Validates SearchPageSettings structure
  */
 function validateSearchPageSettings(settings: unknown): settings is SearchPageSettings {
-  return validateBooleanObject(settings, [
-    'showShorts',
-    'showCommunityPosts',
-    'showMixes',
-    'blurThumbnails',
-  ]);
+  return validateBooleanObject(settings, ['showMixes', 'blurThumbnails']);
 }
 
 /**
@@ -93,16 +90,16 @@ function validateWatchPageSettings(settings: unknown): settings is WatchPageSett
 
 /**
  * Validates CreatorProfilePageSettings structure
+ * Note: CreatorProfilePageSettings is currently empty (reserved for future expansion)
  */
 function validateCreatorProfilePageSettings(
   settings: unknown
 ): settings is CreatorProfilePageSettings {
-  return validateBooleanObject(settings, [
-    'showShortsTab',
-    'showCommunityTab',
-    'showCommunityInHome',
-    'showShortsInHome',
-  ]);
+  // CreatorProfilePageSettings is an empty interface - just validate it's an object
+  if (!settings || typeof settings !== 'object') {
+    return false;
+  }
+  return true;
 }
 
 /**

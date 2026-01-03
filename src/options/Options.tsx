@@ -403,7 +403,7 @@ const Options: React.FC = () => {
                 <TabsContent value="elements" className="space-y-4 animate-in fade-in duration-200">
                   <Accordion
                     type="multiple"
-                    defaultValue={['globalNavigation', 'search', 'watch', 'creatorProfile']}
+                    defaultValue={['globalNavigation', 'search', 'watch']}
                     className="w-full space-y-3"
                   >
                     {/* Global Navigation Elements */}
@@ -498,32 +498,32 @@ const Options: React.FC = () => {
                           />
 
                           <SettingToggle
-                            id="global-enable-shorts-urls"
-                            label="Enable Shorts URLs"
-                            description="Allow direct navigation to YouTube Shorts URLs (/shorts/...)"
-                            checked={settings.youtube.globalNavigation.enableShortsUrls}
+                            id="global-enable-shorts"
+                            label="Enable Shorts"
+                            description="Enable YouTube Shorts globally across all pages"
+                            checked={settings.youtube.globalNavigation.enableShorts}
                             onChange={(checked) =>
                               handleSettingChange(
-                                ['youtube', 'globalNavigation', 'enableShortsUrls'],
+                                ['youtube', 'globalNavigation', 'enableShorts'],
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), direct Shorts URLs are blocked. Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profile pages (use page-specific toggles for those)."
+                            tooltip="When disabled (default), all Shorts content is blocked including direct Shorts URLs, Shorts in search results, Shorts tabs on creator profiles, and Shorts in creator profile home tabs."
                             disabled={lockState?.isLocked === true}
                           />
 
                           <SettingToggle
-                            id="global-enable-posts-urls"
-                            label="Enable Posts URLs"
-                            description="Allow direct navigation to YouTube Posts URLs (/post/...)"
-                            checked={settings.youtube.globalNavigation.enablePostsUrls}
+                            id="global-enable-posts"
+                            label="Enable Posts"
+                            description="Enable YouTube Posts globally across all pages"
+                            checked={settings.youtube.globalNavigation.enablePosts}
                             onChange={(checked) =>
                               handleSettingChange(
-                                ['youtube', 'globalNavigation', 'enablePostsUrls'],
+                                ['youtube', 'globalNavigation', 'enablePosts'],
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), direct Posts URLs are blocked. Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profile pages (use page-specific toggles for those)."
+                            tooltip="When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
                             disabled={lockState?.isLocked === true}
                           />
                         </div>
@@ -543,35 +543,10 @@ const Options: React.FC = () => {
                           <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
                             Control which content appears in YouTube search results. By default,
                             only long-form videos are shown. Use{' '}
-                            <strong>Global Navigation Elements</strong> above to control header and
-                            sidebar elements.
+                            <strong>Global Navigation Elements</strong> above to control header,
+                            sidebar elements, Shorts, and Posts visibility.
                           </p>
 
-                          <SettingToggle
-                            id="search-shorts"
-                            label="Show Shorts"
-                            description="Display YouTube Shorts in search results"
-                            checked={settings.youtube.searchPage.showShorts}
-                            onChange={(checked) =>
-                              handleSettingChange(['youtube', 'searchPage', 'showShorts'], checked)
-                            }
-                            tooltip="Short-form vertical videos (YouTube Shorts)"
-                            disabled={lockState?.isLocked === true}
-                          />
-                          <SettingToggle
-                            id="search-community"
-                            label="Show Community Posts"
-                            description="Display community posts in search results"
-                            checked={settings.youtube.searchPage.showCommunityPosts}
-                            onChange={(checked) =>
-                              handleSettingChange(
-                                ['youtube', 'searchPage', 'showCommunityPosts'],
-                                checked
-                              )
-                            }
-                            tooltip="Text, image, and poll posts from creators"
-                            disabled={lockState?.isLocked === true}
-                          />
                           <SettingToggle
                             id="search-mixes"
                             label="Show Mixes/Playlists"
@@ -709,84 +684,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            disabled={lockState?.isLocked === true}
-                          />
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    {/* Creator Profile Page Settings */}
-                    <AccordionItem
-                      value="creatorProfile"
-                      className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
-                    >
-                      <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
-                        Creator Profile Page Settings
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4">
-                        <div className="space-y-1 pt-2">
-                          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
-                            Control which tabs and content appear on YouTube channel/creator profile
-                            pages. Channel action buttons (Subscribe, Join, Notifications, See
-                            Perks) are always visible on creator profiles. Use{' '}
-                            <strong>Global Navigation Elements</strong> above to control header and
-                            sidebar elements.
-                          </p>
-
-                          <SettingToggle
-                            id="creator-shorts-tab"
-                            label="Show Shorts Tab"
-                            description="Display the Shorts tab on creator profiles"
-                            checked={settings.youtube.creatorProfilePage.showShortsTab}
-                            onChange={(checked) =>
-                              handleSettingChange(
-                                ['youtube', 'creatorProfilePage', 'showShortsTab'],
-                                checked
-                              )
-                            }
-                            tooltip="The tab that shows the creator's Shorts videos"
-                            disabled={lockState?.isLocked === true}
-                          />
-                          <SettingToggle
-                            id="creator-community-tab"
-                            label="Show Posts Tab"
-                            description="Display the Community/Posts tab"
-                            checked={settings.youtube.creatorProfilePage.showCommunityTab}
-                            onChange={(checked) =>
-                              handleSettingChange(
-                                ['youtube', 'creatorProfilePage', 'showCommunityTab'],
-                                checked
-                              )
-                            }
-                            tooltip="The tab that shows community posts and updates"
-                            disabled={lockState?.isLocked === true}
-                          />
-                          <SettingToggle
-                            id="creator-community-in-home"
-                            label="Show Community Posts in Home Tab"
-                            description="Display community posts in the Home tab"
-                            checked={settings.youtube.creatorProfilePage.showCommunityInHome}
-                            onChange={(checked) =>
-                              handleSettingChange(
-                                ['youtube', 'creatorProfilePage', 'showCommunityInHome'],
-                                checked
-                              )
-                            }
-                            tooltip="Text, image, and poll posts shown on the channel's Home tab"
-                            disabled={lockState?.isLocked === true}
-                          />
-                          <SettingToggle
-                            id="creator-shorts-in-home"
-                            label="Show Shorts in Home Tab"
-                            description="Display Shorts content in the Home tab"
-                            checked={settings.youtube.creatorProfilePage.showShortsInHome}
-                            onChange={(checked) =>
-                              handleSettingChange(
-                                ['youtube', 'creatorProfilePage', 'showShortsInHome'],
-                                checked
-                              )
-                            }
-                            tooltip="Shorts shelf shown on the channel's Home tab"
                             disabled={lockState?.isLocked === true}
                           />
                         </div>

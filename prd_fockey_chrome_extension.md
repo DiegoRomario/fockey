@@ -109,8 +109,8 @@ YouTube's persistent navigation elements appear consistently across all pages. T
 - **Hamburger menu** (button that toggles the sidebar)
 - **Profile avatar** (account button in top-right)
 - **Notifications bell** (notification icon in top-right)
-- **Shorts URL blocking** (controls whether direct Shorts URLs are accessible)
-- **Posts URL blocking** (controls whether direct Posts URLs are accessible)
+- **Shorts blocking** (controls whether all Shorts content is accessible across all pages)
+- **Posts blocking** (controls whether all Posts content is accessible across all pages)
 
 ### Unified Control
 
@@ -138,15 +138,15 @@ The **left sidebar** and **hamburger menu** are treated as a **single, unified c
 
 ### Default Behavior (Minimalist Mode)
 
-By default, **all global navigation elements are hidden** to create a distraction-free, content-focused experience:
+By default, **all global navigation elements are hidden** and **all Shorts and Posts content is blocked** to create a distraction-free, content-focused experience:
 
 - YouTube logo: **Hidden**
 - Left sidebar: **Hidden**
 - Hamburger menu: **Hidden** (unified with sidebar)
 - Profile avatar: **Hidden**
 - Notifications bell: **Hidden**
-- Shorts URLs: **Blocked** (direct navigation to `/shorts/...` URLs redirects to block page)
-- Posts URLs: **Blocked** (direct navigation to `/post/...` URLs redirects to block page)
+- Shorts: **Blocked globally** (direct URLs, search results, creator profile tabs, and home tab content)
+- Posts: **Blocked globally** (direct URLs, search results, creator profile tabs, and home tab content)
 
 Users can selectively re-enable any element via the extension settings.
 
@@ -154,13 +154,13 @@ Users can selectively re-enable any element via the extension settings.
 
 **Global Navigation Settings:**
 - Apply to **all YouTube pages** simultaneously
-- Control persistent navigation elements and global blocking rules
-- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts URL blocking, Posts URL blocking
+- Control persistent navigation elements and global content blocking
+- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts blocking, Posts blocking
 
 **Page-Specific Settings:**
 - Apply to **individual page types** only
-- Control page-specific content and features
-- Examples: Shorts visibility (Search page), engagement buttons (Watch page)
+- Control page-specific features and behaviors
+- Examples: Thumbnail blur (Search page), engagement buttons (Watch page)
 
 ### User Interface Organization
 
@@ -170,64 +170,65 @@ The section is clearly labeled to indicate these controls affect all YouTube pag
 
 ---
 
-### Shorts URL Blocking Feature
+### Shorts Blocking Feature
 
 #### Overview
 
-The Shorts URL Blocking feature provides users with **global control over YouTube Shorts accessibility** by blocking direct navigation to Shorts URLs (`/shorts/...`). This feature is part of the Global Navigation Settings and applies uniformly across all YouTube pages.
+The Shorts Blocking feature provides users with **global control over all YouTube Shorts content** across the entire platform. This feature is part of the Global Navigation Settings and applies uniformly to all YouTube pages, providing a single toggle to control Shorts visibility in all contexts.
 
 #### Key Characteristics
 
-- **Scope:** Global setting that affects all YouTube pages
-- **Default Behavior:** **Shorts URLs are blocked by default** (minimalist principle)
-- **Independence:** This setting **only controls direct Shorts URL navigation**, not Shorts visibility in search results or creator profile pages
-- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect)
+- **Scope:** Single global setting that controls all Shorts content across all YouTube pages
+- **Default Behavior:** **All Shorts content is blocked by default** (minimalist principle)
+- **Comprehensive Control:** One toggle controls Shorts URLs, search results, creator profile tabs, and home tab content
+- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect) for URL blocking
 
 #### Behavior Details
 
-**When Shorts URLs are Blocked (Default):**
+**When Shorts are Blocked (Default):**
 - Direct navigation to any `/shorts/...` URL (e.g., `https://www.youtube.com/shorts/TUNcmnOYYTg`) is **intercepted**
 - User is immediately redirected to the **blocked page** (`blocked/index.html`)
 - Block page displays a Shorts-specific message: "YouTube Shorts are blocked."
 - Blocked URL is shown for reference
 - "Go Back" button navigates user to YouTube Home
+- **Shorts are hidden from search results** (no Shorts appear in search)
+- **Shorts tab is hidden on creator profile pages** (tab completely removed)
+- **Shorts shelves are hidden in creator profile Home tabs** (no Shorts content shown)
 
-**When Shorts URLs are Enabled:**
+**When Shorts are Enabled:**
 - Direct Shorts URLs function normally
 - No redirection occurs
 - Shorts videos play as expected
+- **Shorts appear in search results** as part of normal search results
+- **Shorts tab is visible on creator profile pages**
+- **Shorts shelves appear in creator profile Home tabs**
 
-#### Distinction from Page-Specific Shorts Toggles
+#### Global Control Scope
 
-**Important:** The Shorts URL Blocking feature is **completely independent** from page-specific Shorts visibility settings:
+The Shorts Blocking feature uses a **single toggle** to control all Shorts-related content across the platform:
 
-| Feature | Scope | Controls |
-|---------|-------|----------|
-| **Shorts URL Blocking** (Global) | All pages | Direct navigation to `/shorts/...` URLs |
-| **Show Shorts** (Search Page) | Search page only | Shorts visibility in search results |
-| **Show Shorts Tab** (Creator Profile) | Creator profile only | Shorts tab visibility on channel pages |
-| **Show Shorts in Home Tab** (Creator Profile) | Creator profile only | Shorts shelf in channel Home tab |
-
-**Example Scenario:**
-- User has Shorts URL Blocking **enabled** (Shorts URLs accessible)
-- User has "Show Shorts" (Search Page) **disabled**
-- **Result:** User can navigate directly to Shorts URLs, but Shorts won't appear in search results
+| Content Type | Controlled By | Behavior When Disabled |
+|--------------|---------------|------------------------|
+| Direct Shorts URLs (`/shorts/...`) | `enableShorts` (Global) | Redirected to block page |
+| Shorts in search results | `enableShorts` (Global) | Hidden from search results |
+| Shorts tab on creator profiles | `enableShorts` (Global) | Tab hidden completely |
+| Shorts in creator profile Home tab | `enableShorts` (Global) | Shorts shelves hidden |
 
 #### User Interface
 
 **Settings Location:**
-- **Options Page:** Global Navigation Elements section (after "Hover Previews")
+- **Options Page:** Global Navigation Elements section (after "Enable Hover Previews")
 - **Popup:** Global tab (after "Enable Hover Previews")
 
 **Toggle Details:**
-- **Label:** "Enable Shorts URLs"
-- **Description (Options):** "Allow direct navigation to YouTube Shorts URLs (/shorts/...)"
-- **Tooltip:** "When disabled (default), direct Shorts URLs are blocked. Note: This only affects direct Shorts URL navigation, not Shorts visibility in search results or creator profile pages (use page-specific toggles for those)."
+- **Label:** "Enable Shorts"
+- **Description (Options):** "Enable YouTube Shorts globally across all pages"
+- **Tooltip:** "When disabled (default), all Shorts content is blocked including direct Shorts URLs, Shorts in search results, Shorts tabs on creator profiles, and Shorts in creator profile home tabs."
 - **Default State:** `false` (blocked)
 
 #### Technical Implementation
 
-**Detection Logic:**
+**URL Detection Logic:**
 - Checks if URL path starts with `/shorts/`
 - Runs on initial page load and SPA navigation
 - Executes **after** channel blocking checks
@@ -237,87 +238,95 @@ The Shorts URL Blocking feature provides users with **global control over YouTub
 - Passes query parameters: `blockType=shorts`, `blockedUrl=[original URL]`
 - Block page detects `blockType` and displays appropriate message
 
+**Content Filtering:**
+- Search page content scripts check `enableShorts` to hide/show Shorts in results
+- Creator profile page content scripts check `enableShorts` to hide/show Shorts tab and content
+- DOM manipulation uses CSS to hide elements when disabled
+
 **Storage:**
-- Setting stored in: `settings.youtube.globalNavigation.enableShortsUrls`
+- Setting stored in: `settings.youtube.globalNavigation.enableShorts`
 - Type: `boolean`
 - Default: `false`
 - Syncs via Chrome Storage API
 
 #### Success Criteria
 
-The Shorts URL Blocking feature is considered **successfully implemented** when:
+The Shorts Blocking feature is considered **successfully implemented** when:
 
 - ✅ Direct Shorts URLs (`/shorts/...`) are blocked by default
 - ✅ Blocked Shorts URLs redirect to the block page with correct message
 - ✅ Block page clearly states "YouTube Shorts are blocked" with instructions
-- ✅ Enabling the toggle allows Shorts URLs to function normally
+- ✅ Shorts are hidden from search results when disabled
+- ✅ Shorts tab is hidden on creator profiles when disabled
+- ✅ Shorts shelves are hidden in creator profile Home tabs when disabled
+- ✅ Enabling the toggle allows all Shorts content to function normally across all pages
 - ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
-- ✅ Tooltip explains the feature scope (URL-only, not search/profile Shorts)
-- ✅ Feature is completely independent of page-specific Shorts toggles
-- ✅ No performance impact or flickering during URL checks
+- ✅ Tooltip explains the unified global scope (all Shorts content, all pages)
+- ✅ No performance impact or flickering during URL checks or content filtering
 - ✅ Works correctly with YouTube SPA navigation
 - ✅ All code passes lint, format, and type checks
 
 ---
 
-### Posts URL Blocking Feature
+### Posts Blocking Feature
 
 #### Overview
 
-The Posts URL Blocking feature provides users with **global control over YouTube Community Posts accessibility** by blocking direct navigation to Posts URLs (`/post/...`). This feature is part of the Global Navigation Settings and applies uniformly across all YouTube pages.
+The Posts Blocking feature provides users with **global control over all YouTube Community Posts content** across the entire platform. This feature is part of the Global Navigation Settings and applies uniformly to all YouTube pages, providing a single toggle to control Posts visibility in all contexts.
 
 #### Key Characteristics
 
-- **Scope:** Global setting that affects all YouTube pages
-- **Default Behavior:** **Posts URLs are blocked by default** (minimalist principle)
-- **Independence:** This setting **only controls direct Posts URL navigation**, not Posts visibility in search results or creator profile pages
-- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect)
+- **Scope:** Single global setting that controls all Posts content across all YouTube pages
+- **Default Behavior:** **All Posts content is blocked by default** (minimalist principle)
+- **Comprehensive Control:** One toggle controls Posts URLs, search results, creator profile tabs, and home tab content
+- **Integration:** Uses the existing channel blocking infrastructure (blocked page redirect) for URL blocking
 
 #### Behavior Details
 
-**When Posts URLs are Blocked (Default):**
+**When Posts are Blocked (Default):**
 - Direct navigation to any `/post/...` URL (e.g., `https://www.youtube.com/post/Ugkx9qLawJCXRvR27Us6sFIOcHEvm8jk3_-2`) is **intercepted**
 - User is immediately redirected to the **blocked page** (`blocked/index.html`)
 - Block page displays a Posts-specific message: "YouTube Posts are blocked."
 - Blocked URL is shown for reference
 - "Go Back" button navigates user to YouTube Home
+- **Community Posts are hidden from search results** (no Posts appear in search)
+- **Posts tab is hidden on creator profile pages** (tab completely removed)
+- **Community Posts are hidden in creator profile Home tabs** (no Posts content shown)
 
-**When Posts URLs are Enabled:**
+**When Posts are Enabled:**
 - Direct Posts URLs function normally
 - No redirection occurs
 - Posts content displays as expected
+- **Community Posts appear in search results** as part of normal search results
+- **Posts tab is visible on creator profile pages**
+- **Community Posts appear in creator profile Home tabs**
 
-#### Distinction from Page-Specific Posts Toggles
+#### Global Control Scope
 
-**Important:** The Posts URL Blocking feature is **completely independent** from page-specific Posts visibility settings:
+The Posts Blocking feature uses a **single toggle** to control all Posts-related content across the platform:
 
-| Feature | Scope | Controls |
-|---------|-------|----------|
-| **Posts URL Blocking** (Global) | All pages | Direct navigation to `/post/...` URLs |
-| **Show Community Posts** (Search Page) | Search page only | Community Posts visibility in search results |
-| **Show Posts Tab** (Creator Profile) | Creator profile only | Posts tab visibility on channel pages |
-| **Show Community Posts in Home Tab** (Creator Profile) | Creator profile only | Posts content in channel Home tab |
-
-**Example Scenario:**
-- User has Posts URL Blocking **enabled** (Posts URLs accessible)
-- User has "Show Community Posts" (Search Page) **disabled**
-- **Result:** User can navigate directly to Posts URLs, but Posts won't appear in search results
+| Content Type | Controlled By | Behavior When Disabled |
+|--------------|---------------|------------------------|
+| Direct Posts URLs (`/post/...`) | `enablePosts` (Global) | Redirected to block page |
+| Community Posts in search results | `enablePosts` (Global) | Hidden from search results |
+| Posts tab on creator profiles | `enablePosts` (Global) | Tab hidden completely |
+| Community Posts in creator profile Home tab | `enablePosts` (Global) | Posts hidden |
 
 #### User Interface
 
 **Settings Location:**
-- **Options Page:** Global Navigation Elements section (after "Enable Shorts URLs")
-- **Popup:** Global tab (after "Enable Shorts URLs")
+- **Options Page:** Global Navigation Elements section (after "Enable Shorts")
+- **Popup:** Global tab (after "Enable Shorts")
 
 **Toggle Details:**
-- **Label:** "Enable Posts URLs"
-- **Description (Options):** "Allow direct navigation to YouTube Posts URLs (/post/...)"
-- **Tooltip:** "When disabled (default), direct Posts URLs are blocked. Note: This only affects direct Posts URL navigation, not Posts visibility in search results or creator profile pages (use page-specific toggles for those)."
+- **Label:** "Enable Posts"
+- **Description (Options):** "Enable YouTube Posts globally across all pages"
+- **Tooltip:** "When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
 - **Default State:** `false` (blocked)
 
 #### Technical Implementation
 
-**Detection Logic:**
+**URL Detection Logic:**
 - Checks if URL path starts with `/post/`
 - Runs on initial page load and SPA navigation
 - Executes in parallel with Shorts URL checking
@@ -327,24 +336,31 @@ The Posts URL Blocking feature provides users with **global control over YouTube
 - Passes query parameters: `blockType=posts`, `blockedUrl=[original URL]`
 - Block page detects `blockType` and displays appropriate message
 
+**Content Filtering:**
+- Search page content scripts check `enablePosts` to hide/show Community Posts in results
+- Creator profile page content scripts check `enablePosts` to hide/show Posts tab and content
+- DOM manipulation uses CSS to hide elements when disabled
+
 **Storage:**
-- Setting stored in: `settings.youtube.globalNavigation.enablePostsUrls`
+- Setting stored in: `settings.youtube.globalNavigation.enablePosts`
 - Type: `boolean`
 - Default: `false`
 - Syncs via Chrome Storage API
 
 #### Success Criteria
 
-The Posts URL Blocking feature is considered **successfully implemented** when:
+The Posts Blocking feature is considered **successfully implemented** when:
 
 - ✅ Direct Posts URLs (`/post/...`) are blocked by default
 - ✅ Blocked Posts URLs redirect to the block page with correct message
 - ✅ Block page clearly states "YouTube Posts are blocked"
-- ✅ Enabling the toggle allows Posts URLs to function normally
+- ✅ Community Posts are hidden from search results when disabled
+- ✅ Posts tab is hidden on creator profiles when disabled
+- ✅ Community Posts are hidden in creator profile Home tabs when disabled
+- ✅ Enabling the toggle allows all Posts content to function normally across all pages
 - ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
-- ✅ Tooltip explains the feature scope (URL-only, not search/profile Posts)
-- ✅ Feature is completely independent of page-specific Posts toggles
-- ✅ No performance impact or flickering during URL checks
+- ✅ Tooltip explains the unified global scope (all Posts content, all pages)
+- ✅ No performance impact or flickering during URL checks or content filtering
 - ✅ Works correctly with YouTube SPA navigation
 - ✅ All code passes lint, format, and type checks
 
@@ -504,19 +520,19 @@ All filter controls remain accessible via the **Filters button**.
 
 **Global Navigation Elements:**
 
-All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
+All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) and content blocking (Shorts, Posts) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
 
 These settings apply globally across all YouTube pages, not just the Search page.
 
 **Page-Specific Content Options:**
-- ☑️ Show Shorts in search results
-- ☑️ Show Community posts
 - ☑️ Show Mixes / Playlists
 
 **Page-Specific Visual Adjustments:**
 - ☑️ **Thumbnail blur** (instead of hide) — reduces visual stimulation while keeping structural awareness of thumbnails
 
 **Important:** By default, **all header/sidebar elements and distracting content are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings.
+
+Shorts and Community Posts visibility in search results is controlled by the global **Enable Shorts** and **Enable Posts** toggles (see Global Navigation Elements section).
 
 ---
 
@@ -548,7 +564,8 @@ The Search Page is considered **successfully implemented** when:
 
 - ✅ Only the search bar, filters button, and long-form video results are visible by default
 - ✅ All navigation chrome (logo, sidebar, profile, etc.) is hidden
-- ✅ Shorts, posts, and algorithmic suggestions are removed from results
+- ✅ Shorts and posts are removed from results (controlled by global Enable Shorts and Enable Posts toggles)
+- ✅ Algorithmic suggestions are removed from results
 - ✅ Native YouTube search functionality remains intact
 - ✅ Filters button works correctly and all filter options are accessible
 - ✅ Visual design matches the minimalist style of the Home Page
@@ -696,23 +713,17 @@ The following elements **must be hidden** to maintain the minimalist, distractio
 
 **Global Navigation Elements:**
 
-All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
+All persistent navigation elements (YouTube logo, left sidebar, profile avatar, notifications bell) and content blocking (Shorts, Posts) are controlled by the **Global Navigation settings** described in the "Global Navigation Elements" section above.
 
 These settings apply globally across all YouTube pages, not just the Creator Profile page.
-
-**Page-Specific Tab Visibility Options:**
-- ☑️ Show Shorts tab
-- ☑️ Show Posts / Community tab
-
-**Page-Specific Content Filtering Options (Home Tab Only):**
-- ☑️ Show Community posts in Home tab
-- ☑️ Show Shorts in Home tab
 
 **Channel Action Buttons:**
 
 Channel action buttons (Subscribe, Join, Notifications Bell, See Perks) are **always visible** on creator profile pages by default and are **not configurable** on this page. These buttons are essential for creator-viewer interaction and engagement. Users can control these buttons specifically on the Watch page if desired.
 
-**Important:** By default, **all header/sidebar elements and distraction-prone tabs are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings. The four configurable options for Creator Profile pages are intentionally minimal to preserve the core channel browsing experience.
+**Important:** By default, **all header/sidebar elements and distraction-prone content are hidden** to maintain focus. Users must explicitly opt-in to restore any of these elements via the extension settings.
+
+Shorts and Posts visibility on creator profiles (tabs and home tab content) is controlled by the global **Enable Shorts** and **Enable Posts** toggles (see Global Navigation Elements section).
 
 ---
 
@@ -750,14 +761,13 @@ The Creator Profile Page is considered **successfully implemented** when:
 
 - ✅ Only the search bar, channel header (banner, avatar, name, metadata), channel action buttons (Subscribe, Join, Notifications, See Perks), and Videos tab are visible by default
 - ✅ All navigation chrome (logo, sidebar, profile avatar, notifications bell) is hidden by default (controlled by Global Navigation settings)
-- ✅ Shorts and Posts tabs are hidden by default
-- ✅ Shorts content is filtered out of the Home tab unless explicitly enabled
-- ✅ Community posts are filtered out of the Home tab unless explicitly enabled
+- ✅ Shorts and Posts tabs are hidden by default (controlled by global Enable Shorts and Enable Posts toggles)
+- ✅ Shorts content is filtered out of all tabs (controlled by global Enable Shorts toggle)
+- ✅ Community posts are filtered out of all tabs (controlled by global Enable Posts toggle)
 - ✅ Channel action buttons (Subscribe, Join, Notifications Bell, See Perks) remain always visible and are not configurable
 - ✅ Native YouTube channel navigation and tab switching remain intact
 - ✅ Channel metadata and creator information remain fully accessible
 - ✅ Visual design matches the minimalist style of the Home and Search pages
-- ✅ Settings allow granular control over 4 specific options: Show Shorts Tab, Show Posts Tab, Show Community Posts in Home Tab, Show Shorts in Home Tab
 - ✅ No performance degradation or flickering during page load or tab switching
 
 ---
@@ -1436,8 +1446,8 @@ The Lock Mode feature is considered **successfully implemented** when:
 | **Global Navigation**      | Left Sidebar (+ Hamburger) | Off     | Yes          | All pages      |
 | **Global Navigation**      | Profile Avatar             | Off     | Yes          | All pages      |
 | **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
-| **Global Navigation**      | Enable Shorts URLs         | Off     | Yes          | All pages      |
-| **Global Navigation**      | Enable Posts URLs          | Off     | Yes          | All pages      |
+| **Global Navigation**      | Enable Shorts              | Off     | Yes          | All pages      |
+| **Global Navigation**      | Enable Posts               | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
 | **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |
@@ -1449,11 +1459,10 @@ The Lock Mode feature is considered **successfully implemented** when:
 | **Home**            | Search bar                 | On      | No           | Home only      |
 | **Home**            | Feed, Shorts               | Off     | N/A          | Home only      |
 | **Search**          | Search bar, Results        | On      | No           | Search only    |
-| **Search**          | Shorts / Posts             | Off     | Yes          | Search only    |
+| **Search**          | Mixes / Playlists          | Off     | Yes          | Search only    |
 | **Search**          | Thumbnail blur             | Off     | Yes          | Search only    |
 | **Creator**         | Channel info & tabs        | On      | No           | Creator only   |
-| **Creator**         | Shorts / Posts tabs        | Off     | Yes          | Creator only   |
-| **Creator**         | Channel action buttons     | Off     | Yes          | Creator only   |
+| **Creator**         | Channel action buttons     | On      | No           | Creator only   |
 | **Watch**           | Video player               | On      | No           | Watch only     |
 | **Watch**           | Channel info section       | On      | Yes          | Watch only     |
 | **Watch**           | Engagement buttons         | Off     | Yes          | Watch only     |
