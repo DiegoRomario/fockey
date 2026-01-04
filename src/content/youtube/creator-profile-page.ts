@@ -151,10 +151,13 @@ function generateCreatorProfileCSS(
   } else {
     // Explicitly show Community posts when enabled (overrides critical CSS)
     // Must match ALL selectors from critical.css
+    // Use 'revert' to restore YouTube's native display value (preserves grid/flex layout)
     rules.push(`
-      ytd-browse[page-subtype='channels'] ytd-post-renderer,
-      ytd-browse[page-subtype='channels'] ytd-backstage-post-renderer {
-        display: block !important;
+      ytd-browse[page-subtype='channels'] ytd-tab-renderer[page-type='ProfileChannelTab'] ytd-post-renderer,
+      ytd-browse[page-subtype='channels'] ytd-tab-renderer[page-type='ProfileChannelTab'] ytd-backstage-post-renderer,
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer:has(ytd-post-renderer),
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer:has(ytd-backstage-post-renderer) {
+        display: revert !important;
       }
     `);
   }

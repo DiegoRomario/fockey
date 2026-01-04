@@ -191,9 +191,16 @@ ytd-tab-renderer[tab-title='Posts'] {
   display: none !important;
 }
 
-/* Community posts and Shorts in Home tab (always hidden by default) */
-ytd-browse[page-subtype='channels'] ytd-post-renderer,
-ytd-browse[page-subtype='channels'] ytd-backstage-post-renderer,
+/* Community posts and Shorts in channel tabs (always hidden by default) */
+/* Scope to channel tabs specifically to avoid hiding Posts on /post/* detail pages */
+ytd-browse[page-subtype='channels']
+  ytd-tab-renderer[page-type='ProfileChannelTab']
+  ytd-post-renderer,
+ytd-browse[page-subtype='channels']
+  ytd-tab-renderer[page-type='ProfileChannelTab']
+  ytd-backstage-post-renderer,
+ytd-browse[page-subtype='channels'] ytd-rich-item-renderer:has(ytd-post-renderer),
+ytd-browse[page-subtype='channels'] ytd-rich-item-renderer:has(ytd-backstage-post-renderer),
 ytd-browse[page-subtype='channels'] ytd-reel-shelf-renderer,
 ytd-browse[page-subtype='channels'] ytd-rich-shelf-renderer[is-shorts] {
   display: none !important;
