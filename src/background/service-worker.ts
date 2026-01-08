@@ -11,6 +11,7 @@ import {
   activateLockMode,
   extendLockMode,
   unlockLockMode,
+  getSchedules,
 } from '../shared/storage';
 import { DEFAULT_SETTINGS, ExtensionSettings, LockModeState } from '../shared/types/settings';
 import type {
@@ -23,6 +24,7 @@ import type {
   ExtendLockModeResponse,
   GetLockStateResponse,
 } from '../shared/types/messages';
+import { shouldBlockPage, formatTimePeriod } from '../shared/utils/schedule-utils';
 
 /**
  * Debug mode flag - set to true to enable detailed logging
@@ -588,6 +590,81 @@ async function handleLockModeUnlock(): Promise<void> {
     logger.error('Failed to unlock Lock Mode', error);
   }
 }
+
+// ==================== NAVIGATION INTERCEPTION FOR SCHEDULE BLOCKING ====================
+
+/**
+ * CRITICAL: Intercept navigation events to check initial URLs before redirects
+ * This solves the redirect bug where:
+ * 1. User navigates to gshow.com
+ * 2. Server redirects to gshow.globo.com
+ * 3. Content script only sees final URL, misses the block
+ *
+ * Solution: Check the INITIAL URL in onBeforeNavigate before any redirects happen
+ */
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  // Only process main frame navigations (not iframes)
+  if (details.frameId !== 0) {
+    return;
+  }
+
+  // Skip blocked page itself
+  if (details.url.includes('blocked/index.html')) {
+    return;
+  }
+
+  // Skip chrome:// and extension:// URLs
+  if (details.url.startsWith('chrome://') || details.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
+  try {
+    // Get active schedules
+    const schedules = await getSchedules();
+
+    if (schedules.length === 0) {
+      return;
+    }
+
+    // Check if the INITIAL URL should be blocked (domain and URL keyword only)
+    // Content keyword check happens later in content script after page loads
+    const blockReason = shouldBlockPage(details.url, schedules);
+
+    if (blockReason) {
+      logger.info(`Navigation blocked by schedule "${blockReason.schedule.name}": ${details.url}`);
+
+      // Build blocked page URL with query parameters
+      let timeWindow = '';
+      if (blockReason.schedule.timePeriods.length > 0) {
+        if (blockReason.schedule.timePeriods.length === 1) {
+          timeWindow = formatTimePeriod(blockReason.schedule.timePeriods[0]);
+        } else {
+          timeWindow = `${blockReason.schedule.timePeriods.length} time periods`;
+        }
+      }
+
+      const params = new URLSearchParams({
+        blockType: 'schedule',
+        scheduleName: blockReason.schedule.name,
+        matchType: blockReason.matchType,
+        matchedValue: blockReason.matchedValue,
+        blockedUrl: details.url,
+      });
+
+      if (timeWindow) {
+        params.set('timeWindow', timeWindow);
+      }
+
+      // Redirect to blocked page
+      const blockedPageUrl = chrome.runtime.getURL(`blocked/index.html?${params.toString()}`);
+
+      // Update the tab to the blocked page
+      await chrome.tabs.update(details.tabId, { url: blockedPageUrl });
+    }
+  } catch (error) {
+    logger.error('Error in navigation interception', error);
+  }
+});
 
 // Log initialization
 logger.info('Service worker initialized successfully');

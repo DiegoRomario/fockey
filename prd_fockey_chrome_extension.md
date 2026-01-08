@@ -1415,6 +1415,119 @@ The Lock Mode feature is considered **successfully implemented** when:
 
 ---
 
+## General Module — Time-Based Website Blocking
+
+### Overview
+
+The General Module extends Fockey's minimalist philosophy beyond YouTube by providing **scheduled, time-based blocking of any website or web content** across the entire internet. Users can create focused work environments by blocking distracting websites during specific days and times.
+
+Each schedule defines **when** to block (days + time periods) and **what** to block (domains, URL keywords, or page content). Multiple schedules can run simultaneously for different contexts (e.g., "Work Hours", "Evening Study", "Weekend Detox").
+
+---
+
+### How Schedules Work
+
+A **Blocking Schedule** consists of:
+
+**1. Schedule Identity**
+- **Name:** Custom label (e.g., "Work Hours Focus")
+- **Icon:** Optional emoji for visual identification (💼, 📚, 🎯)
+- **Status:** Enabled or disabled (can be toggled on/off)
+
+**2. Active Time**
+- **Days:** Any combination of weekdays, weekend, or specific days
+- **Time Periods:** One or more time windows per day in 24-hour format (e.g., "09:00 - 17:00")
+  - Periods cannot cross midnight (must stay within 00:00 - 23:59)
+  - New periods auto-populate 1 minute after the previous period ends
+  - System warns if periods overlap
+
+**3. Blocking Rules** (at least one required)
+- **Domains:** Block entire websites with automatic subdomain inheritance
+- **URL Keywords:** Block pages containing specific keywords in the URL
+- **Content Keywords:** Block pages containing specific keywords in visible text
+
+**Example Schedule:**
+- **Name:** "Work Hours Focus"
+- **Days:** Monday - Friday
+- **Time:** 9:00 AM - 5:00 PM
+- **Blocks:** reddit.com, twitter.com, /shorts, cryptocurrency
+- **Result:** All specified sites and content are blocked during weekday work hours
+
+---
+
+### Blocking Strategies
+
+#### Domain Blocking
+
+Block entire websites by domain name. Blocking a domain automatically blocks all subdomains.
+
+**Examples:**
+- Block `reddit.com` → Also blocks `www.reddit.com`, `old.reddit.com`, `new.reddit.com`
+- Block `youtube.com` → Also blocks `www.youtube.com`, `m.youtube.com`, `music.youtube.com`
+
+**Input Formats:**
+- Domain only: `reddit.com`
+- Full URL: `https://www.reddit.com/r/programming` (auto-normalized to `reddit.com`)
+- Subdomain: `news.ycombinator.com`
+
+#### URL Keyword Blocking
+
+Block pages whose URLs contain specific keywords (case-insensitive).
+
+**Examples:**
+- Keyword `shorts` blocks: `youtube.com/shorts/abc123`, `tiktok.com/shorts/xyz789`
+- Keyword `gaming` blocks: `reddit.com/r/gaming`, `youtube.com/gaming/live`
+
+#### Content Keyword Blocking
+
+Block pages whose visible text contains specific keywords (case-insensitive).
+
+**Examples:**
+- Keyword `cryptocurrency` blocks any page with "cryptocurrency" in visible text
+- Keyword `breaking news` blocks news articles with "breaking news" in content
+
+**Note:** Content keyword blocking requires the page to load partially before checking, making it slightly slower than domain/URL keyword blocking.
+
+---
+
+### Schedules Management
+
+**Schedules List:**
+- View all configured schedules as cards
+- Each card shows: name, icon, status, days, time periods, and blocking rules summary
+- Enable/disable schedules with a toggle switch
+- Edit or delete schedules with inline actions
+- Empty state when no schedules exist
+
+**Create/Edit Schedule:**
+- Set schedule name and optional icon
+- Select active days (with quick presets: Weekdays, Weekend, Every day)
+- Add multiple time periods (auto-populated to prevent overlaps)
+- Add domains, URL keywords, and content keywords
+- Validation ensures all required fields are filled
+
+**Lock Mode Integration:**
+- When Lock Mode is active, schedule editing and deletion are blocked
+- Schedule enable/disable toggles are also blocked
+- Users can still view schedules for reference
+
+---
+
+### Blocked Page
+
+When a schedule blocks a page, users are redirected to the blocked page with:
+
+- **Block message** indicating why the page was blocked:
+  - Domain blocks: "This domain (**example.com**) is blocked by schedule **Work Hours Focus**"
+  - URL keyword blocks: "This URL contains the blocked keyword: **shorts**"
+  - Content keyword blocks: "This page contains the blocked keyword: **cryptocurrency**"
+- **Schedule name** that triggered the block
+- **Active time period** (e.g., "Active: 09:00 - 17:00")
+- **Go Back button** to navigate away
+- **Blocked URL** displayed at the bottom
+
+---
+
 ## Settings & Configuration
 
 ### Access Points

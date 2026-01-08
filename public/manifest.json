@@ -3,8 +3,8 @@
   "name": "Fockey",
   "version": "0.1.0",
   "description": "Minimalist, distraction-free YouTube experience",
-  "permissions": ["storage", "activeTab", "alarms", "tabs", "scripting"],
-  "host_permissions": ["*://*.youtube.com/*"],
+  "permissions": ["storage", "activeTab", "alarms", "tabs", "scripting", "webNavigation"],
+  "host_permissions": ["*://*.youtube.com/*", "<all_urls>"],
   "background": {
     "service_worker": "src/background/service-worker.ts",
     "type": "module"
@@ -24,6 +24,12 @@
       "matches": ["*://*.youtube.com/*"],
       "js": ["src/content/content.ts"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/general-blocker.ts"],
+      "run_at": "document_start",
+      "exclude_matches": ["*://chrome.google.com/*", "*://chromewebstore.google.com/*"]
     }
   ],
   "action": {
@@ -33,7 +39,7 @@
   "web_accessible_resources": [
     {
       "resources": ["blocked/index.html"],
-      "matches": ["*://*.youtube.com/*"]
+      "matches": ["*://*.youtube.com/*", "<all_urls>"]
     }
   ],
   "icons": {

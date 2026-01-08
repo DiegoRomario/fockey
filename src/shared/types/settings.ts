@@ -1,7 +1,69 @@
 /**
  * Settings interface for the Fockey Chrome Extension
- * Defines the complete schema for all YouTube module features
+ * Defines the complete schema for all YouTube module features and general blocking schedules
  */
+
+// ==================== GENERAL MODULE - SCHEDULES ====================
+
+/**
+ * Time period within a schedule
+ * Represents a time range when blocking should be active
+ */
+export interface TimePeriod {
+  /** Start time in HH:MM format (24-hour, e.g., "09:00") */
+  startTime: string;
+  /** End time in HH:MM format (24-hour, e.g., "17:00") */
+  endTime: string;
+}
+
+/**
+ * Blocking Schedule
+ * Defines when and what to block based on time-based rules
+ */
+export interface BlockingSchedule {
+  /** Unique identifier for the schedule */
+  id: string;
+  /** User-friendly name (e.g., "Focus Work") */
+  name: string;
+  /** Optional icon identifier (e.g., "🎯", "🔒", etc.) */
+  icon?: string;
+  /** Whether this schedule is currently enabled */
+  enabled: boolean;
+  /**
+   * Selected days of the week (0-6, where 0 = Sunday)
+   * Examples: [1, 2, 3, 4, 5] for weekdays, [0, 6] for weekend
+   */
+  days: number[];
+  /**
+   * Active time periods when blocking is enforced
+   * Schedule is active when current time falls within ANY period
+   */
+  timePeriods: TimePeriod[];
+  /**
+   * Domains and subdomains to block
+   * Examples: ["globo.com", "example.com"]
+   * Note: Blocking "globo.com" automatically blocks all subdomains (e.g., "ge.globo.com")
+   */
+  blockedDomains: string[];
+  /**
+   * URL keywords to match
+   * Page is blocked if URL contains ANY of these keywords (case-insensitive)
+   * Examples: ["trending", "viral", "news"]
+   */
+  urlKeywords: string[];
+  /**
+   * Content keywords to match
+   * Page is blocked if visible content contains ANY of these keywords (case-insensitive)
+   * Examples: ["breaking news", "celebrity", "sports gossip"]
+   */
+  contentKeywords: string[];
+  /** Timestamp when schedule was created */
+  createdAt: number;
+  /** Timestamp when schedule was last modified */
+  updatedAt: number;
+}
+
+// ==================== YOUTUBE MODULE ====================
 
 /**
  * Global Navigation Elements settings (applies to all YouTube pages)
@@ -177,7 +239,7 @@ export const DEFAULT_LOCK_STATE: Readonly<LockModeState> = {
 
 /**
  * Root settings interface for the extension
- * Contains all extension-wide settings
+ * Contains all extension-wide settings including YouTube module and General blocking schedules
  */
 export interface ExtensionSettings {
   /** Settings schema version for migration support */
@@ -186,6 +248,8 @@ export interface ExtensionSettings {
   youtube: YouTubeModuleSettings;
   /** List of blocked YouTube channels */
   blockedChannels: BlockedChannel[];
+  /** List of time-based blocking schedules (General module) */
+  schedules: BlockingSchedule[];
 }
 
 /**
@@ -234,4 +298,5 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
     },
   },
   blockedChannels: [],
+  schedules: [],
 } as const;

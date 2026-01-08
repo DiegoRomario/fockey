@@ -569,3 +569,175 @@ export async function unlockLockMode(): Promise<void> {
     throw new Error('Failed to unlock lock mode: storage operation failed');
   }
 }
+
+// ==================== SCHEDULE MANAGEMENT FUNCTIONS ====================
+
+/**
+ * Retrieves all blocking schedules
+ *
+ * @returns Promise resolving to array of blocking schedules
+ */
+export async function getSchedules(): Promise<import('../types/settings').BlockingSchedule[]> {
+  const settings = await getSettings();
+  return settings.schedules || [];
+}
+
+/**
+ * Adds a new blocking schedule
+ * Validates schedule before adding to prevent duplicates and invalid data
+ *
+ * @param schedule - Blocking schedule to add
+ * @returns Promise that resolves when schedule is added
+ * @throws Error if schedule is invalid or ID already exists
+ */
+export async function addSchedule(
+  schedule: import('../types/settings').BlockingSchedule
+): Promise<void> {
+  const settings = await getSettings();
+
+  // Check if schedule ID already exists
+  const exists = settings.schedules.some((s) => s.id === schedule.id);
+
+  if (exists) {
+    throw new Error(`Schedule with ID ${schedule.id} already exists`);
+  }
+
+  // Add schedule to list
+  const updatedSettings = {
+    ...settings,
+    schedules: [...settings.schedules, schedule],
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Updates an existing blocking schedule
+ * Merges partial update with existing schedule data
+ *
+ * @param scheduleId - ID of schedule to update
+ * @param updates - Partial schedule with fields to update
+ * @returns Promise that resolves when schedule is updated
+ * @throws Error if schedule not found
+ * @throws Error if lock mode is active
+ */
+export async function updateSchedule(
+  scheduleId: string,
+  updates: Partial<import('../types/settings').BlockingSchedule>
+): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent updating schedules when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot update schedules while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  const settings = await getSettings();
+
+  // Find schedule index
+  const scheduleIndex = settings.schedules.findIndex((s) => s.id === scheduleId);
+
+  if (scheduleIndex === -1) {
+    throw new Error(`Schedule with ID ${scheduleId} not found`);
+  }
+
+  // Merge updates with existing schedule
+  const updatedSchedule = {
+    ...settings.schedules[scheduleIndex],
+    ...updates,
+    updatedAt: Date.now(),
+  };
+
+  // Update schedule in array
+  const updatedSchedules = [...settings.schedules];
+  updatedSchedules[scheduleIndex] = updatedSchedule;
+
+  const updatedSettings = {
+    ...settings,
+    schedules: updatedSchedules,
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Deletes a blocking schedule
+ *
+ * @param scheduleId - ID of schedule to delete
+ * @returns Promise that resolves when schedule is deleted
+ * @throws Error if schedule not found
+ * @throws Error if lock mode is active
+ */
+export async function deleteSchedule(scheduleId: string): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent deleting schedules when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot delete schedules while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  const settings = await getSettings();
+
+  // Check if schedule exists
+  const exists = settings.schedules.some((s) => s.id === scheduleId);
+
+  if (!exists) {
+    throw new Error(`Schedule with ID ${scheduleId} not found`);
+  }
+
+  // Filter out the schedule
+  const updatedSettings = {
+    ...settings,
+    schedules: settings.schedules.filter((s) => s.id !== scheduleId),
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Checks if a schedule exists
+ *
+ * @param scheduleId - Schedule ID to check
+ * @returns Promise resolving to true if schedule exists
+ */
+export async function scheduleExists(scheduleId: string): Promise<boolean> {
+  const schedules = await getSchedules();
+  return schedules.some((s) => s.id === scheduleId);
+}
+
+/**
+ * Gets a single schedule by ID
+ *
+ * @param scheduleId - Schedule ID to retrieve
+ * @returns Promise resolving to schedule or null if not found
+ */
+export async function getSchedule(
+  scheduleId: string
+): Promise<import('../types/settings').BlockingSchedule | null> {
+  const schedules = await getSchedules();
+  return schedules.find((s) => s.id === scheduleId) || null;
+}

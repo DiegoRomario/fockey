@@ -14,6 +14,7 @@ import { SettingToggle } from './components/SettingToggle';
 import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
 import { LockModeSection } from './components/LockModeSection';
+import { Schedules } from './components/Schedules';
 import {
   getSettings,
   updateSettings,
@@ -41,7 +42,7 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { id: 'youtube', label: 'YouTube', icon: Youtube },
-  { id: 'general', label: 'General', icon: Settings, disabled: true },
+  { id: 'general', label: 'General', icon: Settings },
   { id: 'lockMode', label: 'Lock Mode', icon: Lock },
   { id: 'manageSettings', label: 'Manage Settings', icon: Database },
   { id: 'about', label: 'About', icon: Info },
@@ -897,15 +898,8 @@ const Options: React.FC = () => {
             </div>
           )}
 
-          {/* General Tab Content (Disabled) */}
-          {activeTab === 'general' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <h2 className="text-2xl font-semibold mb-2">General Settings</h2>
-                <p className="text-sm text-muted-foreground">Coming soon...</p>
-              </div>
-            </div>
-          )}
+          {/* General Tab Content - Schedules */}
+          {activeTab === 'general' && <Schedules lockState={lockState} />}
         </main>
       </div>
 
