@@ -25,6 +25,7 @@ import type {
   GetLockStateResponse,
 } from '../shared/types/messages';
 import { shouldBlockPage, formatTimePeriod } from '../shared/utils/schedule-utils';
+import { endQuickBlockSession, getQuickBlockSession } from '../shared/utils/quick-block-utils';
 
 /**
  * Debug mode flag - set to true to enable detailed logging
@@ -99,6 +100,10 @@ chrome.runtime.onStartup.addListener(async () => {
     // CRITICAL: Recreate lock mode alarm if lock is active
     // Chrome alarms don't persist across browser restarts
     await recreateLockModeAlarmOnStartup();
+
+    // CRITICAL: Recreate Quick Block alarm if session is active
+    // Chrome alarms don't persist across browser restarts
+    await recreateQuickBlockAlarmOnStartup();
   } catch (error) {
     logger.error('Failed during startup validation', error);
     // Attempt to reset to defaults as fallback
@@ -135,6 +140,11 @@ async function cleanupDeprecatedStorage(): Promise<void> {
  * Lock mode alarm name constant
  */
 const LOCK_MODE_ALARM_NAME = 'unlock-lock-mode';
+
+/**
+ * Quick Block alarm name constant
+ */
+const QUICK_BLOCK_ALARM_NAME = 'quick_block_end';
 
 /**
  * CRITICAL: Recreate lock mode alarm on service worker startup
@@ -183,6 +193,47 @@ async function recreateLockModeAlarmOnStartup(): Promise<void> {
     }
   } catch (error) {
     logger.error('Failed to recreate lock mode alarm on startup', error);
+  }
+}
+
+/**
+ * CRITICAL: Recreate Quick Block alarm on service worker startup
+ * Chrome alarms DO NOT persist across browser restarts
+ *
+ * This function:
+ * 1. Checks if Quick Block session is currently active
+ * 2. If active and alarm doesn't exist, recreates it
+ * 3. If session expired during shutdown, ends it immediately
+ */
+async function recreateQuickBlockAlarmOnStartup(): Promise<void> {
+  try {
+    const session = await getQuickBlockSession();
+
+    if (!session.isActive || !session.endTime) {
+      logger.info('No active Quick Block session on startup');
+      return;
+    }
+
+    const now = Date.now();
+    const timeRemaining = session.endTime - now;
+
+    if (timeRemaining > 0) {
+      // Session is still active - recreate alarm
+      await chrome.alarms.create(QUICK_BLOCK_ALARM_NAME, {
+        when: session.endTime,
+      });
+
+      const minutesRemaining = Math.ceil(timeRemaining / 60000);
+      logger.info(
+        `Quick Block alarm recreated: ${minutesRemaining} minute(s) remaining until ${new Date(session.endTime).toLocaleString()}`
+      );
+    } else {
+      // Session expired during shutdown - end immediately
+      logger.info('Quick Block session expired during shutdown - ending now');
+      await endQuickBlockSession();
+    }
+  } catch (error) {
+    logger.error('Failed to recreate Quick Block alarm on startup', error);
   }
 }
 
@@ -533,6 +584,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // Lock mode unlock alarm fired
     logger.info('Lock mode unlock alarm triggered');
     await handleLockModeUnlock();
+  } else if (alarm.name === QUICK_BLOCK_ALARM_NAME) {
+    // Quick Block session end alarm fired
+    logger.info('Quick Block end alarm triggered');
+    await handleQuickBlockEnd();
   }
 });
 
@@ -588,6 +643,20 @@ async function handleLockModeUnlock(): Promise<void> {
     logger.info('Lock Mode unlocked successfully (silent unlock - no notification)');
   } catch (error) {
     logger.error('Failed to unlock Lock Mode', error);
+  }
+}
+
+/**
+ * Handle Quick Block session end when alarm fires
+ * Silently ends session (no notifications)
+ */
+async function handleQuickBlockEnd(): Promise<void> {
+  try {
+    logger.info('Ending Quick Block session');
+    await endQuickBlockSession();
+    logger.info('Quick Block session ended successfully (silent end - no notification)');
+  } catch (error) {
+    logger.error('Failed to end Quick Block session', error);
   }
 }
 

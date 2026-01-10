@@ -1492,24 +1492,131 @@ Block pages whose visible text contains specific keywords (case-insensitive).
 
 ### Schedules Management
 
-**Schedules List:**
-- View all configured schedules as cards
-- Each card shows: name, icon, status, days, time periods, and blocking rules summary
-- Enable/disable schedules with a toggle switch
-- Edit or delete schedules with inline actions
-- Empty state when no schedules exist
+#### Schedules List
 
-**Create/Edit Schedule:**
-- Set schedule name and optional icon
-- Select active days (with quick presets: Weekdays, Weekend, Every day)
-- Add multiple time periods (auto-populated to prevent overlaps)
-- Add domains, URL keywords, and content keywords
-- Validation ensures all required fields are filled
+**Visual Layout:**
+- **Card-based display** with centered content layout
+- Each card features:
+  - **Large emoji icon** at center-top (or calendar icon placeholder if no emoji selected)
+  - **Schedule name** in large, bold text
+  - **Days** formatted naturally (e.g., "Mon - Fri", "Every day", "Weekends")
+  - **Time periods** formatted with arrows (e.g., "9:00 AM → 5:00 PM")
+  - **Status indicator**: "Active" badge with play icon (green theme) when enabled
 
-**Lock Mode Integration:**
-- When Lock Mode is active, schedule editing and deletion are blocked
-- Schedule enable/disable toggles are also blocked
-- Users can still view schedules for reference
+**Blocking Rules Display:**
+- **Interactive hover cards** showing blocking rules with counts
+- Three color-coded badge categories:
+  - **Domains** (red/rose theme) - Shows count (e.g., "5 domains")
+  - **URL Keywords** (orange theme) - Shows count (e.g., "3 keywords")
+  - **Content Keywords** (amber theme) - Shows count (e.g., "2 keywords")
+- Hover over badge reveals full list of items in scrollable card
+- Consistent color coding with 24/7 Block List and Quick Block
+
+**Actions:**
+- **Options menu** (dropdown) in top-right corner of each card:
+  - **Pause/Resume** - Toggles schedule enabled state
+  - **Delete** - Removes schedule (with confirmation dialog)
+- **Click card to edit** (opens edit dialog)
+- All interactive elements disabled during Lock Mode
+
+**Empty State:**
+- Calendar icon in circle
+- Message: "No schedules configured"
+- Guides users to click "+ Add Schedule" button
+
+**Delete Confirmation:**
+- Alert dialog requires explicit confirmation
+- Message: "Are you sure you want to delete this schedule? This action cannot be undone."
+- Prevents accidental deletion
+
+#### Create/Edit Schedule
+
+**Edit Dialog Interface:**
+
+**Schedule Info Card:**
+- **Name input field** (required)
+- **Icon selector** with emoji options:
+  - 9 emoji choices: 🎯 🔒 🚫 ⏰ 📚 💼 🏃 🧘
+  - Optional selection (calendar icon used if none selected)
+
+**Days Selector Card:**
+- **7 individual day buttons** (Sun - Sat)
+- **Quick select buttons** for convenience:
+  - "All" - Select every day
+  - "Weekdays" - Monday through Friday
+  - "Weekend" - Saturday and Sunday
+  - "Clear" - Deselect all days
+- Selected days highlighted with primary color
+- Visual feedback on selection state
+
+**Active Time Periods Card:**
+- **Multiple time periods** supported per schedule
+- Each period displays:
+  - Clock icon for visual clarity
+  - Period number (Period 1, Period 2, etc.)
+  - Start time input (24-hour format)
+  - Arrow separator
+  - End time input (24-hour format)
+  - Remove button (if more than 1 period exists)
+
+**Time Period Management:**
+- **"Add Period" button** to create additional time windows
+- **Auto-populated defaults**: New periods start 1 minute after previous period ends
+- **Overlap detection** with visual error highlighting (destructive color)
+- **Validation rules**:
+  - Cannot overlap with other periods
+  - Must stay within same day (00:00 - 23:59)
+  - At least 1 hour remaining in day for new periods
+- **Real-time error messages** for time conflicts
+
+**What to Block Section:**
+- **Collapsible container** with expand/collapse icon
+- **Three subsections** with visual separators:
+
+**1. Blocked Domains** (Globe icon, red theme)
+  - Domain input field with "Add" button
+  - Domain validation (requires valid TLD, supports wildcards)
+  - Badge display with removal buttons
+  - Error handling for invalid formats
+  - Empty state message when no domains added
+  - Helper text with examples
+
+**2. URL Keywords** (Link icon, orange theme)
+  - Keyword input field with "Add" button
+  - No validation (any text accepted)
+  - Badge display with removal buttons
+  - Helper text explaining functionality
+
+**3. Content Keywords** (FileText icon, amber theme)
+  - Keyword input field with "Add" button
+  - No validation (any text accepted)
+  - Badge display with removal buttons
+  - Helper text explaining functionality
+
+**Validation & Error Feedback:**
+- **Error summary card** with red background appears when validation fails
+- Lists all validation errors:
+  - Schedule name required
+  - At least one day must be selected
+  - At least one time period required
+  - No overlapping time periods allowed
+  - At least one blocking rule (domain, URL keyword, or content keyword) required
+- Prevents saving until all errors resolved
+
+**Action Buttons:**
+- **"Cancel" button** (outline variant) - Closes dialog without saving
+- **"Save Schedule" button** (primary variant) - Saves changes and updates list
+- Save button disabled until all validation passes
+
+#### Lock Mode Integration
+
+**When Lock Mode is Active:**
+- **All schedule editing blocked** - Edit dialog cannot be opened
+- **Schedule deletion blocked** - Delete option disabled in menu
+- **Pause/Resume blocked** - Cannot toggle schedule enabled state
+- **Visual feedback**: Reduced opacity on locked schedules, disabled state on controls
+- **Tooltip on hover**: Explains lock status and expiration time
+- **Read-only access preserved**: Users can still view schedule details for reference
 
 ---
 
@@ -1525,6 +1632,157 @@ When a schedule blocks a page, users are redirected to the blocked page with:
 - **Active time period** (e.g., "Active: 09:00 - 17:00")
 - **Go Back button** to navigate away
 - **Blocked URL** displayed at the bottom
+
+---
+
+### 24/7 Block List
+
+The 24/7 Block List provides **permanent, always-active blocking** for domains and keywords. Unlike scheduled blocking, which operates during specific time windows, the 24/7 Block List enforces blocks **continuously, regardless of any schedule configuration**.
+
+#### Blocking Categories
+
+**Three-Tab Interface** separating blocking strategies:
+
+**1. Domains Tab**
+- Block entire websites with automatic subdomain inheritance
+- Examples: `reddit.com`, `twitter.com`
+- Wildcard pattern support (e.g., `*.example.com` blocks all subdomains)
+- Domain validation: Requires valid format with top-level domain (TLD)
+- Color theme: Red/Rose
+
+**2. URL Keywords Tab**
+- Block pages whose URLs contain specific keywords (case-insensitive)
+- Examples: `shorts`, `gaming`, `watch`
+- No validation required — any text accepted
+- Color theme: Orange
+
+**3. Content Keywords Tab**
+- Block pages containing keywords in titles, headings, or visible text (case-insensitive)
+- Examples: `cryptocurrency`, `breaking news`, `politics`
+- Checks page content after loading
+- Color theme: Amber
+
+#### User Interface
+
+**Each tab includes:**
+- Dedicated input field with **"Add"** button
+- Context-specific helper text with examples
+- Badge-based display of blocked items (removable tags)
+- Monospace font for technical items (domains, URL patterns)
+- Empty state message when no items configured
+- Toast notifications on add/remove actions
+
+**Visual Feedback:**
+- Color-coded tabs and badges by blocking type (Domains: red, URL Keywords: orange, Content Keywords: amber)
+- Real-time validation errors for invalid domain formats
+- Inline error messages when validation fails
+- Enter key support for quick item addition
+
+**When a page is blocked**, users are redirected to the blocked page showing:
+- Block reason (domain, URL keyword, or content keyword match)
+- Blocked URL for reference
+- Go Back button to navigate away
+
+**Lock Mode Integration:** When Lock Mode is active, removing items is blocked but adding new items is allowed. Warning message displayed when lock is active.
+
+---
+
+### Quick Block
+
+Quick Block is a **fast, temporary blocking feature** designed for immediate focus sessions. Users can instantly block selected websites and keywords for a predefined duration without creating a full schedule.
+
+#### Two Main States
+
+**1. Configuration State (Inactive)**
+
+When no Quick Block session is active, users configure what to block:
+
+**Configure Blocking Rules:**
+- **Three-tab interface** identical to 24/7 Block List (Domains, URL Keywords, Content Keywords)
+- Add items inline with immediate validation
+- Tab-specific helper text with examples
+- Color-coded by type (Domains: red, URL Keywords: orange, Content Keywords: amber)
+- Items configured here are session-specific (cleared when session ends)
+
+**Start Quick Block:**
+- **Preset duration buttons** displayed in grid layout:
+  - 25 minutes
+  - 1 hour
+  - 8 hours
+  - 24 hours
+  - Custom time (opens dialog with hours/minutes inputs)
+- **"Start Quick Block" button** (disabled until at least one item is configured)
+- **Indefinite sessions** supported (no time limit option available via custom time dialog)
+- Configuration status displayed below button
+
+**Lock Mode Warning:**
+- When starting a session while Lock Mode is active, warning dialog appears
+- Explains that stopping the session will be blocked by Lock Mode
+- Requires explicit "Start Anyway" confirmation
+- Different messaging for indefinite vs. timed sessions
+
+**2. Active Session State**
+
+When a Quick Block session is running:
+
+**Large Timer Display:**
+- Prominent countdown timer in amber/orange theme
+- Shows remaining time (e.g., "1h 23m 45s") or "No Time Limit" for indefinite sessions
+- End time displayed (e.g., "Ends at 3:30 PM")
+- Large, bold font for visibility
+- Real-time updates every second
+
+**Currently Blocking Section:**
+- Grouped display of all active blocking rules
+- Color-coded headers by category:
+  - Domains (red/rose theme)
+  - URL Keywords (orange theme)
+  - Content Keywords (amber theme)
+- Badge display with item counts
+- Read-only during active session (cannot edit rules)
+
+**Session Controls:**
+- **"Extend Time" button** (for timed sessions only)
+  - Opens dialog with preset duration options (25min, 1hr, 24hrs)
+  - Adds time to current session
+  - Available even when Lock Mode is active
+- **"Stop Session" button** (destructive variant)
+  - Requires confirmation dialog before stopping
+  - Disabled when Lock Mode is active
+  - Confirmation message: "Your configured items will be saved for future sessions"
+
+**Blocking Behavior:**
+- Blocked pages redirect to blocked page with "Quick Block ends in [time]" message
+- Shows remaining session time on blocked page
+- For indefinite sessions, shows "No time limit" message
+
+**Session Expiration:**
+- **Silent automatic expiration** when countdown reaches zero
+- **Toast notification** confirming session ended
+- UI automatically returns to configuration state
+- Configured items cleared (not persisted)
+
+#### Blocklist Library
+
+Quick Block maintains a **session-specific library** of configured items:
+- Items added during configuration remain in the interface during that browser session
+- Library cleared when configuration state is reset
+- Does not persist across browser restarts
+- Quick reuse within same session
+
+#### Lock Mode Integration
+
+**Starting Sessions:**
+- **Warning dialog** when attempting to start while Lock Mode is active
+- Explains inability to stop until Lock Mode expires
+- Requires explicit confirmation to proceed
+- Prevents accidental commitment conflicts
+
+**During Active Sessions:**
+- **Cannot stop session** when Lock Mode is active (button disabled)
+- **Can extend time** even with Lock Mode active (commitment reinforcement)
+- Creates powerful commitment mechanism for uninterrupted focus sessions
+- Tooltip explains why stop is disabled
 
 ---
 
@@ -1569,6 +1827,12 @@ When a schedule blocks a page, users are redirected to the blocked page with:
 | **Lock Mode**              | Silent unlock              | On      | No           | All pages      |
 | **Lock Mode**              | Block settings changes     | On      | No           | All pages      |
 | **Lock Mode**              | Allow channel blocking     | On      | No           | All pages      |
+| **General Module**         | Time-based schedules       | Off     | Yes          | All sites      |
+| **General Module**         | 24/7 Block List            | Off     | Yes          | All sites      |
+| **General Module**         | Quick Block                | Off     | Yes          | All sites      |
+| **General Module**         | Domain blocking            | Off     | Yes          | All sites      |
+| **General Module**         | URL keyword blocking       | Off     | Yes          | All sites      |
+| **General Module**         | Content keyword blocking   | Off     | Yes          | All sites      |
 | **Home**            | Search bar                 | On      | No           | Home only      |
 | **Home**            | Feed, Shorts               | Off     | N/A          | Home only      |
 | **Search**          | Search bar, Results        | On      | No           | Search only    |

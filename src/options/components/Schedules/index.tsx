@@ -14,16 +14,21 @@ import {
   deleteSchedule,
 } from '@/shared/storage/settings-manager';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SchedulesProps {
   lockState: LockModeState | null;
 }
 
-type View = 'list' | 'edit';
-
 export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   const [schedules, setSchedules] = useState<BlockingSchedule[]>([]);
-  const [currentView, setCurrentView] = useState<View>('list');
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<BlockingSchedule | null>(null);
   const { toast } = useToast();
 
@@ -59,14 +64,14 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
 
   const handleAddSchedule = () => {
     setEditingSchedule(null);
-    setCurrentView('edit');
+    setShowEditDialog(true);
   };
 
   const handleEditSchedule = (scheduleId: string) => {
     const schedule = schedules.find((s) => s.id === scheduleId);
     if (schedule) {
       setEditingSchedule(schedule);
-      setCurrentView('edit');
+      setShowEditDialog(true);
     }
   };
 
@@ -77,10 +82,6 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
         description: 'Cannot delete schedules while Lock Mode is active',
         variant: 'destructive',
       });
-      return;
-    }
-
-    if (!confirm('Are you sure you want to delete this schedule?')) {
       return;
     }
 
@@ -147,7 +148,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       }
 
       await loadSchedules();
-      setCurrentView('list');
+      setShowEditDialog(false);
       setEditingSchedule(null);
     } catch (error) {
       console.error('Failed to save schedule:', error);
@@ -160,30 +161,39 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   };
 
   const handleCancelEdit = () => {
-    setCurrentView('list');
+    setShowEditDialog(false);
     setEditingSchedule(null);
   };
 
   return (
     <>
-      {currentView === 'list' && (
-        <SchedulesList
-          schedules={schedules}
-          onAddSchedule={handleAddSchedule}
-          onEditSchedule={handleEditSchedule}
-          onDeleteSchedule={handleDeleteSchedule}
-          onToggleSchedule={handleToggleSchedule}
-          isLocked={lockState?.isLocked === true}
-        />
-      )}
+      <SchedulesList
+        schedules={schedules}
+        onAddSchedule={handleAddSchedule}
+        onEditSchedule={handleEditSchedule}
+        onDeleteSchedule={handleDeleteSchedule}
+        onToggleSchedule={handleToggleSchedule}
+        isLocked={lockState?.isLocked === true}
+      />
 
-      {currentView === 'edit' && (
-        <EditSchedule
-          schedule={editingSchedule}
-          onSave={handleSaveSchedule}
-          onCancel={handleCancelEdit}
-        />
-      )}
+      {/* Edit Schedule Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingSchedule ? 'Edit Schedule' : 'Create Schedule'}</DialogTitle>
+            <DialogDescription>
+              {editingSchedule
+                ? 'Modify your existing blocking schedule'
+                : 'Set up a new time-based blocking schedule'}
+            </DialogDescription>
+          </DialogHeader>
+          <EditSchedule
+            schedule={editingSchedule}
+            onSave={handleSaveSchedule}
+            onCancel={handleCancelEdit}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -3,7 +3,73 @@
  * Defines the complete schema for all YouTube module features and general blocking schedules
  */
 
-// ==================== GENERAL MODULE - SCHEDULES ====================
+// ==================== GENERAL MODULE ====================
+
+// ==================== 24/7 BLOCK LIST (PERMANENT BLOCKING) ====================
+
+/**
+ * Permanent Block List
+ * Domains, URL keywords, and content keywords that are always blocked,
+ * regardless of schedules or time. Highest blocking priority.
+ */
+export interface PermanentBlockList {
+  /**
+   * Domains to block permanently (supports wildcards)
+   * Examples: ["reddit.com", "*.facebook.com", "twitter.com"]
+   * Wildcard syntax: *.example.com blocks all subdomains
+   */
+  domains: string[];
+  /**
+   * URL keywords to block permanently (case-insensitive)
+   * Page is blocked if URL contains ANY of these keywords
+   * Examples: ["shorts", "trending", "viral"]
+   */
+  urlKeywords: string[];
+  /**
+   * Content keywords to block permanently (case-insensitive)
+   * Page is blocked if visible content contains ANY of these keywords
+   * Examples: ["cryptocurrency", "breaking news"]
+   */
+  contentKeywords: string[];
+}
+
+// ==================== QUICK BLOCK (TEMPORARY FOCUS SESSIONS) ====================
+
+/**
+ * Quick Block Session
+ * Temporary, time-based blocking for immediate focus sessions
+ * Designed for fast activation with preset durations
+ * Stored in local storage (device-specific, like Lock Mode)
+ */
+export interface QuickBlockSession {
+  /** Whether Quick Block is currently active */
+  isActive: boolean;
+  /** Unix timestamp (ms) when session started */
+  startTime: number | null;
+  /** Unix timestamp (ms) when session should end */
+  endTime: number | null;
+  /** Domains to block during this session */
+  blockedDomains: string[];
+  /** URL keywords to block during this session */
+  urlKeywords: string[];
+  /** Content keywords to block during this session */
+  contentKeywords: string[];
+}
+
+/**
+ * Default Quick Block session state
+ * Used when initializing Quick Block for the first time
+ */
+export const DEFAULT_QUICK_BLOCK_SESSION: Readonly<QuickBlockSession> = {
+  isActive: false,
+  startTime: null,
+  endTime: null,
+  blockedDomains: [],
+  urlKeywords: [],
+  contentKeywords: [],
+} as const;
+
+// ==================== SCHEDULES ====================
 
 /**
  * Time period within a schedule
@@ -239,7 +305,7 @@ export const DEFAULT_LOCK_STATE: Readonly<LockModeState> = {
 
 /**
  * Root settings interface for the extension
- * Contains all extension-wide settings including YouTube module and General blocking schedules
+ * Contains all extension-wide settings including YouTube module and General blocking features
  */
 export interface ExtensionSettings {
   /** Settings schema version for migration support */
@@ -248,6 +314,8 @@ export interface ExtensionSettings {
   youtube: YouTubeModuleSettings;
   /** List of blocked YouTube channels */
   blockedChannels: BlockedChannel[];
+  /** Permanent block list (24/7 blocking, highest priority) */
+  permanentBlockList: PermanentBlockList;
   /** List of time-based blocking schedules (General module) */
   schedules: BlockingSchedule[];
 }
@@ -298,5 +366,10 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
     },
   },
   blockedChannels: [],
+  permanentBlockList: {
+    domains: [],
+    urlKeywords: [],
+    contentKeywords: [],
+  },
   schedules: [],
 } as const;

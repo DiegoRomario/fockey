@@ -15,6 +15,7 @@ import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
 import { LockModeSection } from './components/LockModeSection';
 import { Schedules } from './components/Schedules';
+import { PermanentBlockList, QuickBlock } from './components/General';
 import {
   getSettings,
   updateSettings,
@@ -898,8 +899,30 @@ const Options: React.FC = () => {
             </div>
           )}
 
-          {/* General Tab Content - Schedules */}
-          {activeTab === 'general' && <Schedules lockState={lockState} />}
+          {/* General Tab Content - 24/7 Block List, Quick Block, and Schedules */}
+          {activeTab === 'general' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="mb-2 text-2xl font-bold">General Blocking</h2>
+                <p className="text-sm text-muted-foreground">
+                  Block websites and content across the internet with permanent and temporary
+                  blocking rules.
+                </p>
+              </div>
+
+              {/* 24/7 Block List */}
+              <PermanentBlockList lockState={lockState} />
+
+              {/* Quick Block */}
+              <QuickBlock lockState={lockState} />
+
+              {/* Schedules */}
+              <div>
+                <h3 className="mb-4 text-xl font-semibold">Time-Based Schedules</h3>
+                <Schedules lockState={lockState} />
+              </div>
+            </div>
+          )}
         </main>
       </div>
 

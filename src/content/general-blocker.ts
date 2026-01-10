@@ -4,12 +4,68 @@
  * Runs on all pages (not limited to YouTube)
  */
 
-import { getSchedules } from '../shared/storage/settings-manager';
+import { getSchedules, getPermanentBlockList } from '../shared/storage/settings-manager';
 import { shouldBlockPage, formatTimePeriod, BlockReason } from '../shared/utils/schedule-utils';
+import {
+  shouldBlockByPermanentList,
+  PermanentBlockReason,
+} from '../shared/utils/permanent-block-utils';
+import { shouldBlockByQuickBlock, QuickBlockReason } from '../shared/utils/quick-block-utils';
 
 // Track the last checked URL to avoid duplicate checks
 let lastCheckedUrl: string | null = null;
 let isBlocking = false; // Prevent multiple simultaneous blocks
+
+/**
+ * Unified block reason type (permanent, quick, or schedule)
+ */
+type UnifiedBlockReason =
+  | { type: 'permanent'; reason: PermanentBlockReason }
+  | { type: 'quick'; reason: QuickBlockReason }
+  | { type: 'schedule'; reason: BlockReason };
+
+/**
+ * Checks all blocking rules in priority order:
+ * 1. Permanent block list (24/7 blocking - highest priority)
+ * 2. Quick Block session (temporary focus mode)
+ * 3. Schedule-based blocking (time-based rules)
+ *
+ * @param url - URL to check
+ * @param document - Optional document for content keyword checking
+ * @returns Unified block reason if blocked, null otherwise
+ */
+async function checkAllBlockingRules(
+  url: string,
+  document?: Document
+): Promise<UnifiedBlockReason | null> {
+  // PRIORITY 1: Check permanent block list (24/7 blocking)
+  const permanentBlockList = await getPermanentBlockList();
+  const permanentBlockReason = shouldBlockByPermanentList(url, permanentBlockList, document);
+
+  if (permanentBlockReason) {
+    return { type: 'permanent', reason: permanentBlockReason };
+  }
+
+  // PRIORITY 2: Check Quick Block session (temporary focus mode)
+  const quickBlockReason = await shouldBlockByQuickBlock(url, document);
+
+  if (quickBlockReason) {
+    return { type: 'quick', reason: quickBlockReason };
+  }
+
+  // PRIORITY 3: Check schedules (time-based blocking)
+  const schedules = await getSchedules();
+
+  if (schedules.length > 0) {
+    const scheduleBlockReason = shouldBlockPage(url, schedules, document);
+
+    if (scheduleBlockReason) {
+      return { type: 'schedule', reason: scheduleBlockReason };
+    }
+  }
+
+  return null;
+}
 
 /**
  * Checks if the current page should be blocked and redirects if necessary
@@ -32,27 +88,19 @@ async function checkAndBlockPage(forceRecheck = false): Promise<void> {
 
     lastCheckedUrl = currentUrl;
 
-    // Get all schedules
-    const schedules = await getSchedules();
-
-    if (schedules.length === 0) {
-      // No schedules configured, nothing to block
-      return;
-    }
-
-    // Check if page should be blocked (domain and URL keyword check only at this stage)
-    const blockReason = shouldBlockPage(currentUrl, schedules);
+    // Check all blocking rules (permanent, quick, and schedules)
+    // Note: Content keywords will be checked after page load
+    const blockReason = await checkAllBlockingRules(currentUrl);
 
     if (blockReason) {
       // Mark as blocking to prevent re-entry
       isBlocking = true;
 
       // Page should be blocked - redirect to blocked page IMMEDIATELY
-      // Use replace() instead of assignment to prevent back button issues
       redirectToBlockedPage(blockReason, currentUrl);
     } else {
       // No immediate block - schedule content keyword check after page load
-      scheduleContentKeywordCheck(currentUrl, schedules);
+      scheduleContentKeywordCheck(currentUrl);
     }
   } catch (error) {
     console.error('[Fockey General Blocker] Error checking page blocking:', error);
@@ -64,35 +112,40 @@ async function checkAndBlockPage(forceRecheck = false): Promise<void> {
  * Schedules a content keyword check after the page has loaded
  * This allows the DOM to fully render before checking page content
  */
-function scheduleContentKeywordCheck(
-  url: string,
-  schedules: import('../shared/types/settings').BlockingSchedule[]
-): void {
+function scheduleContentKeywordCheck(url: string): void {
   // Wait for page to fully load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      checkContentKeywords(url, schedules);
+      checkContentKeywords(url);
     });
   } else {
     // Document already loaded
-    checkContentKeywords(url, schedules);
+    checkContentKeywords(url);
   }
 }
 
 /**
  * Checks if page content contains any blocked keywords
+ * Checks all blocking rules (permanent, quick, schedules) with document
  */
-function checkContentKeywords(
-  url: string,
-  schedules: import('../shared/types/settings').BlockingSchedule[]
-): void {
+async function checkContentKeywords(url: string): Promise<void> {
   try {
-    // Re-check with content keyword matching enabled
-    const blockReason = shouldBlockPage(url, schedules, document);
+    // Re-check all blocking rules with content keyword matching enabled
+    const blockReason = await checkAllBlockingRules(url, document);
 
-    if (blockReason && blockReason.matchType === 'content_keyword') {
-      // Content keyword matched - block the page
-      redirectToBlockedPage(blockReason, url);
+    if (blockReason) {
+      // Check if it's a content keyword match
+      const isContentKeyword =
+        (blockReason.type === 'permanent' &&
+          blockReason.reason.matchType === 'permanent_content_keyword') ||
+        (blockReason.type === 'quick' &&
+          blockReason.reason.matchType === 'quick_content_keyword') ||
+        (blockReason.type === 'schedule' && blockReason.reason.matchType === 'content_keyword');
+
+      if (isContentKeyword) {
+        // Content keyword matched - block the page
+        redirectToBlockedPage(blockReason, url);
+      }
     }
   } catch (error) {
     console.error('[Fockey General Blocker] Error checking content keywords:', error);
@@ -102,10 +155,9 @@ function checkContentKeywords(
 /**
  * Redirects to the blocked page with appropriate query parameters
  * CRITICAL: Uses aggressive blocking to prevent any page load/redirect
+ * Handles permanent, quick, and schedule-based blocks
  */
-function redirectToBlockedPage(blockReason: BlockReason, blockedUrl: string): void {
-  const { schedule, matchType, matchedValue } = blockReason;
-
+function redirectToBlockedPage(blockReason: UnifiedBlockReason, blockedUrl: string): void {
   // IMMEDIATELY stop any ongoing page load/redirect
   // This prevents server redirects from overriding our block
   try {
@@ -114,27 +166,48 @@ function redirectToBlockedPage(blockReason: BlockReason, blockedUrl: string): vo
     // window.stop() might not be available in all contexts
   }
 
-  // Format time window for display
-  let timeWindow = '';
-  if (schedule.timePeriods.length > 0) {
-    if (schedule.timePeriods.length === 1) {
-      timeWindow = formatTimePeriod(schedule.timePeriods[0]);
-    } else {
-      timeWindow = `${schedule.timePeriods.length} time periods`;
-    }
-  }
-
-  // Build blocked page URL with query parameters
+  // Build query parameters based on block type
   const params = new URLSearchParams({
-    blockType: 'schedule',
-    scheduleName: schedule.name,
-    matchType: matchType,
-    matchedValue: matchedValue,
     blockedUrl: blockedUrl,
   });
 
-  if (timeWindow) {
-    params.set('timeWindow', timeWindow);
+  if (blockReason.type === 'permanent') {
+    // Permanent block (24/7 blocking)
+    const { matchType, matchedValue } = blockReason.reason;
+
+    params.set('blockType', 'permanent');
+    params.set('matchType', matchType);
+    params.set('matchedValue', matchedValue);
+  } else if (blockReason.type === 'quick') {
+    // Quick Block session
+    const { matchType, matchedValue, endTime } = blockReason.reason;
+
+    params.set('blockType', 'quick');
+    params.set('matchType', matchType);
+    params.set('matchedValue', matchedValue);
+    params.set('quickBlockEndTime', endTime.toString());
+  } else {
+    // Schedule-based block
+    const { schedule, matchType, matchedValue } = blockReason.reason;
+
+    // Format time window for display
+    let timeWindow = '';
+    if (schedule.timePeriods.length > 0) {
+      if (schedule.timePeriods.length === 1) {
+        timeWindow = formatTimePeriod(schedule.timePeriods[0]);
+      } else {
+        timeWindow = `${schedule.timePeriods.length} time periods`;
+      }
+    }
+
+    params.set('blockType', 'schedule');
+    params.set('scheduleName', schedule.name);
+    params.set('matchType', matchType);
+    params.set('matchedValue', matchedValue);
+
+    if (timeWindow) {
+      params.set('timeWindow', timeWindow);
+    }
   }
 
   // Redirect to blocked page using replace() to prevent back button issues
@@ -147,6 +220,7 @@ function redirectToBlockedPage(blockReason: BlockReason, blockedUrl: string): vo
 /**
  * Immediately check and block synchronously (as much as possible)
  * This runs BEFORE any other initialization to catch blocks early
+ * Checks all blocking rules (permanent, quick, schedules)
  */
 (async function immediateCheck() {
   // Don't run on the blocked page itself
@@ -155,15 +229,10 @@ function redirectToBlockedPage(blockReason: BlockReason, blockedUrl: string): vo
   }
 
   try {
-    // Get schedules immediately (this is the only async part we can't avoid)
-    const schedules = await getSchedules();
-
-    if (schedules.length === 0) {
-      return;
-    }
-
     const currentUrl = window.location.href;
-    const blockReason = shouldBlockPage(currentUrl, schedules);
+
+    // Check all blocking rules (permanent, quick, and schedules)
+    const blockReason = await checkAllBlockingRules(currentUrl);
 
     if (blockReason) {
       // CRITICAL: Block detected - stop everything immediately

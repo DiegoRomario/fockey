@@ -82,10 +82,14 @@ export async function getSettings(): Promise<ExtensionSettings> {
     // No settings found, return defaults
     return { ...DEFAULT_SETTINGS };
   } catch (syncError) {
-    console.warn(
-      'Failed to retrieve settings from chrome.storage.sync, trying local storage:',
-      syncError
-    );
+    // Suppress "Extension context invalidated" errors (expected during extension reload)
+    const error = syncError as { message?: string };
+    if (!error.message?.includes('Extension context invalidated')) {
+      console.warn(
+        'Failed to retrieve settings from chrome.storage.sync, trying local storage:',
+        syncError
+      );
+    }
 
     try {
       // Fallback to local storage
@@ -740,4 +744,258 @@ export async function getSchedule(
 ): Promise<import('../types/settings').BlockingSchedule | null> {
   const schedules = await getSchedules();
   return schedules.find((s) => s.id === scheduleId) || null;
+}
+
+// ==================== PERMANENT BLOCK LIST MANAGEMENT FUNCTIONS ====================
+
+/**
+ * Retrieves the permanent block list (24/7 blocking)
+ *
+ * @returns Promise resolving to permanent block list
+ */
+export async function getPermanentBlockList(): Promise<
+  import('../types/settings').PermanentBlockList
+> {
+  const settings = await getSettings();
+  return settings.permanentBlockList || { domains: [], urlKeywords: [], contentKeywords: [] };
+}
+
+/**
+ * Adds a domain to the permanent block list
+ * Prevents duplicates (case-insensitive)
+ *
+ * @param domain - Domain to add (can include wildcards like *.example.com)
+ * @returns Promise that resolves when domain is added
+ */
+export async function addPermanentBlockDomain(domain: string): Promise<void> {
+  const settings = await getSettings();
+  const normalizedDomain = domain.trim().toLowerCase();
+
+  // Check if domain already exists (case-insensitive)
+  const exists = settings.permanentBlockList.domains.some(
+    (d) => d.toLowerCase() === normalizedDomain
+  );
+
+  if (exists) {
+    console.warn('Domain already in permanent block list:', domain);
+    return;
+  }
+
+  // Add domain to list
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      domains: [...settings.permanentBlockList.domains, normalizedDomain],
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Removes a domain from the permanent block list
+ *
+ * @param domain - Domain to remove
+ * @returns Promise that resolves when domain is removed
+ * @throws Error if lock mode is active
+ */
+export async function removePermanentBlockDomain(domain: string): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent removing permanent blocks when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot remove domains from 24/7 block list while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  const settings = await getSettings();
+  const normalizedDomain = domain.trim().toLowerCase();
+
+  // Filter out the domain (case-insensitive)
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      domains: settings.permanentBlockList.domains.filter(
+        (d) => d.toLowerCase() !== normalizedDomain
+      ),
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Adds a URL keyword to the permanent block list
+ * Prevents duplicates (case-insensitive)
+ *
+ * @param keyword - URL keyword to add
+ * @returns Promise that resolves when keyword is added
+ */
+export async function addPermanentBlockUrlKeyword(keyword: string): Promise<void> {
+  const settings = await getSettings();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  // Check if keyword already exists (case-insensitive)
+  const exists = settings.permanentBlockList.urlKeywords.some(
+    (k) => k.toLowerCase() === normalizedKeyword
+  );
+
+  if (exists) {
+    console.warn('URL keyword already in permanent block list:', keyword);
+    return;
+  }
+
+  // Add keyword to list
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      urlKeywords: [...settings.permanentBlockList.urlKeywords, normalizedKeyword],
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Removes a URL keyword from the permanent block list
+ *
+ * @param keyword - URL keyword to remove
+ * @returns Promise that resolves when keyword is removed
+ * @throws Error if lock mode is active
+ */
+export async function removePermanentBlockUrlKeyword(keyword: string): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent removing permanent blocks when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot remove URL keywords from 24/7 block list while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  const settings = await getSettings();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  // Filter out the keyword (case-insensitive)
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      urlKeywords: settings.permanentBlockList.urlKeywords.filter(
+        (k) => k.toLowerCase() !== normalizedKeyword
+      ),
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Adds a content keyword to the permanent block list
+ * Prevents duplicates (case-insensitive)
+ *
+ * @param keyword - Content keyword to add
+ * @returns Promise that resolves when keyword is added
+ */
+export async function addPermanentBlockContentKeyword(keyword: string): Promise<void> {
+  const settings = await getSettings();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  // Check if keyword already exists (case-insensitive)
+  const exists = settings.permanentBlockList.contentKeywords.some(
+    (k) => k.toLowerCase() === normalizedKeyword
+  );
+
+  if (exists) {
+    console.warn('Content keyword already in permanent block list:', keyword);
+    return;
+  }
+
+  // Add keyword to list
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      contentKeywords: [...settings.permanentBlockList.contentKeywords, normalizedKeyword],
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
+}
+
+/**
+ * Removes a content keyword from the permanent block list
+ *
+ * @param keyword - Content keyword to remove
+ * @returns Promise that resolves when keyword is removed
+ * @throws Error if lock mode is active
+ */
+export async function removePermanentBlockContentKeyword(keyword: string): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent removing permanent blocks when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot remove content keywords from 24/7 block list while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  const settings = await getSettings();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  // Filter out the keyword (case-insensitive)
+  const updatedSettings = {
+    ...settings,
+    permanentBlockList: {
+      ...settings.permanentBlockList,
+      contentKeywords: settings.permanentBlockList.contentKeywords.filter(
+        (k) => k.toLowerCase() !== normalizedKeyword
+      ),
+    },
+  };
+
+  // Save to storage
+  try {
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: updatedSettings });
+  } catch (syncError) {
+    console.warn('Failed to save to sync storage, trying local:', syncError);
+    await chrome.storage.local.set({ [SETTINGS_KEY]: updatedSettings });
+  }
 }

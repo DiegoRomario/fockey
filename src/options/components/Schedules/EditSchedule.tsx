@@ -16,6 +16,7 @@ import {
   normalizeDomain,
   getOverlappingIndices,
 } from '@/shared/utils/schedule-utils';
+import { isValidDomainPattern } from '@/shared/utils/permanent-block-utils';
 import { cn } from '@/lib/utils';
 
 interface EditScheduleProps {
@@ -43,6 +44,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
 
   // Input fields for adding new items
   const [domainInput, setDomainInput] = useState('');
+  const [domainInputError, setDomainInputError] = useState<string | null>(null);
   const [urlKeywordInput, setUrlKeywordInput] = useState('');
   const [contentKeywordInput, setContentKeywordInput] = useState('');
 
@@ -168,19 +170,31 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
 
   // Blocking rules helpers
   const addDomain = () => {
-    if (domainInput.trim()) {
-      // Normalize domain (remove protocol, trailing slash, www prefix, etc.)
-      const normalized = normalizeDomain(domainInput.trim());
-
-      // Check if already exists
-      if (!blockedDomains.includes(normalized)) {
-        setBlockedDomains([...blockedDomains, normalized]);
-        setDomainInput('');
-      } else {
-        // Domain already exists - just clear input
-        setDomainInput('');
-      }
+    if (!domainInput.trim()) {
+      setDomainInputError('Please enter a domain');
+      return;
     }
+
+    // Normalize domain (remove protocol, trailing slash, www prefix, etc.)
+    const normalized = normalizeDomain(domainInput.trim());
+
+    // Validate domain pattern
+    if (!isValidDomainPattern(normalized)) {
+      setDomainInputError(
+        'Please enter a valid domain (e.g., example.com or *.example.com for wildcards)'
+      );
+      return;
+    }
+
+    // Check if already exists
+    if (blockedDomains.includes(normalized)) {
+      setDomainInputError('This domain is already in the list');
+      return;
+    }
+
+    setDomainInputError(null);
+    setBlockedDomains([...blockedDomains, normalized]);
+    setDomainInput('');
   };
 
   const removeDomain = (domain: string) => {
@@ -266,17 +280,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-        <h2 className="text-2xl font-semibold mb-2">
-          {schedule ? 'Edit Schedule' : 'Add Schedule'}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Configure when and what to block during this schedule
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {/* Form */}
       <div className="space-y-6">
         {/* Schedule Info */}
@@ -473,16 +477,25 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                   <Globe className="w-4 h-4 text-muted-foreground" />
                   <Label>Blocked Domains</Label>
                 </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="example.com"
-                    value={domainInput}
-                    onChange={(e) => setDomainInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addDomain())}
-                  />
-                  <Button type="button" onClick={addDomain} size="icon" variant="outline">
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="example.com"
+                      value={domainInput}
+                      onChange={(e) => {
+                        setDomainInput(e.target.value);
+                        setDomainInputError(null);
+                      }}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addDomain())}
+                      className={cn(domainInputError && 'border-destructive')}
+                    />
+                    <Button type="button" onClick={addDomain} size="icon" variant="outline">
+                      <Plus className="w-4 w-4" />
+                    </Button>
+                  </div>
+                  {domainInputError && (
+                    <p className="text-xs text-destructive">⚠ {domainInputError}</p>
+                  )}
                 </div>
                 {blockedDomains.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No domains added</p>
