@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Lock } from 'lucide-react';
+import { Lock, Settings } from 'lucide-react';
 import {
   getSettings,
   updateSettings,
@@ -19,7 +18,9 @@ import {
   formatExpirationTime,
 } from '@/shared/utils/lock-mode-utils';
 import LoadingState from './components/LoadingState';
-import SettingsTabs from './components/SettingsTabs';
+import QuickBlockHero from './components/QuickBlockHero';
+import YouTubeModuleSection from './components/YouTubeModuleSection';
+import SchedulesSection from './components/SchedulesSection';
 
 /**
  * Extension popup component
@@ -29,7 +30,6 @@ const Popup: React.FC = () => {
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('global');
   const [currentChannel, setCurrentChannel] = useState<{
     id: string;
     handle: string;
@@ -409,6 +409,53 @@ const Popup: React.FC = () => {
   );
 
   /**
+   * Open full settings page with optional tab parameter
+   */
+  const handleOpenSettings = useCallback((tab?: string, section?: string) => {
+    const baseUrl = chrome.runtime.getURL('src/options/index.html');
+    let url = baseUrl;
+
+    if (tab) {
+      url += `?tab=${encodeURIComponent(tab)}`;
+      if (section) {
+        url += `&section=${encodeURIComponent(section)}`;
+      }
+    }
+
+    chrome.tabs.create({ url });
+  }, []);
+
+  /**
+   * Open settings to Quick Block section
+   */
+  const handleOpenQuickBlockSettings = useCallback(() => {
+    handleOpenSettings('general', 'quick-block');
+  }, [handleOpenSettings]);
+
+  /**
+   * Open settings to Schedules section
+   */
+  const handleOpenSchedulesSettings = useCallback((scheduleId?: string | 'create') => {
+    const baseUrl = chrome.runtime.getURL('src/options/index.html');
+    let url = `${baseUrl}?tab=general&section=schedules`;
+
+    if (scheduleId === 'create') {
+      url += '&action=create';
+    } else if (scheduleId) {
+      url += `&scheduleId=${encodeURIComponent(scheduleId)}`;
+    }
+
+    chrome.tabs.create({ url });
+  }, []);
+
+  /**
+   * Open settings to YouTube module
+   */
+  const handleOpenYouTubeSettings = useCallback(() => {
+    handleOpenSettings('youtube');
+  }, [handleOpenSettings]);
+
+  /**
    * Handle global navigation setting toggles
    */
   const handleGlobalNavigationToggle = useCallback(
@@ -428,7 +475,7 @@ const Popup: React.FC = () => {
   );
 
   /**
-   * Handle individual page setting toggles
+   * Handle search page setting toggles
    */
   const handleSearchPageToggle = useCallback(
     (key: string, value: boolean) => {
@@ -446,6 +493,9 @@ const Popup: React.FC = () => {
     [settings, handleSettingsChange]
   );
 
+  /**
+   * Handle watch page setting toggles
+   */
   const handleWatchPageToggle = useCallback(
     (key: string, value: boolean) => {
       if (!settings) return;
@@ -461,13 +511,6 @@ const Popup: React.FC = () => {
     },
     [settings, handleSettingsChange]
   );
-
-  /**
-   * Open full settings page
-   */
-  const handleOpenSettings = useCallback(() => {
-    chrome.runtime.openOptionsPage();
-  }, []);
 
   // Show loading state
   if (isLoading) {
@@ -502,58 +545,72 @@ const Popup: React.FC = () => {
     <TooltipProvider>
       <div className="w-96">
         <Card>
-          {/* Header with Integrated Master Toggle */}
-          <CardHeader className="pb-2">
+          {/* Header with Settings Icon */}
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Fockey</CardTitle>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Extension</span>
-                <Switch
-                  checked={settings.youtube.enabled}
-                  onCheckedChange={handleModuleToggle}
-                  className="data-[state=checked]:bg-primary"
-                  disabled={lockState?.isLocked}
-                />
-              </div>
+              <CardTitle className="text-lg font-bold">FOCKEY</CardTitle>
+              <button
+                onClick={() => handleOpenSettings()}
+                className="rounded-full p-2 hover:bg-accent transition-colors"
+                aria-label="Open Settings"
+              >
+                <Settings className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              </button>
             </div>
-
-            {/* Lock Mode Status Indicator */}
-            {lockState?.isLocked && lockState.lockEndTime && (
-              <div className="mt-3 p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-600/20">
-                <div className="flex items-start gap-2">
-                  <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                      Settings Locked
-                    </div>
-                    <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                      {formatCountdown(remainingTime)} remaining
-                    </div>
-                    <div className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                      Until {formatExpirationTime(lockState.lockEndTime)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardHeader>
 
-          <CardContent className="space-y-4 pt-4">
-            {/* Tabbed Settings Interface - All 32 Settings */}
-            <SettingsTabs
+          <CardContent className="space-y-4 pt-0">
+            {/* Quick Block Hero Section */}
+            <QuickBlockHero lockState={lockState} onOpenSettings={handleOpenQuickBlockSettings} />
+
+            <Separator />
+
+            {/* Schedules Section */}
+            <SchedulesSection
+              onOpenSchedulesSettings={handleOpenSchedulesSettings}
+              disabled={lockState?.isLocked}
+            />
+
+            <Separator />
+
+            {/* YouTube Module Section */}
+            <YouTubeModuleSection
               settings={settings}
-              disabled={!settings.youtube.enabled || lockState?.isLocked === true}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
               onGlobalNavigationToggle={handleGlobalNavigationToggle}
               onSearchPageToggle={handleSearchPageToggle}
               onWatchPageToggle={handleWatchPageToggle}
+              onModuleToggle={handleModuleToggle}
+              onOpenSettings={handleOpenYouTubeSettings}
+              disabled={lockState?.isLocked}
             />
+
+            {/* Lock Mode Status Indicator */}
+            {lockState?.isLocked && lockState.lockEndTime && (
+              <>
+                <Separator />
+                <button
+                  onClick={() => handleOpenSettings('lockMode')}
+                  className="w-full p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-600/20 hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors text-left"
+                >
+                  <div className="flex items-start gap-2">
+                    <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                        Settings locked for {formatCountdown(remainingTime)}
+                      </div>
+                      <div className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                        Unlocks at {formatExpirationTime(lockState.lockEndTime)}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </>
+            )}
 
             {/* Channel Blocking Section */}
             {currentChannel && (
               <>
-                <Separator className="my-4" />
+                <Separator />
                 <div className="space-y-2">
                   <div className="text-xs text-muted-foreground">Current Channel</div>
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
@@ -588,19 +645,8 @@ const Popup: React.FC = () => {
               </>
             )}
 
-            <Separator className="my-4" />
-
-            {/* Open Settings Button */}
-            <Button
-              onClick={handleOpenSettings}
-              variant="outline"
-              className="w-full text-sm h-9 border-primary/20 hover:bg-primary/5 hover:border-primary/40"
-            >
-              Open Settings
-            </Button>
-
-            {/* Footer with Version */}
-            <div className="text-center pt-1">
+            {/* Version Footer */}
+            <div className="text-center pt-2">
               <p className="text-[10px] text-muted-foreground">
                 v{chrome.runtime.getManifest().version}
               </p>

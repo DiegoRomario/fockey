@@ -75,6 +75,36 @@ const Options: React.FC = () => {
       });
   }, [toast]);
 
+  // Handle URL parameters for context-aware navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const sectionParam = urlParams.get('section');
+
+    // Set active tab if specified
+    if (
+      tabParam &&
+      ['youtube', 'general', 'lockMode', 'manageSettings', 'about'].includes(tabParam)
+    ) {
+      setActiveTab(tabParam as PrimaryTab);
+    }
+
+    // Handle section scrolling/focusing after a short delay to ensure content is rendered
+    if (sectionParam) {
+      setTimeout(() => {
+        const sectionElement = document.getElementById(sectionParam);
+        if (sectionElement) {
+          sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Optionally add a highlight effect
+          sectionElement.style.outline = '2px solid hsl(var(--primary))';
+          setTimeout(() => {
+            sectionElement.style.outline = '';
+          }, 2000);
+        }
+      }, 300);
+    }
+  }, []);
+
   // Load lock state on mount and listen for changes
   useEffect(() => {
     // Load initial lock state
@@ -914,10 +944,12 @@ const Options: React.FC = () => {
               <PermanentBlockList lockState={lockState} />
 
               {/* Quick Block */}
-              <QuickBlock lockState={lockState} />
+              <div id="quick-block">
+                <QuickBlock lockState={lockState} />
+              </div>
 
               {/* Schedules */}
-              <div>
+              <div id="schedules">
                 <h3 className="mb-4 text-xl font-semibold">Time-Based Schedules</h3>
                 <Schedules lockState={lockState} />
               </div>

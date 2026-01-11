@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import {
   Plus,
   Calendar,
+  Clock,
   Shield,
   MoreVertical,
   Trash2,
@@ -119,6 +120,13 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
               )}
               onClick={() => !isLocked && onEditSchedule(schedule.id)}
             >
+              {/* Clock Icon - Top Left */}
+              <div className="absolute top-4 left-4">
+                <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </div>
+
               {/* Dropdown Menu - Top Right */}
               <div className="absolute top-4 right-4">
                 <DropdownMenu>

@@ -3,7 +3,7 @@
  * Main container component for schedule management
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SchedulesList } from './SchedulesList';
 import { EditSchedule } from './EditSchedule';
 import { BlockingSchedule, LockModeState } from '@/shared/types/settings';
@@ -31,6 +31,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<BlockingSchedule | null>(null);
   const { toast } = useToast();
+  const hasOpenedModalRef = useRef(false);
 
   // Load schedules on mount
   useEffect(() => {
@@ -47,6 +48,37 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
         });
       });
   }, [toast]);
+
+  // Check for scheduleId or action in URL and auto-open modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scheduleId = urlParams.get('scheduleId');
+    const action = urlParams.get('action');
+
+    if (!hasOpenedModalRef.current) {
+      // Handle create action
+      if (action === 'create') {
+        hasOpenedModalRef.current = true;
+        // Use setTimeout to avoid setState during render
+        setTimeout(() => {
+          setEditingSchedule(null);
+          setShowEditDialog(true);
+        }, 0);
+      }
+      // Handle edit specific schedule
+      else if (scheduleId && schedules.length > 0) {
+        const schedule = schedules.find((s) => s.id === scheduleId);
+        if (schedule) {
+          hasOpenedModalRef.current = true;
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            setEditingSchedule(schedule);
+            setShowEditDialog(true);
+          }, 0);
+        }
+      }
+    }
+  }, [schedules]);
 
   const loadSchedules = async () => {
     try {
