@@ -558,6 +558,21 @@ const Options: React.FC = () => {
                             tooltip="When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
                             disabled={lockState?.isLocked === true}
                           />
+
+                          <SettingToggle
+                            id="global-enable-search-suggestions"
+                            label="Enable Search Suggestions"
+                            description="Enable search suggestions (autocomplete dropdown)"
+                            checked={settings.youtube.globalNavigation.enableSearchSuggestions}
+                            onChange={(checked) =>
+                              handleSettingChange(
+                                ['youtube', 'globalNavigation', 'enableSearchSuggestions'],
+                                checked
+                              )
+                            }
+                            tooltip="When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges. When enabled, YouTube's native search suggestions appear when typing in the search box."
+                            disabled={lockState?.isLocked === true}
+                          />
                         </div>
                       </AccordionContent>
                     </AccordionItem>

@@ -111,6 +111,7 @@ YouTube's persistent navigation elements appear consistently across all pages. T
 - **Notifications bell** (notification icon in top-right)
 - **Shorts blocking** (controls whether all Shorts content is accessible across all pages)
 - **Posts blocking** (controls whether all Posts content is accessible across all pages)
+- **Search suggestions** (controls whether search autocomplete dropdown appears)
 
 ### Unified Control
 
@@ -147,6 +148,7 @@ By default, **all global navigation elements are hidden** and **all Shorts and P
 - Notifications bell: **Hidden**
 - Shorts: **Blocked globally** (direct URLs, search results, creator profile tabs, and home tab content)
 - Posts: **Blocked globally** (direct URLs, search results, creator profile tabs, and home tab content)
+- Search suggestions: **Hidden** (autocomplete dropdown does not appear)
 
 Users can selectively re-enable any element via the extension settings.
 
@@ -155,7 +157,7 @@ Users can selectively re-enable any element via the extension settings.
 **Global Navigation Settings:**
 - Apply to **all YouTube pages** simultaneously
 - Control persistent navigation elements and global content blocking
-- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts blocking, Posts blocking
+- Examples: Logo, sidebar, profile avatar, notifications bell, Shorts blocking, Posts blocking, Search suggestions
 
 **Page-Specific Settings:**
 - Apply to **individual page types** only
@@ -363,6 +365,57 @@ The Posts Blocking feature is considered **successfully implemented** when:
 - ✅ No performance impact or flickering during URL checks or content filtering
 - ✅ Works correctly with YouTube SPA navigation
 - ✅ All code passes lint, format, and type checks
+
+---
+
+### Search Suggestions Feature
+
+#### Overview
+
+The Search Suggestions feature provides users with **global control over YouTube's search autocomplete dropdown** across the entire platform. This feature is part of the Global Navigation Settings and applies uniformly to all YouTube pages, providing a single toggle to control search suggestions visibility.
+
+#### Key Characteristics
+
+- **Scope:** Single global setting that controls search suggestions across all YouTube pages
+- **Default Behavior:** **Search suggestions are hidden by default** (minimalist principle)
+- **Purpose:** Eliminates algorithmic nudges and distractions when using the search bar
+
+#### Behavior Details
+
+**When Search Suggestions are Disabled (Default):**
+- Search autocomplete dropdown does not appear when typing in the search bar
+- No search history or trending suggestions are shown
+- Users must type their complete search query and press Enter
+- Creates a more intentional, distraction-free search experience
+
+**When Search Suggestions are Enabled:**
+- YouTube's native search autocomplete dropdown appears when typing
+- Search history and trending suggestions display as normal
+- Standard YouTube search experience is preserved
+
+#### User Interface
+
+**Settings Location:**
+- **Options Page:** Global Navigation Elements section (after "Enable Posts")
+- **Popup:** Global tab (after "Posts")
+
+**Toggle Details:**
+- **Label:** "Enable Search Suggestions"
+- **Description (Options):** "Enable search suggestions (autocomplete dropdown)"
+- **Tooltip:** "When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges. When enabled, YouTube's native search suggestions appear when typing in the search box."
+- **Default State:** `false` (hidden)
+
+#### Success Criteria
+
+The Search Suggestions feature is considered **successfully implemented** when:
+
+- ✅ Search suggestions dropdown is hidden by default across all YouTube pages
+- ✅ Enabling the toggle allows search suggestions to appear normally
+- ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
+- ✅ Tooltip clearly explains the feature's purpose and default behavior
+- ✅ No performance impact or flickering when typing in the search box
+- ✅ Works correctly with YouTube SPA navigation across all pages
+- ✅ Settings persist across browser sessions
 
 ---
 
@@ -1817,6 +1870,7 @@ Quick Block maintains a **session-specific library** of configured items:
 | **Global Navigation**      | Notifications Bell         | Off     | Yes          | All pages      |
 | **Global Navigation**      | Enable Shorts              | Off     | Yes          | All pages      |
 | **Global Navigation**      | Enable Posts               | Off     | Yes          | All pages      |
+| **Global Navigation**      | Enable Search Suggestions  | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Block specific channels    | Off     | Yes          | All pages      |
 | **Channel Blocking**       | Blocked page redirect      | On      | No           | All pages      |
 | **Channel Blocking**       | Filter blocked content     | On      | No           | All pages      |

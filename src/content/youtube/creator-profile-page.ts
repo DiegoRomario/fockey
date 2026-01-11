@@ -7,6 +7,7 @@
 import { CreatorProfilePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
+import { SearchSuggestionsBlocker } from './utils/search-suggestions-blocker';
 
 /**
  * YouTube element selectors for creator profile pages
@@ -72,6 +73,11 @@ let mutationObserver: MutationObserver | null = null;
  * HoverPreviewBlocker instance for managing hover preview behavior
  */
 let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
+
+/**
+ * SearchSuggestionsBlocker instance for managing search suggestions visibility
+ */
+let searchSuggestionsBlocker: SearchSuggestionsBlocker | null = null;
 
 /**
  * Current settings state
@@ -504,6 +510,10 @@ export async function initCreatorProfileModule(
   hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
   hoverPreviewBlocker.init();
 
+  // Initialize search suggestions blocker
+  searchSuggestionsBlocker = new SearchSuggestionsBlocker(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker.init();
+
   console.log('[Fockey] Creator Profile page module initialized');
 }
 
@@ -536,6 +546,9 @@ export function applyCreatorProfileSettings(
   // Update hover preview blocker settings
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 
+  // Update search suggestions blocker settings
+  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
+
   console.log('[Fockey] Creator Profile settings applied');
 }
 
@@ -562,6 +575,12 @@ export function cleanupCreatorProfileModule(): void {
   if (hoverPreviewBlocker) {
     hoverPreviewBlocker.cleanup();
     hoverPreviewBlocker = null;
+  }
+
+  // Cleanup search suggestions blocker
+  if (searchSuggestionsBlocker) {
+    searchSuggestionsBlocker.cleanup();
+    searchSuggestionsBlocker = null;
   }
 
   // Restore filtered content

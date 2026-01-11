@@ -7,6 +7,7 @@
 import { WatchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
+import { SearchSuggestionsBlocker } from './utils/search-suggestions-blocker';
 
 /**
  * YouTube element selectors for watch page
@@ -135,6 +136,11 @@ let mutationObserver: MutationObserver | null = null;
  * HoverPreviewBlocker instance for managing hover preview behavior
  */
 let hoverPreviewBlocker: HoverPreviewBlocker | null = null;
+
+/**
+ * SearchSuggestionsBlocker instance for managing search suggestions visibility
+ */
+let searchSuggestionsBlocker: SearchSuggestionsBlocker | null = null;
 
 /**
  * Current video ID to detect video navigation
@@ -694,6 +700,9 @@ export function applyWatchPageSettings(
 
   // Update hover preview blocker settings
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
+
+  // Update search suggestions blocker settings
+  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
 }
 
 /**
@@ -847,6 +856,12 @@ export async function initWatchPageModule(
     hoverPreviewBlocker = new HoverPreviewBlocker(globalNavigation.enableHoverPreviews);
     hoverPreviewBlocker.init();
 
+    // Initialize search suggestions blocker
+    searchSuggestionsBlocker = new SearchSuggestionsBlocker(
+      globalNavigation.enableSearchSuggestions
+    );
+    searchSuggestionsBlocker.init();
+
     console.log('[Fockey] Watch page module initialized');
   } catch (error) {
     console.error('[Fockey] Failed to initialize watch page module:', error);
@@ -871,6 +886,12 @@ export function cleanupWatchPageModule(): void {
   if (hoverPreviewBlocker) {
     hoverPreviewBlocker.cleanup();
     hoverPreviewBlocker = null;
+  }
+
+  // Cleanup search suggestions blocker
+  if (searchSuggestionsBlocker) {
+    searchSuggestionsBlocker.cleanup();
+    searchSuggestionsBlocker = null;
   }
 
   // Reset current video ID

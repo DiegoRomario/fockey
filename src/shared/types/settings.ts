@@ -185,6 +185,12 @@ export interface GlobalNavigationSettings {
    * - Posts in creator profile home tabs
    */
   enablePosts: boolean;
+  /**
+   * Enable search suggestions (autocomplete dropdown)
+   * When false (default), the search suggestions dropdown is hidden to reduce distractions
+   * When true, YouTube's native search suggestions appear when typing in the search box
+   */
+  enableSearchSuggestions: boolean;
 }
 
 /**
@@ -358,6 +364,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       enableHoverPreviews: false, // Disabled by default (minimalist principle)
       enableShorts: false, // Disabled by default (all Shorts blocked globally)
       enablePosts: false, // Disabled by default (all Posts blocked globally)
+      enableSearchSuggestions: false, // Disabled by default (no algorithmic nudges)
     },
     homePage: {
       // Empty for now - future expansion point

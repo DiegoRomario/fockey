@@ -94,6 +94,14 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             onChange={(checked) => onGlobalNavigationToggle('enablePosts', checked)}
             disabled={disabled}
           />
+          <ModuleToggle
+            id="global-enable-search-suggestions"
+            label="Enable Search Suggestions"
+            tooltip="Enable search suggestions (autocomplete dropdown). When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges."
+            checked={settings.youtube.globalNavigation.enableSearchSuggestions}
+            onChange={(checked) => onGlobalNavigationToggle('enableSearchSuggestions', checked)}
+            disabled={disabled}
+          />
         </TabsContent>
 
         {/* Search Tab */}
