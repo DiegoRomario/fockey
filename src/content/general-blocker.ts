@@ -4,12 +4,8 @@
  * Runs on all pages (not limited to YouTube)
  */
 
-import { getSchedules, getPermanentBlockList } from '../shared/storage/settings-manager';
+import { getSchedules } from '../shared/storage/settings-manager';
 import { shouldBlockPage, formatTimePeriod, BlockReason } from '../shared/utils/schedule-utils';
-import {
-  shouldBlockByPermanentList,
-  PermanentBlockReason,
-} from '../shared/utils/permanent-block-utils';
 import { shouldBlockByQuickBlock, QuickBlockReason } from '../shared/utils/quick-block-utils';
 
 // Track the last checked URL to avoid duplicate checks
@@ -17,18 +13,16 @@ let lastCheckedUrl: string | null = null;
 let isBlocking = false; // Prevent multiple simultaneous blocks
 
 /**
- * Unified block reason type (permanent, quick, or schedule)
+ * Unified block reason type (quick or schedule)
  */
 type UnifiedBlockReason =
-  | { type: 'permanent'; reason: PermanentBlockReason }
   | { type: 'quick'; reason: QuickBlockReason }
   | { type: 'schedule'; reason: BlockReason };
 
 /**
  * Checks all blocking rules in priority order:
- * 1. Permanent block list (24/7 blocking - highest priority)
- * 2. Quick Block session (temporary focus mode)
- * 3. Schedule-based blocking (time-based rules)
+ * 1. Quick Block session (temporary focus mode - highest priority)
+ * 2. Schedule-based blocking (time-based rules)
  *
  * @param url - URL to check
  * @param document - Optional document for content keyword checking
@@ -38,22 +32,14 @@ async function checkAllBlockingRules(
   url: string,
   document?: Document
 ): Promise<UnifiedBlockReason | null> {
-  // PRIORITY 1: Check permanent block list (24/7 blocking)
-  const permanentBlockList = await getPermanentBlockList();
-  const permanentBlockReason = shouldBlockByPermanentList(url, permanentBlockList, document);
-
-  if (permanentBlockReason) {
-    return { type: 'permanent', reason: permanentBlockReason };
-  }
-
-  // PRIORITY 2: Check Quick Block session (temporary focus mode)
+  // PRIORITY 1: Check Quick Block session (temporary focus mode)
   const quickBlockReason = await shouldBlockByQuickBlock(url, document);
 
   if (quickBlockReason) {
     return { type: 'quick', reason: quickBlockReason };
   }
 
-  // PRIORITY 3: Check schedules (time-based blocking)
+  // PRIORITY 2: Check schedules (time-based blocking)
   const schedules = await getSchedules();
 
   if (schedules.length > 0) {
@@ -126,7 +112,7 @@ function scheduleContentKeywordCheck(url: string): void {
 
 /**
  * Checks if page content contains any blocked keywords
- * Checks all blocking rules (permanent, quick, schedules) with document
+ * Checks all blocking rules (quick, schedules) with document
  */
 async function checkContentKeywords(url: string): Promise<void> {
   try {
@@ -136,8 +122,6 @@ async function checkContentKeywords(url: string): Promise<void> {
     if (blockReason) {
       // Check if it's a content keyword match
       const isContentKeyword =
-        (blockReason.type === 'permanent' &&
-          blockReason.reason.matchType === 'permanent_content_keyword') ||
         (blockReason.type === 'quick' &&
           blockReason.reason.matchType === 'quick_content_keyword') ||
         (blockReason.type === 'schedule' && blockReason.reason.matchType === 'content_keyword');
@@ -155,7 +139,7 @@ async function checkContentKeywords(url: string): Promise<void> {
 /**
  * Redirects to the blocked page with appropriate query parameters
  * CRITICAL: Uses aggressive blocking to prevent any page load/redirect
- * Handles permanent, quick, and schedule-based blocks
+ * Handles quick and schedule-based blocks
  */
 function redirectToBlockedPage(blockReason: UnifiedBlockReason, blockedUrl: string): void {
   // IMMEDIATELY stop any ongoing page load/redirect
@@ -171,14 +155,7 @@ function redirectToBlockedPage(blockReason: UnifiedBlockReason, blockedUrl: stri
     blockedUrl: blockedUrl,
   });
 
-  if (blockReason.type === 'permanent') {
-    // Permanent block (24/7 blocking)
-    const { matchType, matchedValue } = blockReason.reason;
-
-    params.set('blockType', 'permanent');
-    params.set('matchType', matchType);
-    params.set('matchedValue', matchedValue);
-  } else if (blockReason.type === 'quick') {
+  if (blockReason.type === 'quick') {
     // Quick Block session
     const { matchType, matchedValue, endTime } = blockReason.reason;
 
@@ -220,7 +197,7 @@ function redirectToBlockedPage(blockReason: UnifiedBlockReason, blockedUrl: stri
 /**
  * Immediately check and block synchronously (as much as possible)
  * This runs BEFORE any other initialization to catch blocks early
- * Checks all blocking rules (permanent, quick, schedules)
+ * Checks all blocking rules (quick, schedules)
  */
 (async function immediateCheck() {
   // Don't run on the blocked page itself
@@ -231,7 +208,7 @@ function redirectToBlockedPage(blockReason: UnifiedBlockReason, blockedUrl: stri
   try {
     const currentUrl = window.location.href;
 
-    // Check all blocking rules (permanent, quick, and schedules)
+    // Check all blocking rules (quick and schedules)
     const blockReason = await checkAllBlockingRules(currentUrl);
 
     if (blockReason) {

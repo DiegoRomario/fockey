@@ -15,7 +15,7 @@ import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
 import { LockModeSection } from './components/LockModeSection';
 import { Schedules } from './components/Schedules';
-import { PermanentBlockList, QuickBlock } from './components/General';
+import { QuickBlock } from './components/General';
 import {
   getSettings,
   updateSettings,
@@ -939,9 +939,6 @@ const Options: React.FC = () => {
                   blocking rules.
                 </p>
               </div>
-
-              {/* 24/7 Block List */}
-              <PermanentBlockList lockState={lockState} />
 
               {/* Quick Block */}
               <div id="quick-block">

@@ -5,14 +5,49 @@
  */
 
 import { QuickBlockSession, DEFAULT_QUICK_BLOCK_SESSION } from '../types/settings';
-import {
-  matchesPermanentDomain,
-  matchesPermanentUrlKeyword,
-  matchesPermanentContentKeyword,
-} from './permanent-block-utils';
+import { matchesDomain } from './domain-utils';
 
 // Storage key for Quick Block session (local storage only, not synced)
 const QUICK_BLOCK_SESSION_KEY = 'fockey_quick_block_session';
+
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Checks if a URL contains any of the provided keywords (case-insensitive)
+ *
+ * @param url - URL to check
+ * @param keywords - Array of keywords to search for
+ * @returns The matched keyword if found, null otherwise
+ */
+function matchesUrlKeyword(url: string, keywords: string[]): string | null {
+  const lowerUrl = url.toLowerCase();
+  for (const keyword of keywords) {
+    if (lowerUrl.includes(keyword.toLowerCase())) {
+      return keyword;
+    }
+  }
+  return null;
+}
+
+/**
+ * Checks if page content contains any of the provided keywords (case-insensitive)
+ *
+ * @param keywords - Array of keywords to search for
+ * @param document - Document to search within
+ * @returns The matched keyword if found, null otherwise
+ */
+function matchesContentKeyword(keywords: string[], document: Document): string | null {
+  // Extract visible text content from the page
+  const textContent = (document.body?.textContent || '').toLowerCase();
+
+  for (const keyword of keywords) {
+    if (textContent.includes(keyword.toLowerCase())) {
+      return keyword;
+    }
+  }
+
+  return null;
+}
 
 // ==================== STORAGE OPERATIONS ====================
 
@@ -244,7 +279,7 @@ export async function shouldBlockByQuickBlock(
   // Check domain blocking
   if (session.blockedDomains.length > 0) {
     for (const domain of session.blockedDomains) {
-      if (matchesPermanentDomain(url, domain)) {
+      if (matchesDomain(url, domain)) {
         return {
           matchType: 'quick_domain',
           matchedValue: domain,
@@ -256,7 +291,7 @@ export async function shouldBlockByQuickBlock(
 
   // Check URL keywords
   if (session.urlKeywords.length > 0) {
-    const matchedKeyword = matchesPermanentUrlKeyword(url, session.urlKeywords);
+    const matchedKeyword = matchesUrlKeyword(url, session.urlKeywords);
     if (matchedKeyword) {
       return {
         matchType: 'quick_url_keyword',
@@ -268,7 +303,7 @@ export async function shouldBlockByQuickBlock(
 
   // Check content keywords (only if document is provided)
   if (document && session.contentKeywords.length > 0) {
-    const matchedKeyword = matchesPermanentContentKeyword(session.contentKeywords, document);
+    const matchedKeyword = matchesContentKeyword(session.contentKeywords, document);
     if (matchedKeyword) {
       return {
         matchType: 'quick_content_keyword',

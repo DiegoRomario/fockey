@@ -1455,6 +1455,56 @@ A **Blocking Schedule** consists of:
 
 ---
 
+### Schedule Templates
+
+Schedule Templates are **predefined configurations** that help users quickly create new schedules with common blocking patterns. Templates are **not active schedules** — they serve as starting points that pre-fill the schedule creation form.
+
+#### Available Templates
+
+**1. 24/7 Template** (⏰ Clock icon)
+- **Days:** Every day (Monday - Sunday)
+- **Time:** All day (00:00 - 23:59)
+- **Use Case:** Continuous blocking for sites that should always be inaccessible
+
+**2. Work Template** (💼 Briefcase icon)
+- **Days:** Weekdays (Monday - Friday)
+- **Time:** 8:00 AM - 6:00 PM
+- **Use Case:** Focus during standard work hours
+
+**3. Digital Detox Template** (🧘 Meditation icon)
+- **Days:** Weekends (Saturday - Sunday)
+- **Time:** All day (00:00 - 23:59)
+- **Use Case:** Complete digital disconnect during weekends
+
+#### How Templates Work
+
+**Selecting a Template:**
+1. User clicks **"Use Template"** button on any template card
+2. Schedule creation dialog opens with pre-filled fields:
+   - Schedule name (e.g., "24/7", "Work", "Digital Detox")
+   - Icon (template emoji)
+   - Days (pre-selected based on template)
+   - Time periods (pre-configured times)
+   - Blocking rules section (empty — user adds their own)
+3. User reviews, edits as needed, adds blocking rules, and saves
+
+**Template Benefits:**
+- Quick setup for common blocking patterns
+- Consistent scheduling across users
+- Reduces configuration time and errors
+- Educational — shows users example configurations
+
+**Visual Presentation:**
+- Templates appear below the schedules list in the Time-Based Schedules section
+- Card-based layout with centered content
+- Large emoji icons for visual identification
+- Human-readable day and time formatting (e.g., "Weekdays", "8:00 AM → 6:00 PM")
+- Disabled during Lock Mode
+
+**Important:** Templates are **read-only presets** stored in the application code. They cannot be edited or deleted by users. Users create their own schedules by using templates as starting points.
+
+---
+
 ### Blocking Strategies
 
 #### Domain Blocking
@@ -1510,7 +1560,7 @@ Block pages whose visible text contains specific keywords (case-insensitive).
   - **URL Keywords** (orange theme) - Shows count (e.g., "3 keywords")
   - **Content Keywords** (amber theme) - Shows count (e.g., "2 keywords")
 - Hover over badge reveals full list of items in scrollable card
-- Consistent color coding with 24/7 Block List and Quick Block
+- Consistent color coding with Quick Block
 
 **Actions:**
 - **Options menu** (dropdown) in top-right corner of each card:
@@ -1635,58 +1685,6 @@ When a schedule blocks a page, users are redirected to the blocked page with:
 
 ---
 
-### 24/7 Block List
-
-The 24/7 Block List provides **permanent, always-active blocking** for domains and keywords. Unlike scheduled blocking, which operates during specific time windows, the 24/7 Block List enforces blocks **continuously, regardless of any schedule configuration**.
-
-#### Blocking Categories
-
-**Three-Tab Interface** separating blocking strategies:
-
-**1. Domains Tab**
-- Block entire websites with automatic subdomain inheritance
-- Examples: `reddit.com`, `twitter.com`
-- Wildcard pattern support (e.g., `*.example.com` blocks all subdomains)
-- Domain validation: Requires valid format with top-level domain (TLD)
-- Color theme: Red/Rose
-
-**2. URL Keywords Tab**
-- Block pages whose URLs contain specific keywords (case-insensitive)
-- Examples: `shorts`, `gaming`, `watch`
-- No validation required — any text accepted
-- Color theme: Orange
-
-**3. Content Keywords Tab**
-- Block pages containing keywords in titles, headings, or visible text (case-insensitive)
-- Examples: `cryptocurrency`, `breaking news`, `politics`
-- Checks page content after loading
-- Color theme: Amber
-
-#### User Interface
-
-**Each tab includes:**
-- Dedicated input field with **"Add"** button
-- Context-specific helper text with examples
-- Badge-based display of blocked items (removable tags)
-- Monospace font for technical items (domains, URL patterns)
-- Empty state message when no items configured
-- Toast notifications on add/remove actions
-
-**Visual Feedback:**
-- Color-coded tabs and badges by blocking type (Domains: red, URL Keywords: orange, Content Keywords: amber)
-- Real-time validation errors for invalid domain formats
-- Inline error messages when validation fails
-- Enter key support for quick item addition
-
-**When a page is blocked**, users are redirected to the blocked page showing:
-- Block reason (domain, URL keyword, or content keyword match)
-- Blocked URL for reference
-- Go Back button to navigate away
-
-**Lock Mode Integration:** When Lock Mode is active, removing items is blocked but adding new items is allowed. Warning message displayed when lock is active.
-
----
-
 ### Quick Block
 
 Quick Block is a **fast, temporary blocking feature** designed for immediate focus sessions. Users can instantly block selected websites and keywords for a predefined duration without creating a full schedule.
@@ -1698,7 +1696,7 @@ Quick Block is a **fast, temporary blocking feature** designed for immediate foc
 When no Quick Block session is active, users configure what to block:
 
 **Configure Blocking Rules:**
-- **Three-tab interface** identical to 24/7 Block List (Domains, URL Keywords, Content Keywords)
+- **Three-tab interface** (Domains, URL Keywords, Content Keywords)
 - Add items inline with immediate validation
 - Tab-specific helper text with examples
 - Color-coded by type (Domains: red, URL Keywords: orange, Content Keywords: amber)
@@ -1828,7 +1826,7 @@ Quick Block maintains a **session-specific library** of configured items:
 | **Lock Mode**              | Block settings changes     | On      | No           | All pages      |
 | **Lock Mode**              | Allow channel blocking     | On      | No           | All pages      |
 | **General Module**         | Time-based schedules       | Off     | Yes          | All sites      |
-| **General Module**         | 24/7 Block List            | Off     | Yes          | All sites      |
+| **General Module**         | Schedule Templates         | On      | No           | All sites      |
 | **General Module**         | Quick Block                | Off     | Yes          | All sites      |
 | **General Module**         | Domain blocking            | Off     | Yes          | All sites      |
 | **General Module**         | URL keyword blocking       | Off     | Yes          | All sites      |

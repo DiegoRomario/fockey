@@ -31,7 +31,7 @@ import {
   formatDuration,
   endQuickBlockSession,
 } from '@/shared/utils/quick-block-utils';
-import { isValidDomainPattern, normalizeDomain } from '@/shared/utils/permanent-block-utils';
+import { isValidDomainPattern, normalizeDomain } from '@/shared/utils/domain-utils';
 import { useToast } from '@/hooks/use-toast';
 import { LockModeState } from '@/shared/types/settings';
 

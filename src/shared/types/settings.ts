@@ -5,34 +5,6 @@
 
 // ==================== GENERAL MODULE ====================
 
-// ==================== 24/7 BLOCK LIST (PERMANENT BLOCKING) ====================
-
-/**
- * Permanent Block List
- * Domains, URL keywords, and content keywords that are always blocked,
- * regardless of schedules or time. Highest blocking priority.
- */
-export interface PermanentBlockList {
-  /**
-   * Domains to block permanently (supports wildcards)
-   * Examples: ["reddit.com", "*.facebook.com", "twitter.com"]
-   * Wildcard syntax: *.example.com blocks all subdomains
-   */
-  domains: string[];
-  /**
-   * URL keywords to block permanently (case-insensitive)
-   * Page is blocked if URL contains ANY of these keywords
-   * Examples: ["shorts", "trending", "viral"]
-   */
-  urlKeywords: string[];
-  /**
-   * Content keywords to block permanently (case-insensitive)
-   * Page is blocked if visible content contains ANY of these keywords
-   * Examples: ["cryptocurrency", "breaking news"]
-   */
-  contentKeywords: string[];
-}
-
 // ==================== QUICK BLOCK (TEMPORARY FOCUS SESSIONS) ====================
 
 /**
@@ -68,6 +40,54 @@ export const DEFAULT_QUICK_BLOCK_SESSION: Readonly<QuickBlockSession> = {
   urlKeywords: [],
   contentKeywords: [],
 } as const;
+
+// ==================== SCHEDULE TEMPLATES ====================
+
+/**
+ * Schedule Template
+ * Predefined templates for creating new schedules with common configurations
+ * These are NOT active schedules - they are presets that populate the schedule creation form
+ */
+export interface ScheduleTemplate {
+  /** Unique identifier for the template */
+  id: string;
+  /** Template name (e.g., "24/7 Focus", "Work Hours") */
+  name: string;
+  /** Icon identifier (e.g., "⏰", "💼") */
+  icon: string;
+  /** Pre-selected days (0-6, where 0 = Sunday) */
+  days: number[];
+  /** Pre-configured time periods */
+  timePeriods: { startTime: string; endTime: string }[];
+}
+
+/**
+ * Built-in schedule templates
+ * These templates are hardcoded and available to all users
+ */
+export const SCHEDULE_TEMPLATES: readonly ScheduleTemplate[] = [
+  {
+    id: 'template-24-7',
+    name: '24/7',
+    icon: '⏰',
+    days: [0, 1, 2, 3, 4, 5, 6], // Every day
+    timePeriods: [{ startTime: '00:00', endTime: '23:59' }],
+  },
+  {
+    id: 'template-work',
+    name: 'Work',
+    icon: '💼',
+    days: [1, 2, 3, 4, 5], // Monday - Friday
+    timePeriods: [{ startTime: '08:00', endTime: '18:00' }],
+  },
+  {
+    id: 'template-digital-detox',
+    name: 'Digital Detox',
+    icon: '🧘',
+    days: [0, 6], // Saturday and Sunday (weekend)
+    timePeriods: [{ startTime: '00:00', endTime: '23:59' }],
+  },
+] as const;
 
 // ==================== SCHEDULES ====================
 
@@ -314,8 +334,6 @@ export interface ExtensionSettings {
   youtube: YouTubeModuleSettings;
   /** List of blocked YouTube channels */
   blockedChannels: BlockedChannel[];
-  /** Permanent block list (24/7 blocking, highest priority) */
-  permanentBlockList: PermanentBlockList;
   /** List of time-based blocking schedules (General module) */
   schedules: BlockingSchedule[];
 }
@@ -366,10 +384,5 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
     },
   },
   blockedChannels: [],
-  permanentBlockList: {
-    domains: [],
-    urlKeywords: [],
-    contentKeywords: [],
-  },
   schedules: [],
 } as const;

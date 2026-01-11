@@ -84,17 +84,7 @@ function getReasonText(matchType, matchedValue) {
 }
 
 // Update message based on block type
-if (blockType === 'permanent') {
-  // Permanent block (24/7 blocking)
-  const reasonText = getReasonText(matchType, matchedValue);
-
-  if (blockMessageElement) {
-    blockMessageElement.innerHTML = `
-      ${reasonText} by your <strong>24/7 Block List</strong>.
-      <br><small style="opacity: 0.8;">This block is permanent and always active.</small>
-    `;
-  }
-} else if (blockType === 'quick') {
+if (blockType === 'quick') {
   // Quick Block session
   const reasonText = getReasonText(matchType, matchedValue);
 

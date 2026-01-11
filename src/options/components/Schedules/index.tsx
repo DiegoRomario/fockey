@@ -6,7 +6,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SchedulesList } from './SchedulesList';
 import { EditSchedule } from './EditSchedule';
-import { BlockingSchedule, LockModeState } from '@/shared/types/settings';
+import { ScheduleTemplates } from './ScheduleTemplates';
+import { BlockingSchedule, LockModeState, SCHEDULE_TEMPLATES } from '@/shared/types/settings';
 import {
   getSchedules,
   addSchedule,
@@ -96,6 +97,31 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
 
   const handleAddSchedule = () => {
     setEditingSchedule(null);
+    setShowEditDialog(true);
+  };
+
+  const handleSelectTemplate = (templateId: string) => {
+    // Find the template
+    const template = SCHEDULE_TEMPLATES.find((t) => t.id === templateId);
+    if (!template) return;
+
+    // Create a partial schedule with template values
+    // The EditSchedule component will handle the rest (IDs, timestamps, etc.)
+    const templateSchedule: Partial<BlockingSchedule> = {
+      name: template.name,
+      icon: template.icon,
+      days: [...template.days],
+      timePeriods: template.timePeriods.map((period) => ({ ...period })),
+      // Empty blocking rules - user will add these
+      blockedDomains: [],
+      urlKeywords: [],
+      contentKeywords: [],
+      enabled: true,
+    };
+
+    // Set the editing schedule to the template (cast to BlockingSchedule for the dialog)
+    // EditSchedule will treat it as a new schedule since it won't have an id
+    setEditingSchedule(templateSchedule as BlockingSchedule);
     setShowEditDialog(true);
   };
 
@@ -199,12 +225,19 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
 
   return (
     <>
+      {/* Schedules List */}
       <SchedulesList
         schedules={schedules}
         onAddSchedule={handleAddSchedule}
         onEditSchedule={handleEditSchedule}
         onDeleteSchedule={handleDeleteSchedule}
         onToggleSchedule={handleToggleSchedule}
+        isLocked={lockState?.isLocked === true}
+      />
+
+      {/* Schedule Templates */}
+      <ScheduleTemplates
+        onSelectTemplate={handleSelectTemplate}
         isLocked={lockState?.isLocked === true}
       />
 
@@ -230,4 +263,4 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   );
 };
 
-export { SchedulesList, EditSchedule };
+export { SchedulesList, EditSchedule, ScheduleTemplates };

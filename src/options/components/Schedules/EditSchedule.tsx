@@ -16,7 +16,7 @@ import {
   normalizeDomain,
   getOverlappingIndices,
 } from '@/shared/utils/schedule-utils';
-import { isValidDomainPattern } from '@/shared/utils/permanent-block-utils';
+import { isValidDomainPattern } from '@/shared/utils/domain-utils';
 import { cn } from '@/lib/utils';
 
 interface EditScheduleProps {
