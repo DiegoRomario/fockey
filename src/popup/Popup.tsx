@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -21,6 +21,8 @@ import LoadingState from './components/LoadingState';
 import QuickBlockHero from './components/QuickBlockHero';
 import YouTubeModuleSection from './components/YouTubeModuleSection';
 import SchedulesSection from './components/SchedulesSection';
+import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { initializeTheme } from '@/shared/utils/theme-utils';
 
 /**
  * Extension popup component
@@ -44,6 +46,36 @@ const Popup: React.FC = () => {
   const debounceTimerRef = useRef<number | null>(null);
   // Pending updates that will be written to storage
   const pendingUpdatesRef = useRef<Partial<ExtensionSettings>>({});
+  // Track if we're currently writing to storage to avoid reloading on self-triggered changes
+  const isWritingToStorageRef = useRef<boolean>(false);
+  // Refs for popup scroll position preservation
+  const popupScrollRef = useRef<HTMLDivElement>(null);
+  const popupScrollPositionRef = useRef<number>(0);
+
+  /**
+   * Initialize theme on mount
+   */
+  useEffect(() => {
+    initializeTheme();
+  }, []);
+
+  /**
+   * Preserve popup scroll position across re-renders
+   * Uses useLayoutEffect to restore scroll before paint
+   */
+  useLayoutEffect(() => {
+    const container = popupScrollRef.current;
+    if (container) {
+      container.scrollTop = popupScrollPositionRef.current;
+    }
+  });
+
+  /**
+   * Track popup scroll position
+   */
+  const handlePopupScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    popupScrollPositionRef.current = e.currentTarget.scrollTop;
+  }, []);
 
   /**
    * Load settings from Chrome Storage on mount
@@ -70,8 +102,14 @@ const Popup: React.FC = () => {
       changes: { [key: string]: chrome.storage.StorageChange },
       areaName: string
     ) => {
+      // Ignore changes if we're currently writing (self-triggered changes)
+      // This prevents redundant reloads since we already applied changes optimistically
+      if (isWritingToStorageRef.current) {
+        return;
+      }
+
       if (areaName === 'sync' || areaName === 'local') {
-        // Reload settings when they change externally
+        // Only reload for external changes (from Options page, content scripts, etc.)
         loadSettings();
       }
     };
@@ -334,6 +372,9 @@ const Popup: React.FC = () => {
     // Set new timer (100ms debounce for responsive UI)
     debounceTimerRef.current = setTimeout(async () => {
       try {
+        // Mark that we're writing to storage to ignore the subsequent storage change event
+        isWritingToStorageRef.current = true;
+
         // Capture updates before clearing
         const updates = { ...pendingUpdatesRef.current };
         await updateSettings(updates);
@@ -341,11 +382,18 @@ const Popup: React.FC = () => {
         // Clear pending updates after successful write
         pendingUpdatesRef.current = {};
 
+        // Use a small delay before clearing the flag to ensure the storage change event is caught
+        setTimeout(() => {
+          isWritingToStorageRef.current = false;
+        }, 50);
+
         // Note: Chrome Storage change will automatically trigger watchSettings in content scripts
         // No need to manually broadcast via messages
       } catch (err) {
         console.error('Failed to update settings:', err);
         setError('Failed to save settings. Please try again.');
+        // Clear the flag even on error
+        isWritingToStorageRef.current = false;
       }
     }, 100);
   }, []);
@@ -545,21 +593,28 @@ const Popup: React.FC = () => {
     <TooltipProvider>
       <div className="w-96">
         <Card>
-          {/* Header with Settings Icon */}
+          {/* Header with Theme Toggle and Settings Icon */}
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-bold">FOCKEY</CardTitle>
-              <button
-                onClick={() => handleOpenSettings()}
-                className="rounded-full p-2 hover:bg-accent transition-colors"
-                aria-label="Open Settings"
-              >
-                <Settings className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                <ThemeToggle variant="icon" />
+                <button
+                  onClick={() => handleOpenSettings()}
+                  className="rounded-full p-2 hover:bg-accent transition-colors"
+                  aria-label="Open Settings"
+                >
+                  <Settings className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </button>
+              </div>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4 pt-0">
+          <CardContent
+            ref={popupScrollRef}
+            onScroll={handlePopupScroll}
+            className="space-y-4 pt-0 max-h-[500px] overflow-y-auto"
+          >
             {/* Quick Block Hero Section */}
             <QuickBlockHero lockState={lockState} onOpenSettings={handleOpenQuickBlockSettings} />
 

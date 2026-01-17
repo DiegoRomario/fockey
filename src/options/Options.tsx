@@ -29,6 +29,8 @@ import { normalizeChannelInput } from '@/shared/utils/channel-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { initializeTheme } from '@/shared/utils/theme-utils';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -58,6 +60,11 @@ const Options: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PrimaryTab>('youtube');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+
+  // Initialize theme on mount
+  useEffect(() => {
+    initializeTheme();
+  }, []);
 
   // Load settings on mount
   useEffect(() => {
@@ -416,19 +423,9 @@ const Options: React.FC = () => {
 
               {/* YouTube Sub-Tabs (Horizontal) */}
               <Tabs defaultValue="elements" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 rounded-lg border border-border/40 shadow-sm">
-                  <TabsTrigger
-                    value="elements"
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
-                  >
-                    Elements Settings
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="blockedChannels"
-                    className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
-                  >
-                    Blocked Channels
-                  </TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="elements">Elements Settings</TabsTrigger>
+                  <TabsTrigger value="blockedChannels">Blocked Channels</TabsTrigger>
                 </TabsList>
 
                 {/* Elements Settings Sub-Tab */}
@@ -895,6 +892,18 @@ const Options: React.FC = () => {
                     </p>
                   </div>
                   <ResetButton onReset={handleReset} disabled={lockState?.isLocked === true} />
+                </div>
+
+                <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Appearance</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Choose between light and dark theme
+                      </p>
+                    </div>
+                    <ThemeToggle variant="segmented" />
+                  </div>
                 </div>
               </div>
             </div>

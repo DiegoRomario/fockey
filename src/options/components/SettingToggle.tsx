@@ -35,7 +35,7 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className="flex items-center justify-between py-3 px-1 group">
+    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/20 transition-colors cursor-pointer group">
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2">
           <Label
@@ -48,7 +48,7 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-xs">
                   <p className="text-sm">{tooltip}</p>

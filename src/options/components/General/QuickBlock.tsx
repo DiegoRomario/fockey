@@ -593,16 +593,16 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
           <div className="space-y-4">
             <Label className="text-sm font-semibold">Configure Blocking Rules</Label>
             <Tabs defaultValue="domains" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="domains" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-3 h-auto">
+                <TabsTrigger value="domains" className="gap-2">
                   <Globe className="h-4 w-4" />
                   Domains
                 </TabsTrigger>
-                <TabsTrigger value="url-keywords" className="flex items-center gap-2">
+                <TabsTrigger value="url-keywords" className="gap-2">
                   <Link className="h-4 w-4" />
                   URL Keywords
                 </TabsTrigger>
-                <TabsTrigger value="content-keywords" className="flex items-center gap-2">
+                <TabsTrigger value="content-keywords" className="gap-2">
                   <FileText className="h-4 w-4" />
                   Content Keywords
                 </TabsTrigger>

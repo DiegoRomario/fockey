@@ -453,7 +453,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
             {/* Status Line */}
             <button
               onClick={onOpenSettings}
-              className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="w-full flex items-center justify-end gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <span>Configure</span>
               <span>→</span>

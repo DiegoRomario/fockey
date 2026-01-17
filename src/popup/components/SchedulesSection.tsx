@@ -162,14 +162,16 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
       {/* Header with Add button */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Schedules</h3>
-        <button
+        <Button
           onClick={() => onOpenSchedulesSettings('create')}
-          className="flex items-center gap-1 text-xs text-primary hover:underline"
+          variant="outline"
+          size="sm"
+          className="h-7 px-2"
           disabled={disabled}
         >
-          <Plus className="h-3 w-3" />
-          <span>Add</span>
-        </button>
+          <Plus className="h-3 w-3 mr-1" />
+          <span className="text-xs">Add</span>
+        </Button>
       </div>
 
       {/* Schedules List */}
@@ -178,7 +180,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
           <div
             key={schedule.id}
             className={cn(
-              'relative rounded-lg border bg-card p-4 transition-colors cursor-pointer hover:bg-accent/50',
+              'relative rounded-lg border bg-card p-4 transition-all duration-200 cursor-pointer hover:bg-accent/50 hover:shadow-md hover:scale-[1.01]',
               !schedule.enabled && 'opacity-50'
             )}
             onClick={() => !disabled && onOpenSchedulesSettings(schedule.id)}
