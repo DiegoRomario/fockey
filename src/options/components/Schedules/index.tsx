@@ -189,7 +189,9 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
 
   const handleSaveSchedule = async (schedule: BlockingSchedule) => {
     try {
-      if (editingSchedule) {
+      // Check if we're editing an existing schedule (has an ID) vs creating a new one
+      // When creating from a template, editingSchedule exists but has no id
+      if (editingSchedule?.id) {
         // Update existing schedule
         await updateSchedule(schedule.id, schedule);
         toast({
@@ -197,7 +199,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
           description: 'Your schedule has been updated successfully',
         });
       } else {
-        // Add new schedule
+        // Add new schedule (either from scratch or from template)
         await addSchedule(schedule);
         toast({
           title: 'Schedule Created',
@@ -245,9 +247,9 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingSchedule ? 'Edit Schedule' : 'Create Schedule'}</DialogTitle>
+            <DialogTitle>{editingSchedule?.id ? 'Edit Schedule' : 'Create Schedule'}</DialogTitle>
             <DialogDescription>
-              {editingSchedule
+              {editingSchedule?.id
                 ? 'Modify your existing blocking schedule'
                 : 'Set up a new time-based blocking schedule'}
             </DialogDescription>
