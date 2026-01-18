@@ -9,6 +9,7 @@ import {
   BlockedChannel,
   LockModeState,
   DEFAULT_LOCK_STATE,
+  normalizeContentKeywords,
 } from '../types/settings';
 import { validateSettings } from './validation';
 
@@ -578,12 +579,20 @@ export async function unlockLockMode(): Promise<void> {
 
 /**
  * Retrieves all blocking schedules
+ * Handles backwards compatibility for old string[] contentKeywords format
  *
  * @returns Promise resolving to array of blocking schedules
  */
 export async function getSchedules(): Promise<import('../types/settings').BlockingSchedule[]> {
   const settings = await getSettings();
-  return settings.schedules || [];
+  const schedules = settings.schedules || [];
+
+  // Normalize contentKeywords for backwards compatibility
+  // Convert old string[] format to ContentKeywordRule[] format
+  return schedules.map((schedule) => ({
+    ...schedule,
+    contentKeywords: normalizeContentKeywords(schedule.contentKeywords || []),
+  }));
 }
 
 /**

@@ -213,8 +213,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
   };
 
   const addContentKeyword = () => {
-    if (contentKeywordInput.trim() && !contentKeywords.includes(contentKeywordInput.trim())) {
-      setContentKeywords([...contentKeywords, contentKeywordInput.trim()]);
+    const keyword = contentKeywordInput.trim();
+    if (keyword && !contentKeywords.includes(keyword)) {
+      setContentKeywords([...contentKeywords, keyword]);
       setContentKeywordInput('');
     }
   };
@@ -574,7 +575,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                   <Label>Content Keywords</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Block pages with these keywords in content
+                  Block elements containing these keywords.
                 </p>
                 <div className="flex gap-2">
                   <Input

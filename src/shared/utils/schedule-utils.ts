@@ -3,7 +3,7 @@
  * Provides functions for schedule activation logic, domain matching, and keyword matching
  */
 
-import { BlockingSchedule, TimePeriod } from '../types/settings';
+import { BlockingSchedule, TimePeriod, normalizeContentKeywords } from '../types/settings';
 
 // ==================== TIME & DAY MATCHING ====================
 
@@ -174,18 +174,21 @@ export function matchesUrlKeyword(url: string, keywords: string[]): string | nul
  * Checks if page content contains any of the specified keywords (case-insensitive)
  * Searches in the document body's visible text content
  *
- * @param keywords - Array of keywords to search for
+ * @param keywords - Array of content keywords to search for
  * @param document - Document object to search in (defaults to window.document)
  * @returns Matching keyword if found, null otherwise
  */
 export function matchesContentKeyword(
-  keywords: string[],
+  keywords: (string | { keyword: string; blockEntireSite?: boolean })[],
   document: Document = window.document
 ): string | null {
+  // Normalize keywords in case they're in old ContentKeywordRule[] format
+  const normalizedKeywords = normalizeContentKeywords(keywords);
+
   // Get visible text content from the page
   const bodyText = document.body?.innerText?.toLowerCase() || '';
 
-  for (const keyword of keywords) {
+  for (const keyword of normalizedKeywords) {
     if (bodyText.includes(keyword.toLowerCase())) {
       return keyword;
     }

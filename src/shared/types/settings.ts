@@ -5,6 +5,32 @@
 
 // ==================== GENERAL MODULE ====================
 
+// ==================== CONTENT KEYWORDS ====================
+
+/**
+ * Legacy Content Keyword Rule interface (for backwards compatibility)
+ * @deprecated Use string[] for contentKeywords instead
+ */
+interface LegacyContentKeywordRule {
+  keyword: string;
+  blockEntireSite?: boolean;
+}
+
+/**
+ * Helper function to normalize content keywords
+ * Converts old ContentKeywordRule[] format to string[] for backwards compatibility
+ */
+export function normalizeContentKeywords(
+  keywords: (string | LegacyContentKeywordRule)[]
+): string[] {
+  return keywords.map((k) => {
+    if (typeof k === 'string') {
+      return k;
+    }
+    return k.keyword;
+  });
+}
+
 // ==================== QUICK BLOCK (TEMPORARY FOCUS SESSIONS) ====================
 
 /**
@@ -24,7 +50,10 @@ export interface QuickBlockSession {
   blockedDomains: string[];
   /** URL keywords to block during this session */
   urlKeywords: string[];
-  /** Content keywords to block during this session */
+  /**
+   * Content keywords to block during this session
+   * Elements containing these keywords will be blurred/hidden
+   */
   contentKeywords: string[];
 }
 
@@ -139,8 +168,8 @@ export interface BlockingSchedule {
   urlKeywords: string[];
   /**
    * Content keywords to match
-   * Page is blocked if visible content contains ANY of these keywords (case-insensitive)
-   * Examples: ["breaking news", "celebrity", "sports gossip"]
+   * Elements containing ANY of these keywords will be blurred/hidden (case-insensitive)
+   * Examples: ["breaking news", "celebrity", "gossip"]
    */
   contentKeywords: string[];
   /** Timestamp when schedule was created */

@@ -730,7 +730,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Block pages containing this keyword in titles, headings, or text
+                    Block elements containing this keyword.
                   </p>
                 </div>
 

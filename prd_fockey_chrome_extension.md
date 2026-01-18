@@ -1583,13 +1583,19 @@ Block pages whose URLs contain specific keywords (case-insensitive).
 
 #### Content Keyword Blocking
 
-Block pages whose visible text contains specific keywords (case-insensitive).
+Hide specific elements on a page that contain certain keywords in their text or media metadata (case-insensitive). Unlike domain and URL keyword blocking, content keywords **do not redirect to the blocked page**—they apply a blur effect to matching elements while allowing the rest of the page to remain visible.
+
+**How it works:**
+- Elements containing the keyword in their text content are blurred
+- Images and media with the keyword in their metadata (src, alt, title, aria-label) are also blurred
+- Blocking is applied automatically when rules are added (no page reload required)
+- Multiple elements can be blurred on a single page
 
 **Examples:**
-- Keyword `cryptocurrency` blocks any page with "cryptocurrency" in visible text
-- Keyword `breaking news` blocks news articles with "breaking news" in content
+- Keyword `cryptocurrency` blurs any text block, headline, or image related to "cryptocurrency"
+- Keyword `breaking news` blurs news articles and thumbnails containing "breaking news"
 
-**Note:** Content keyword blocking requires the page to load partially before checking, making it slightly slower than domain/URL keyword blocking.
+**Note:** Content keyword blocking requires the page to load before checking, as it analyzes visible page content and media attributes.
 
 ---
 
@@ -1725,16 +1731,17 @@ Block pages whose visible text contains specific keywords (case-insensitive).
 
 ### Blocked Page
 
-When a schedule blocks a page, users are redirected to the blocked page with:
+When a schedule blocks a page via domain or URL keyword rules, users are redirected to the blocked page with:
 
 - **Block message** indicating why the page was blocked:
   - Domain blocks: "This domain (**example.com**) is blocked by schedule **Work Hours Focus**"
   - URL keyword blocks: "This URL contains the blocked keyword: **shorts**"
-  - Content keyword blocks: "This page contains the blocked keyword: **cryptocurrency**"
 - **Schedule name** that triggered the block
 - **Active time period** (e.g., "Active: 09:00 - 17:00")
 - **Go Back button** to navigate away
 - **Blocked URL** displayed at the bottom
+
+**Note:** Content keyword blocking does not redirect to this page—it blurs matching elements directly on the page instead (see Content Keyword Blocking section above).
 
 ---
 

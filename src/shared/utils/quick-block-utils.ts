@@ -4,7 +4,11 @@
  * Quick Block sessions are stored in chrome.storage.local (device-specific)
  */
 
-import { QuickBlockSession, DEFAULT_QUICK_BLOCK_SESSION } from '../types/settings';
+import {
+  QuickBlockSession,
+  DEFAULT_QUICK_BLOCK_SESSION,
+  normalizeContentKeywords,
+} from '../types/settings';
 import { matchesDomain } from './domain-utils';
 
 // Storage key for Quick Block session (local storage only, not synced)
@@ -32,15 +36,21 @@ function matchesUrlKeyword(url: string, keywords: string[]): string | null {
 /**
  * Checks if page content contains any of the provided keywords (case-insensitive)
  *
- * @param keywords - Array of keywords to search for
+ * @param keywords - Array of content keywords to search for
  * @param document - Document to search within
  * @returns The matched keyword if found, null otherwise
  */
-function matchesContentKeyword(keywords: string[], document: Document): string | null {
+function matchesContentKeyword(
+  keywords: (string | { keyword: string; blockEntireSite?: boolean })[],
+  document: Document
+): string | null {
+  // Normalize keywords in case they're in old ContentKeywordRule[] format
+  const normalizedKeywords = normalizeContentKeywords(keywords);
+
   // Extract visible text content from the page
   const textContent = (document.body?.textContent || '').toLowerCase();
 
-  for (const keyword of keywords) {
+  for (const keyword of normalizedKeywords) {
     if (textContent.includes(keyword.toLowerCase())) {
       return keyword;
     }
@@ -65,14 +75,20 @@ export async function getQuickBlockSession(): Promise<QuickBlockSession> {
       return { ...DEFAULT_QUICK_BLOCK_SESSION };
     }
 
-    // Validate session structure
+    // Validate and normalize session structure
+    // Handle backwards compatibility: convert old ContentKeywordRule[] to string[]
+    const rawContentKeywords = Array.isArray(session.contentKeywords)
+      ? session.contentKeywords
+      : [];
+    const normalizedContentKeywords = normalizeContentKeywords(rawContentKeywords);
+
     return {
       isActive: session.isActive ?? false,
       startTime: session.startTime ?? null,
       endTime: session.endTime ?? null,
       blockedDomains: Array.isArray(session.blockedDomains) ? session.blockedDomains : [],
       urlKeywords: Array.isArray(session.urlKeywords) ? session.urlKeywords : [],
-      contentKeywords: Array.isArray(session.contentKeywords) ? session.contentKeywords : [],
+      contentKeywords: normalizedContentKeywords,
     };
   } catch (error) {
     console.error('[Quick Block] Error loading session:', error);
@@ -111,7 +127,7 @@ export async function clearQuickBlockSession(): Promise<void> {
  * @param durationMs - Duration in milliseconds, or null for indefinite blocking
  * @param blockedDomains - Domains to block
  * @param urlKeywords - URL keywords to block
- * @param contentKeywords - Content keywords to block
+ * @param contentKeywords - Content keywords to block (elements will be blurred)
  * @returns The started Quick Block session
  */
 export async function startQuickBlockSession(
