@@ -81,79 +81,53 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
     setSelectedDays([]);
   };
 
-  // Check if we can add more time periods (need at least 1 hour before midnight)
+  // Check if we can add more time periods
+  // Uses the LAST period's end time as reference (append-based model)
   const canAddMorePeriods = React.useMemo(() => {
     if (timePeriods.length === 0) {
       return true; // Can always add first period
     }
 
-    // Find the latest end time
-    const endTimes = timePeriods.map((p) => {
-      const [hours, minutes] = p.endTime.split(':').map(Number);
-      return hours * 60 + minutes;
-    });
+    // Get the LAST period's end time (this will be the new period's start time)
+    const lastPeriod = timePeriods[timePeriods.length - 1];
+    const [hours, minutes] = lastPeriod.endTime.split(':').map(Number);
+    const endMinutes = hours * 60 + minutes;
 
-    const maxEndMinutes = Math.max(...endTimes);
-
-    // Need at least 60 minutes (1 hour) remaining in the day for a new period
-    // 23:59 = 1439 minutes, so if maxEndMinutes > 1379 (22:59), we can't add another hour
-    const minutesRemaining = 1440 - maxEndMinutes; // 1440 = 24 * 60 (total minutes in day)
-
-    // Need at least 60 minutes for a meaningful period
-    return minutesRemaining >= 60;
+    // Can add more if the last period ends before 23:59
+    // This ensures the new period has at least 1 minute of possible duration
+    return endMinutes < 23 * 60 + 59;
   }, [timePeriods]);
 
   // Time period helpers
+  // Append-based model: new.start = latest.end, new.end = new.start + 1 hour
   const addTimePeriod = () => {
-    // Don't allow adding if no time left in day
     if (!canAddMorePeriods) {
       return;
     }
 
-    // Find the latest end time from all existing periods
-    let latestEndTime = '09:00'; // Default start time
+    let newStartTime: string;
+    let newEndTime: string;
 
-    if (timePeriods.length > 0) {
-      // Convert all end times to minutes and find the maximum
-      const endTimes = timePeriods.map((p) => {
-        const [hours, minutes] = p.endTime.split(':').map(Number);
-        return hours * 60 + minutes;
-      });
+    if (timePeriods.length === 0) {
+      // First period - default start at 09:00, end at 10:00 (1 hour duration)
+      newStartTime = '09:00';
+      newEndTime = '10:00';
+    } else {
+      // New period starts exactly at the end of the LAST period (no +1 minute gap)
+      const lastPeriod = timePeriods[timePeriods.length - 1];
+      newStartTime = lastPeriod.endTime;
 
-      const maxEndMinutes = Math.max(...endTimes);
+      // Calculate end time: start + 1 hour, capped at 23:59
+      const [hours, minutes] = newStartTime.split(':').map(Number);
+      const startMinutes = hours * 60 + minutes;
+      const endMinutes = Math.min(startMinutes + 60, 23 * 60 + 59);
 
-      // Add 1 minute to the latest end time
-      const newStartMinutes = maxEndMinutes + 1;
-
-      // CRITICAL: Don't allow wrapping to next day - periods must stay within same day
-      if (newStartMinutes >= 24 * 60) {
-        // Would cross midnight - don't add period
-        return;
-      }
-
-      // Convert back to HH:MM format
-      const hours = Math.floor(newStartMinutes / 60);
-      const minutes = newStartMinutes % 60;
-      latestEndTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      const endHours = Math.floor(endMinutes / 60);
+      const endMins = endMinutes % 60;
+      newEndTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
     }
 
-    // Set end time to 1 hour after start time (or 17:00 if default)
-    let endTime = '17:00';
-    if (timePeriods.length > 0) {
-      const [hours, minutes] = latestEndTime.split(':').map(Number);
-      const endMinutes = hours * 60 + minutes + 60; // +1 hour
-
-      // Cap at 23:59 to stay within same day
-      if (endMinutes >= 24 * 60) {
-        endTime = '23:59';
-      } else {
-        const endHours = Math.floor(endMinutes / 60);
-        const endMins = endMinutes % 60;
-        endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-      }
-    }
-
-    setTimePeriods([...timePeriods, { startTime: latestEndTime, endTime }]);
+    setTimePeriods([...timePeriods, { startTime: newStartTime, endTime: newEndTime }]);
   };
 
   const removeTimePeriod = (index: number) => {
