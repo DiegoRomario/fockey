@@ -462,7 +462,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="Applies to all YouTube pages"
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -477,7 +476,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="Controls both sidebar and hamburger menu across all pages"
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -492,7 +490,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="Applies to all YouTube pages"
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -507,7 +504,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="Applies to all YouTube pages"
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -522,7 +518,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), hovering over thumbnails won't trigger autoplay previews"
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -537,7 +532,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), all Shorts content is blocked including direct Shorts URLs, Shorts in search results, Shorts tabs on creator profiles, and Shorts in creator profile home tabs."
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -552,7 +546,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
                             disabled={lockState?.isLocked === true}
                           />
 
@@ -567,7 +560,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges. When enabled, YouTube's native search suggestions appear when typing in the search box."
                             disabled={lockState?.isLocked === true}
                           />
                         </div>
@@ -599,7 +591,6 @@ const Options: React.FC = () => {
                             onChange={(checked) =>
                               handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
                             }
-                            tooltip="Auto-generated mixes and user-created playlists"
                             disabled={lockState?.isLocked === true}
                           />
                           <SettingToggle
@@ -613,7 +604,6 @@ const Options: React.FC = () => {
                                 checked
                               )
                             }
-                            tooltip="Reduces visual stimulation while keeping structural awareness"
                             disabled={lockState?.isLocked === true}
                           />
                         </div>
