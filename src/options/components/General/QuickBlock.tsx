@@ -30,6 +30,7 @@ import {
   parseDurationPreset,
   formatDuration,
   endQuickBlockSession,
+  updateQuickBlockItems,
 } from '@/shared/utils/quick-block-utils';
 import { isValidDomainPattern, normalizeDomain } from '@/shared/utils/domain-utils';
 import { useToast } from '@/hooks/use-toast';
@@ -142,7 +143,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
   // ==================== CONFIGURATION HANDLERS ====================
 
-  const handleAddDomain = () => {
+  const handleAddDomain = async () => {
     const domain = normalizeDomain(domainInput.trim());
 
     if (!domain) {
@@ -163,15 +164,41 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
     }
 
     setDomainInputError(null);
-    setSelectedDomains([...selectedDomains, domain]);
+    const newDomains = [...selectedDomains, domain];
+    setSelectedDomains(newDomains);
     setDomainInput('');
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(newDomains, selectedUrlKeywords, selectedContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist domain:', error);
+    }
   };
 
-  const handleRemoveDomain = (domain: string) => {
-    setSelectedDomains((prev) => prev.filter((d) => d !== domain));
+  const handleRemoveDomain = async (domain: string) => {
+    // Don't allow removal when Quick Block is active
+    if (isActive) {
+      toast({
+        title: 'Cannot Remove',
+        description: 'Items cannot be removed while Quick Block is active',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const newDomains = selectedDomains.filter((d) => d !== domain);
+    setSelectedDomains(newDomains);
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(newDomains, selectedUrlKeywords, selectedContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist domain removal:', error);
+    }
   };
 
-  const handleAddUrlKeyword = () => {
+  const handleAddUrlKeyword = async () => {
     const keyword = urlKeywordInput.trim();
 
     if (!keyword) {
@@ -192,15 +219,41 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       return;
     }
 
-    setSelectedUrlKeywords([...selectedUrlKeywords, keyword]);
+    const newUrlKeywords = [...selectedUrlKeywords, keyword];
+    setSelectedUrlKeywords(newUrlKeywords);
     setUrlKeywordInput('');
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(selectedDomains, newUrlKeywords, selectedContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist URL keyword:', error);
+    }
   };
 
-  const handleRemoveUrlKeyword = (keyword: string) => {
-    setSelectedUrlKeywords((prev) => prev.filter((k) => k !== keyword));
+  const handleRemoveUrlKeyword = async (keyword: string) => {
+    // Don't allow removal when Quick Block is active
+    if (isActive) {
+      toast({
+        title: 'Cannot Remove',
+        description: 'Items cannot be removed while Quick Block is active',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const newUrlKeywords = selectedUrlKeywords.filter((k) => k !== keyword);
+    setSelectedUrlKeywords(newUrlKeywords);
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(selectedDomains, newUrlKeywords, selectedContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist URL keyword removal:', error);
+    }
   };
 
-  const handleAddContentKeyword = () => {
+  const handleAddContentKeyword = async () => {
     const keyword = contentKeywordInput.trim();
 
     if (!keyword) {
@@ -221,12 +274,38 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       return;
     }
 
-    setSelectedContentKeywords([...selectedContentKeywords, keyword]);
+    const newContentKeywords = [...selectedContentKeywords, keyword];
+    setSelectedContentKeywords(newContentKeywords);
     setContentKeywordInput('');
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(selectedDomains, selectedUrlKeywords, newContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist content keyword:', error);
+    }
   };
 
-  const handleRemoveContentKeyword = (keyword: string) => {
-    setSelectedContentKeywords((prev) => prev.filter((k) => k !== keyword));
+  const handleRemoveContentKeyword = async (keyword: string) => {
+    // Don't allow removal when Quick Block is active
+    if (isActive) {
+      toast({
+        title: 'Cannot Remove',
+        description: 'Items cannot be removed while Quick Block is active',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const newContentKeywords = selectedContentKeywords.filter((k) => k !== keyword);
+    setSelectedContentKeywords(newContentKeywords);
+
+    // Persist immediately to storage
+    try {
+      await updateQuickBlockItems(selectedDomains, selectedUrlKeywords, newContentKeywords);
+    } catch (error) {
+      console.error('Failed to persist content keyword removal:', error);
+    }
   };
 
   // ==================== SESSION HANDLERS ====================
@@ -410,66 +489,163 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
               )}
             </div>
 
-            {/* Blocked Items Summary */}
-            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-              <Label className="text-sm font-semibold">Currently Blocking:</Label>
+            {/* Configuration Section - Can add items during active session */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">Currently Blocking</Label>
+                <span className="text-xs text-muted-foreground">
+                  You can add new items during an active session
+                </span>
+              </div>
+              <Tabs defaultValue="domains" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 h-auto">
+                  <TabsTrigger value="domains" className="gap-2">
+                    <Globe className="h-4 w-4" />
+                    Domains
+                  </TabsTrigger>
+                  <TabsTrigger value="url-keywords" className="gap-2">
+                    <Link className="h-4 w-4" />
+                    URL Keywords
+                  </TabsTrigger>
+                  <TabsTrigger value="content-keywords" className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Content Keywords
+                  </TabsTrigger>
+                </TabsList>
 
-              {selectedDomains.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                    <Globe className="h-3.5 w-3.5" />
-                    <span>Domains ({selectedDomains.length})</span>
+                {/* Domains Tab */}
+                <TabsContent value="domains" className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="example.com or *.example.com"
+                        value={domainInput}
+                        onChange={(e) => {
+                          setDomainInput(e.target.value);
+                          setDomainInputError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddDomain();
+                        }}
+                        className={cn('flex-1', domainInputError && 'border-destructive')}
+                      />
+                      <Button onClick={handleAddDomain} size="sm" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {domainInputError && (
+                      <p className="text-xs text-destructive">⚠ {domainInputError}</p>
+                    )}
+                    {!domainInputError && (
+                      <p className="text-xs text-muted-foreground">
+                        Add more domains to block during this session
+                      </p>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedDomains.map((domain) => (
-                      <span
-                        key={domain}
-                        className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
-                      >
-                        {domain}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {selectedUrlKeywords.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                    <Link className="h-3.5 w-3.5" />
-                    <span>URL Keywords ({selectedUrlKeywords.length})</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedUrlKeywords.map((keyword) => (
-                      <span
-                        key={keyword}
-                        className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+                  {selectedDomains.length === 0 ? (
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">No domains configured</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedDomains.map((domain) => (
+                        <span
+                          key={domain}
+                          className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
+                        >
+                          {domain}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
-              {selectedContentKeywords.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                    <FileText className="h-3.5 w-3.5" />
-                    <span>Content Keywords ({selectedContentKeywords.length})</span>
+                {/* URL Keywords Tab */}
+                <TabsContent value="url-keywords" className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="watch?v= or /shorts/ or playlist"
+                        value={urlKeywordInput}
+                        onChange={(e) => setUrlKeywordInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddUrlKeyword();
+                        }}
+                        className="flex-1"
+                      />
+                      <Button onClick={handleAddUrlKeyword} size="sm" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Add more URL keywords to block during this session
+                    </p>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedContentKeywords.map((keyword) => (
-                      <span
-                        key={keyword}
-                        className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
+
+                  {selectedUrlKeywords.length === 0 ? (
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
+                      <Link className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">No URL keywords configured</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedUrlKeywords.map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Content Keywords Tab */}
+                <TabsContent value="content-keywords" className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="trending or celebrity or gossip"
+                        value={contentKeywordInput}
+                        onChange={(e) => setContentKeywordInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddContentKeyword();
+                        }}
+                        className="flex-1"
+                      />
+                      <Button onClick={handleAddContentKeyword} size="sm" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Add more content keywords to block during this session
+                    </p>
                   </div>
-                </div>
-              )}
+
+                  {selectedContentKeywords.length === 0 ? (
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        No content keywords configured
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {selectedContentKeywords.map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="rounded-md bg-secondary px-2 py-1 font-mono text-xs"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Action Buttons */}

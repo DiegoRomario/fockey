@@ -119,6 +119,34 @@ export async function clearQuickBlockSession(): Promise<void> {
   await setQuickBlockSession({ ...DEFAULT_QUICK_BLOCK_SESSION });
 }
 
+/**
+ * Updates just the blocking items (domains, URL keywords, content keywords) without
+ * affecting the active session state. This allows users to configure items for later
+ * use or add new items during an active session.
+ *
+ * @param blockedDomains - Domains to block
+ * @param urlKeywords - URL keywords to block
+ * @param contentKeywords - Content keywords to block
+ * @returns The updated Quick Block session
+ */
+export async function updateQuickBlockItems(
+  blockedDomains: string[],
+  urlKeywords: string[],
+  contentKeywords: string[]
+): Promise<QuickBlockSession> {
+  const session = await getQuickBlockSession();
+
+  const updatedSession: QuickBlockSession = {
+    ...session,
+    blockedDomains,
+    urlKeywords,
+    contentKeywords,
+  };
+
+  await setQuickBlockSession(updatedSession);
+  return updatedSession;
+}
+
 // ==================== SESSION MANAGEMENT ====================
 
 /**
