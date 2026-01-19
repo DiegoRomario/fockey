@@ -88,7 +88,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       toast({
         title: 'Invalid Duration',
         description: error,
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -102,6 +102,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       toast({
         title: 'Lock Mode Activated',
         description: `Settings locked for ${formatDuration(durationMs)}`,
+        variant: 'success',
       });
 
       // Reset form
@@ -126,7 +127,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       toast({
         title: 'Invalid Duration',
         description: error,
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -140,6 +141,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       toast({
         title: 'Lock Extended',
         description: `Lock extended by ${formatDuration(additionalMs)}`,
+        variant: 'success',
       });
     } catch (error) {
       toast({

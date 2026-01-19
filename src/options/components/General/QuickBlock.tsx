@@ -132,6 +132,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         toast({
           title: 'Quick Block Ended',
           description: 'Your focus session has expired',
+          variant: 'success',
         });
       }
     }, 1000);
@@ -177,7 +178,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Invalid Input',
         description: 'Please enter a URL keyword',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -186,7 +187,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Already Exists',
         description: 'This keyword is already in the list',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -206,7 +207,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Invalid Input',
         description: 'Please enter a content keyword',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -215,7 +216,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Already Exists',
         description: 'This keyword is already in the list',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -235,7 +236,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'No Items Configured',
         description: 'Please add at least one domain, URL keyword, or content keyword',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -266,11 +267,13 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         toast({
           title: 'Quick Block Started',
           description: 'Focus session started with no time limit',
+          variant: 'success',
         });
       } else {
         toast({
           title: 'Quick Block Started',
           description: `Focus session started for ${formatDuration(durationMs)}`,
+          variant: 'success',
         });
       }
     } catch (error) {
@@ -288,7 +291,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Settings Locked',
         description: 'Cannot stop Quick Block while Lock Mode is active',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -304,6 +307,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Quick Block Stopped',
         description: 'Focus session has been stopped',
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to stop Quick Block:', error);
@@ -320,7 +324,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Cannot Extend',
         description: 'This session has no time limit',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -340,6 +344,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       toast({
         title: 'Session Extended',
         description: `Added ${formatDuration(additionalMs)} to your focus session`,
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to extend Quick Block:', error);
@@ -886,7 +891,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   toast({
                     title: 'Invalid Duration',
                     description: 'Please enter a valid time greater than 0',
-                    variant: 'destructive',
+                    variant: 'warning',
                   });
                   return;
                 }

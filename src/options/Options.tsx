@@ -193,6 +193,7 @@ const Options: React.FC = () => {
       toast({
         title: 'Success',
         description: 'All settings have been reset to defaults.',
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to reset settings:', error);
@@ -276,6 +277,7 @@ const Options: React.FC = () => {
       toast({
         title: 'Channel Blocked',
         description: `${newChannel.name} has been blocked.`,
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to block channel:', error);
@@ -301,6 +303,7 @@ const Options: React.FC = () => {
       toast({
         title: 'Channel Unblocked',
         description: `${channelName} has been unblocked.`,
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to unblock channel:', error);
@@ -866,7 +869,9 @@ const Options: React.FC = () => {
                     onError={(message) =>
                       toast({ title: 'Error', description: message, variant: 'destructive' })
                     }
-                    onSuccess={(message) => toast({ title: 'Success', description: message })}
+                    onSuccess={(message) =>
+                      toast({ title: 'Success', description: message, variant: 'success' })
+                    }
                     disabled={lockState?.isLocked === true}
                   />
                 </div>

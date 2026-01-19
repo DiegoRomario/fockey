@@ -138,7 +138,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       toast({
         title: 'Schedule Locked',
         description: 'Cannot delete schedules while Lock Mode is active',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -149,6 +149,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       toast({
         title: 'Schedule Deleted',
         description: 'The schedule has been deleted successfully',
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to delete schedule:', error);
@@ -165,7 +166,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       toast({
         title: 'Schedule Locked',
         description: 'Cannot modify schedules while Lock Mode is active',
-        variant: 'destructive',
+        variant: 'warning',
       });
       return;
     }
@@ -176,6 +177,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       toast({
         title: enabled ? 'Schedule Enabled' : 'Schedule Disabled',
         description: enabled ? 'The schedule is now active' : 'The schedule has been disabled',
+        variant: 'success',
       });
     } catch (error) {
       console.error('Failed to toggle schedule:', error);
@@ -197,6 +199,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
         toast({
           title: 'Schedule Updated',
           description: 'Your schedule has been updated successfully',
+          variant: 'success',
         });
       } else {
         // Add new schedule (either from scratch or from template)
@@ -204,6 +207,7 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
         toast({
           title: 'Schedule Created',
           description: 'Your schedule has been created successfully',
+          variant: 'success',
         });
       }
 
