@@ -5,21 +5,25 @@
 
 const SUGGESTIONS_SELECTORS = {
   // Search suggestions container (appears below search input)
+  // IMPORTANT: Scoped to search area to avoid conflicts with other menus (e.g., More Actions overflow menu)
   SUGGESTIONS_CONTAINER: [
     'ytd-search-suggestions-renderer',
     'ytd-searchbox-suggestions-renderer',
     '#search-suggestions-container',
     '.ytSearchboxComponentSuggestionsContainer', // YouTube's search suggestions container
     '.ytSearchboxComponentSuggestionsContainerScrollable', // YouTube's scrollable suggestions
-    '[role="listbox"]', // ARIA listbox role used by YouTube suggestions
+    '#center [role="listbox"]', // ARIA listbox scoped to search center area
+    '#search [role="listbox"]', // ARIA listbox scoped to search container
     '.sbdd_b', // Google search suggestions container
     '.sbsb_b', // Alternative search suggestions container
   ].join(', '),
 
   // Individual suggestion items
+  // IMPORTANT: Scoped to search area to avoid conflicts with other menu items
   SUGGESTION_ITEMS: [
     'ytd-search-suggestion-renderer',
-    '[role="option"]', // ARIA option role used by YouTube suggestions
+    '#center [role="option"]', // ARIA option scoped to search center area
+    '#search [role="option"]', // ARIA option scoped to search container
     'li.sbct', // Suggestion list items
     '.sbqs_c', // Suggestion query
   ].join(', '),
