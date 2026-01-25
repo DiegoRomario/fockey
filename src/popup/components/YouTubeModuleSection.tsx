@@ -4,11 +4,11 @@
  * Provides direct access to all YouTube toggles with tooltip-based descriptions
  */
 
-import React from 'react';
-import { Youtube, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Youtube, Lock, MoreVertical, Pause, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ModuleToggle from './ModuleToggle';
-import { ExtensionSettings } from '@/shared/types/settings';
+import { ExtensionSettings, YouTubePauseState } from '@/shared/types/settings';
 import {
   Accordion,
   AccordionContent,
@@ -16,6 +16,19 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { PauseYouTubeModal } from '@/shared/components/PauseYouTubeModal';
+import {
+  getYouTubePauseStatus,
+  pauseYouTubeModule,
+  resumeYouTubeModule,
+} from '@/shared/storage/settings-manager';
+import { formatCountdown, calculateRemainingTime } from '@/shared/utils/lock-mode-utils';
 
 interface YouTubeModuleSectionProps {
   settings: ExtensionSettings;
@@ -25,6 +38,7 @@ interface YouTubeModuleSectionProps {
   onModuleToggle?: (enabled: boolean) => void; // Reserved for future use
   onOpenSettings?: () => void;
   disabled?: boolean;
+  lockState?: { isLocked: boolean } | null;
 }
 
 /**
@@ -38,21 +52,151 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
   onWatchPageToggle,
   onOpenSettings,
   disabled = false,
+  lockState = null,
 }) => {
   const blockedChannelsCount = settings.blockedChannels?.length || 0;
+  const [pauseState, setPauseState] = useState<YouTubePauseState | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number | null>(0);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+
+  // Load pause state on mount and listen for changes
+  useEffect(() => {
+    getYouTubePauseStatus()
+      .then((state) => setPauseState(state))
+      .catch((error) => console.error('Failed to load pause state:', error));
+
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === 'local' && changes['fockey_youtube_pause_state']) {
+        getYouTubePauseStatus()
+          .then((state) => setPauseState(state))
+          .catch((error) => console.error('Failed to reload pause state:', error));
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
+
+  // Update remaining time every second
+  useEffect(() => {
+    if (!pauseState?.isPaused) {
+      return;
+    }
+
+    if (!pauseState.pauseEndTime) {
+      // Indefinite pause
+      return;
+    }
+
+    const updateRemainingTime = () => {
+      const remaining = calculateRemainingTime(pauseState.pauseEndTime!);
+      setRemainingTime(remaining);
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [pauseState?.isPaused, pauseState?.pauseEndTime]);
+
+  const handlePause = async (durationMs: number | null) => {
+    try {
+      await pauseYouTubeModule(durationMs);
+      const updatedState = await getYouTubePauseStatus();
+      setPauseState(updatedState);
+    } catch (error) {
+      console.error('Failed to pause YouTube:', error);
+      throw error;
+    }
+  };
+
+  const handleResume = async () => {
+    try {
+      await resumeYouTubeModule();
+      const updatedState = await getYouTubePauseStatus();
+      setPauseState(updatedState);
+    } catch (error) {
+      console.error('Failed to resume YouTube:', error);
+      throw error;
+    }
+  };
 
   return (
     <div className="space-y-3">
       {/* Hero Header */}
-      <div className="text-center space-y-1">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-2">
-            <Youtube className="h-5 w-5 text-red-600 dark:text-red-500" />
+      <div className="relative">
+        <div className="text-center space-y-1">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-2">
+              <Youtube className="h-5 w-5 text-red-600 dark:text-red-500" />
+            </div>
+          </div>
+          <h3 className="font-semibold text-sm">YouTube Module</h3>
+          <p className="text-xs text-muted-foreground">Control YouTube experience</p>
+        </div>
+
+        {/* Overflow Menu - Top Right */}
+        <div className="absolute top-0 right-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-full p-1 hover:bg-accent transition-colors"
+                disabled={disabled}
+              >
+                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setShowPauseModal(true)}
+                disabled={lockState?.isLocked}
+                className="flex items-center gap-2"
+              >
+                {pauseState?.isPaused ? (
+                  <>
+                    <Play className="h-3.5 w-3.5" />
+                    <span>Resume</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="h-3.5 w-3.5" />
+                    <span>Pause</span>
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Paused Status Indicator */}
+      {pauseState?.isPaused && (
+        <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-600/20">
+          <div className="flex items-start gap-2">
+            <Pause className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-amber-900 dark:text-amber-100">
+                YouTube paused
+              </div>
+              <div className="text-[10px] text-amber-700 dark:text-amber-300 mt-0.5">
+                {pauseState.pauseEndTime === null ? (
+                  'Resume manually'
+                ) : remainingTime !== null && remainingTime > 0 ? (
+                  <>{formatCountdown(remainingTime)} remaining</>
+                ) : (
+                  'Resuming...'
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <h3 className="font-semibold text-sm">YouTube Module</h3>
-        <p className="text-xs text-muted-foreground">Control YouTube experience</p>
-      </div>
+      )}
 
       {/* Accordion Settings Interface */}
       <div className="rounded-lg border bg-card overflow-hidden">
@@ -290,6 +434,15 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
           </button>
         )}
       </div>
+
+      {/* Pause YouTube Modal */}
+      <PauseYouTubeModal
+        open={showPauseModal}
+        onOpenChange={setShowPauseModal}
+        onPause={handlePause}
+        onResume={handleResume}
+        isPaused={pauseState?.isPaused ?? false}
+      />
     </div>
   );
 };

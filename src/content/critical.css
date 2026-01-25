@@ -213,19 +213,20 @@ ytd-browse[page-subtype='channels'] ytd-statement-banner-renderer {
 }
 
 /* ============================================
-   WATCH PAGE (Default Hidden Elements)
+   WATCH PAGE (Always Hidden - Non-Configurable)
    ============================================ */
 
-/* Engagement Action Buttons (all hidden by default) */
-ytd-watch-flexy ytd-segmented-like-dislike-button-renderer,
-ytd-watch-flexy button[aria-label*='like this video'],
-ytd-watch-flexy button[aria-label*='Dislike this video'],
+/* IMPORTANT: Only non-configurable, always-hidden elements belong here.
+   All toggleable Watch Page elements (Like/Dislike, Comments, Related, etc.)
+   are handled by the Watch Page module's dynamic CSS injection. */
+
+/* Share button - Always hidden, non-configurable */
 ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']),
 ytd-watch-metadata-actions ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']) {
   display: none !important;
 }
 
-/* More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) */
+/* More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) - Always hidden, non-configurable */
 ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Save']),
 ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Download']),
 ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Clip']),
@@ -235,47 +236,6 @@ ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Ask'
 ytd-watch-metadata-actions ytd-menu-renderer,
 ytd-watch-metadata-actions button[aria-label*='More actions'] {
   display: none !important;
-}
-
-/* Subscription Actions (Subscribe, Join, Notifications, See Perks) */
-ytd-watch-flexy ytd-subscribe-button-renderer,
-ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Subscribe']),
-ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Join']),
-ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='Notifications']),
-ytd-watch-flexy ytd-button-renderer:has(button[aria-label*='See perks']),
-ytd-watch-metadata-actions ytd-subscribe-button-renderer,
-ytd-watch-metadata-actions ytd-membership-button-renderer,
-ytd-watch-metadata-actions ytd-notification-preferences-button-renderer {
-  display: none !important;
-}
-
-/* Comments Section */
-ytd-watch-flexy #comments,
-ytd-comments#comments {
-  display: none !important;
-}
-
-/* Related Videos Sidebar */
-ytd-watch-flexy #related,
-ytd-watch-next-secondary-results-renderer {
-  display: none !important;
-}
-
-/* Playlists */
-ytd-watch-flexy ytd-playlist-panel-renderer {
-  display: none !important;
-}
-
-/* Info Cards and Recommended Video Cards */
-ytd-watch-flexy ytd-info-cards-button-renderer,
-.ytp-ce-element,
-.ytp-cards-button,
-.ytp-ce-covering-overlay,
-.ytp-ce-element-show,
-.ytp-cards-teaser {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
 }
 
 /* End Screen Elements (always hidden, non-configurable) */
@@ -306,17 +266,6 @@ ytd-watch-next-secondary-results-renderer ytd-reel-shelf-renderer {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
-}
-
-/* Hide #secondary container when both playlists and related videos should be hidden */
-/* Note: This will be overridden by settings-based CSS if user enables either feature */
-ytd-watch-flexy #secondary.style-scope.ytd-watch-flexy {
-  display: none !important;
-}
-
-ytd-watch-flexy[flexy][theater] #primary.ytd-watch-flexy,
-ytd-watch-flexy[flexy][fullscreen] #primary.ytd-watch-flexy {
-  max-width: 100% !important;
 }
 
 /* ============================================

@@ -358,6 +358,43 @@ export const DEFAULT_LOCK_STATE: Readonly<LockModeState> = {
   originalDuration: null,
 } as const;
 
+// ==================== YOUTUBE MODULE PAUSE STATE ====================
+
+/**
+ * YouTube Module Pause State
+ * Stores the current pause status and timing information for the YouTube module
+ *
+ * IMPORTANT: This is stored separately in chrome.storage.local (device-specific),
+ * NOT in chrome.storage.sync like other settings. Similar to Lock Mode,
+ * this makes pause a device-specific tool.
+ *
+ * Storage key: 'fockey_youtube_pause_state'
+ */
+export interface YouTubePauseState {
+  /** Whether YouTube module is currently paused */
+  isPaused: boolean;
+  /**
+   * Unix timestamp (ms) when pause should expire
+   * null means indefinite pause (manual resume only)
+   */
+  pauseEndTime: number | null;
+  /**
+   * Unix timestamp (ms) when pause was activated
+   * Used for UI display purposes only
+   */
+  pauseStartedAt: number | null;
+}
+
+/**
+ * Default YouTube pause state
+ * Used when initializing YouTube pause for the first time
+ */
+export const DEFAULT_YOUTUBE_PAUSE_STATE: Readonly<YouTubePauseState> = {
+  isPaused: false,
+  pauseEndTime: null,
+  pauseStartedAt: null,
+} as const;
+
 /**
  * Root settings interface for the extension
  * Contains all extension-wide settings including YouTube module and General blocking features

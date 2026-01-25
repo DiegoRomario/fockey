@@ -457,7 +457,7 @@ function generateWatchPageCSS(
       }
     `);
   } else {
-    // Explicitly show Info Cards when enabled (overrides critical CSS)
+    // Show Info Cards when enabled
     rules.push(`
       ${WATCH_PAGE_SELECTORS.INFO_CARDS_BUTTON},
       ${WATCH_PAGE_SELECTORS.INFO_CARDS_TEASER},

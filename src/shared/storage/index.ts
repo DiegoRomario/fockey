@@ -16,6 +16,11 @@ export {
   unlockLockMode,
   isLockModeActive,
   getRemainingLockTime,
+  getYouTubePauseStatus,
+  isYouTubeModulePaused,
+  pauseYouTubeModule,
+  resumeYouTubeModule,
+  getRemainingPauseTime,
   getSchedules,
 } from './settings-manager';
 export { validateSettings, validateLockModeState } from './validation';

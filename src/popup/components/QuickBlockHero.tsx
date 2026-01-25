@@ -343,13 +343,11 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Stop Quick Block?</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-muted-foreground">
+              <DialogDescription>
                 Are you sure you want to stop this focus session? Your configured items will be
                 saved for future sessions.
-              </p>
-            </div>
+              </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowStopConfirmDialog(false)} size="sm">
                 Cancel
@@ -366,16 +364,14 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-muted-foreground">
+              <DialogDescription>
                 Lock Mode is currently active. If you start Quick Block now,
                 {pendingStartDuration === null
                   ? ' you will not be able to stop it until Lock Mode expires.'
-                  : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
-              </p>
-              <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
-            </div>
+                  : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}{' '}
+                Do you want to proceed?
+              </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowLockModeWarning(false)} size="sm">
                 Cancel
@@ -480,16 +476,14 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
+            <DialogDescription>
               Lock Mode is currently active. If you start Quick Block now,
               {pendingStartDuration === null
                 ? ' you will not be able to stop it until Lock Mode expires.'
-                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
-            </p>
-            <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
-          </div>
+                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}{' '}
+              Do you want to proceed?
+            </DialogDescription>
+          </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLockModeWarning(false)} size="sm">
               Cancel
