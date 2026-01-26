@@ -10,8 +10,11 @@ import {
   LockModeState,
   DEFAULT_LOCK_STATE,
   normalizeContentKeywords,
+  ExportData,
+  YouTubeModuleSettings,
 } from '../types/settings';
 import { validateSettings } from './validation';
+import { getThemePreference, setThemePreference } from '../utils/theme-utils';
 
 /**
  * Storage key used for persisting settings
@@ -288,7 +291,7 @@ export async function addBlockedChannel(channel: BlockedChannel): Promise<void> 
   const settings = await getSettings();
 
   // Check if channel already exists (by ID or handle)
-  const exists = settings.blockedChannels.some(
+  const exists = settings.youtube.blockedChannels.some(
     (c) =>
       c.id === channel.id ||
       c.handle === channel.handle ||
@@ -304,7 +307,10 @@ export async function addBlockedChannel(channel: BlockedChannel): Promise<void> 
   // Add channel to blocked list
   const updatedSettings = {
     ...settings,
-    blockedChannels: [...settings.blockedChannels, channel],
+    youtube: {
+      ...settings.youtube,
+      blockedChannels: [...settings.youtube.blockedChannels, channel],
+    },
   };
 
   // Save to storage
@@ -341,13 +347,16 @@ export async function removeBlockedChannel(channelId: string): Promise<void> {
   // Filter out the channel by ID or handle (case-insensitive)
   const updatedSettings = {
     ...settings,
-    blockedChannels: settings.blockedChannels.filter(
-      (c) =>
-        c.id !== channelId &&
-        c.handle !== channelId &&
-        c.id.toLowerCase() !== channelId.toLowerCase() &&
-        c.handle.toLowerCase() !== channelId.toLowerCase()
-    ),
+    youtube: {
+      ...settings.youtube,
+      blockedChannels: settings.youtube.blockedChannels.filter(
+        (c) =>
+          c.id !== channelId &&
+          c.handle !== channelId &&
+          c.id.toLowerCase() !== channelId.toLowerCase() &&
+          c.handle.toLowerCase() !== channelId.toLowerCase()
+      ),
+    },
   };
 
   // Save to storage
@@ -366,7 +375,7 @@ export async function removeBlockedChannel(channelId: string): Promise<void> {
  */
 export async function getBlockedChannels(): Promise<BlockedChannel[]> {
   const settings = await getSettings();
-  return settings.blockedChannels;
+  return settings.youtube.blockedChannels;
 }
 
 /**
@@ -760,7 +769,7 @@ export async function getRemainingPauseTime(): Promise<number | null> {
  */
 export async function getSchedules(): Promise<import('../types/settings').BlockingSchedule[]> {
   const settings = await getSettings();
-  const schedules = settings.schedules || [];
+  const schedules = settings.general.schedules || [];
 
   // Normalize contentKeywords for backwards compatibility
   // Convert old string[] format to ContentKeywordRule[] format
@@ -784,7 +793,7 @@ export async function addSchedule(
   const settings = await getSettings();
 
   // Check if schedule ID already exists
-  const exists = settings.schedules.some((s) => s.id === schedule.id);
+  const exists = settings.general.schedules.some((s) => s.id === schedule.id);
 
   if (exists) {
     throw new Error(`Schedule with ID ${schedule.id} already exists`);
@@ -793,7 +802,10 @@ export async function addSchedule(
   // Add schedule to list
   const updatedSettings = {
     ...settings,
-    schedules: [...settings.schedules, schedule],
+    general: {
+      ...settings.general,
+      schedules: [...settings.general.schedules, schedule],
+    },
   };
 
   // Save to storage
@@ -832,7 +844,7 @@ export async function updateSchedule(
   const settings = await getSettings();
 
   // Find schedule index
-  const scheduleIndex = settings.schedules.findIndex((s) => s.id === scheduleId);
+  const scheduleIndex = settings.general.schedules.findIndex((s) => s.id === scheduleId);
 
   if (scheduleIndex === -1) {
     throw new Error(`Schedule with ID ${scheduleId} not found`);
@@ -840,18 +852,21 @@ export async function updateSchedule(
 
   // Merge updates with existing schedule
   const updatedSchedule = {
-    ...settings.schedules[scheduleIndex],
+    ...settings.general.schedules[scheduleIndex],
     ...updates,
     updatedAt: Date.now(),
   };
 
   // Update schedule in array
-  const updatedSchedules = [...settings.schedules];
+  const updatedSchedules = [...settings.general.schedules];
   updatedSchedules[scheduleIndex] = updatedSchedule;
 
   const updatedSettings = {
     ...settings,
-    schedules: updatedSchedules,
+    general: {
+      ...settings.general,
+      schedules: updatedSchedules,
+    },
   };
 
   // Save to storage
@@ -885,7 +900,7 @@ export async function deleteSchedule(scheduleId: string): Promise<void> {
   const settings = await getSettings();
 
   // Check if schedule exists
-  const exists = settings.schedules.some((s) => s.id === scheduleId);
+  const exists = settings.general.schedules.some((s) => s.id === scheduleId);
 
   if (!exists) {
     throw new Error(`Schedule with ID ${scheduleId} not found`);
@@ -894,7 +909,10 @@ export async function deleteSchedule(scheduleId: string): Promise<void> {
   // Filter out the schedule
   const updatedSettings = {
     ...settings,
-    schedules: settings.schedules.filter((s) => s.id !== scheduleId),
+    general: {
+      ...settings.general,
+      schedules: settings.general.schedules.filter((s) => s.id !== scheduleId),
+    },
   };
 
   // Save to storage
@@ -928,4 +946,177 @@ export async function getSchedule(
 ): Promise<import('../types/settings').BlockingSchedule | null> {
   const schedules = await getSchedules();
   return schedules.find((s) => s.id === scheduleId) || null;
+}
+
+// ==================== IMPORT/EXPORT FUNCTIONS ====================
+
+/**
+ * Exports all user settings and preferences
+ * Creates a complete export package including settings, theme, and metadata
+ *
+ * Export Structure:
+ * {
+ *   version: "1.0.0",
+ *   settings: {
+ *     youtube: {
+ *       enabled: boolean,
+ *       globalNavigation: GlobalNavigationSettings,
+ *       searchPage: SearchPageSettings,
+ *       watchPage: WatchPageSettings,
+ *       blockedChannels: BlockedChannel[]
+ *       // homePage and creatorProfilePage are excluded (empty/deprecated)
+ *     },
+ *     general: {
+ *       schedules: BlockingSchedule[],
+ *       quickBlock: QuickBlockConfig
+ *     }
+ *   },
+ *   theme: "light" | "dark",
+ *   exportedAt: number
+ * }
+ *
+ * Includes:
+ * - YouTube module settings (enabled, global, search, watch)
+ * - Blocked YouTube channels
+ * - General module (schedules and Quick Block config)
+ * - Theme preference
+ *
+ * Excludes (empty, deprecated, or device-specific):
+ * - homePage settings (deprecated, always empty)
+ * - creatorProfilePage settings (deprecated, always empty)
+ * - Lock Mode state (device-specific commitment)
+ * - YouTube Pause state (device-specific)
+ * - Quick Block session state (temporary)
+ *
+ * @returns Promise resolving to complete export data
+ */
+export async function exportAllSettings(): Promise<ExportData> {
+  const settings = await getSettings();
+  const theme = await getThemePreference();
+
+  // Remove empty/deprecated fields from YouTube module
+  const {
+    homePage: _homePage, // eslint-disable-line @typescript-eslint/no-unused-vars
+    creatorProfilePage: _creatorProfilePage, // eslint-disable-line @typescript-eslint/no-unused-vars
+    ...youtubeSettings
+  } = settings.youtube;
+
+  return {
+    version: '1.0.0',
+    settings: {
+      ...settings,
+      // Cast to full type - missing fields (homePage, creatorProfilePage) will be added back on import via deepMerge
+      youtube: youtubeSettings as YouTubeModuleSettings,
+    },
+    theme,
+    exportedAt: Date.now(),
+  };
+}
+
+/**
+ * Imports all user settings and preferences from export data
+ * Validates data before importing and merges with defaults
+ *
+ * Handles backward compatibility:
+ * - Missing homePage/creatorProfilePage fields are added from defaults
+ * - Old export formats are validated and upgraded
+ *
+ * @param exportData - Export data to import
+ * @returns Promise that resolves when import is complete
+ * @throws Error if export data is invalid or import fails
+ * @throws Error if lock mode is active
+ */
+export async function importAllSettings(exportData: unknown): Promise<void> {
+  // CRITICAL: Lock mode enforcement
+  // Prevent importing settings when lock mode is active
+  if (await isLockModeActive()) {
+    const remaining = await getRemainingLockTime();
+    const minutesRemaining = Math.ceil(remaining / 60000);
+    throw new Error(
+      `Cannot import settings while Lock Mode is active (${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''} remaining).`
+    );
+  }
+
+  // Validate export data structure
+  if (!exportData || typeof exportData !== 'object') {
+    throw new Error('Invalid export data: not an object');
+  }
+
+  const data = exportData as Record<string, unknown>;
+
+  // Validate version
+  if (typeof data.version !== 'string') {
+    throw new Error('Invalid export data: missing or invalid version');
+  }
+
+  // Validate settings
+  if (!validateSettings(data.settings)) {
+    throw new Error('Invalid export data: settings validation failed');
+  }
+
+  // Validate theme (optional field)
+  if (data.theme !== undefined && data.theme !== 'light' && data.theme !== 'dark') {
+    throw new Error('Invalid export data: theme must be "light" or "dark"');
+  }
+
+  // Validate exportedAt (optional field)
+  if (data.exportedAt !== undefined && typeof data.exportedAt !== 'number') {
+    throw new Error('Invalid export data: exportedAt must be a number');
+  }
+
+  // Type is now safe after validation
+  const validatedData = data as unknown as ExportData;
+
+  // Merge imported settings with defaults to ensure all required fields exist
+  // This handles backward compatibility when importing from older exports that may be missing fields
+  const mergedSettings = deepMerge(
+    DEFAULT_SETTINGS,
+    validatedData.settings as Partial<ExtensionSettings>
+  );
+
+  // Import settings
+  try {
+    // Save merged settings (includes defaults for any missing fields)
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: mergedSettings });
+  } catch (syncError) {
+    console.warn('Failed to import to sync storage, trying local:', syncError);
+    try {
+      await chrome.storage.local.set({ [SETTINGS_KEY]: mergedSettings });
+    } catch (localError) {
+      console.error('Failed to import to local storage:', localError);
+      throw new Error('Failed to import settings: both sync and local storage failed');
+    }
+  }
+
+  // Import theme preference
+  if (validatedData.theme) {
+    await setThemePreference(validatedData.theme);
+  }
+
+  // CRITICAL: Sync Quick Block config to session
+  // Quick Block uses local storage session for runtime, so we need to update it
+  // with the imported config from settings
+  try {
+    const { getQuickBlockSession, setQuickBlockSession } =
+      await import('../utils/quick-block-utils');
+    const currentSession = await getQuickBlockSession();
+
+    // Update session with imported config while preserving session state (isActive, times)
+    await setQuickBlockSession({
+      ...currentSession,
+      blockedDomains: mergedSettings.general.quickBlock.blockedDomains,
+      urlKeywords: mergedSettings.general.quickBlock.urlKeywords,
+      contentKeywords: mergedSettings.general.quickBlock.contentKeywords,
+    });
+
+    console.info('Quick Block config synced to session from imported settings');
+  } catch (error) {
+    console.warn('Failed to sync Quick Block config to session:', error);
+    // Don't throw - settings were imported successfully, just Quick Block session sync failed
+  }
+
+  console.info(
+    'Settings imported successfully from export created at:',
+    new Date(validatedData.exportedAt)
+  );
 }

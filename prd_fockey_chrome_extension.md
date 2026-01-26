@@ -2002,6 +2002,10 @@ Quick Block maintains a **session-specific library** of configured items:
 - Persisted per user
 - Default = Minimalist Mode enabled
 
+### Import/Export Settings
+
+Users can export their complete configuration as a JSON file and import it on another device. Exports include YouTube module settings (global navigation, search, watch configurations), blocked YouTube channels, General module settings (schedules and Quick Block configuration), and theme preference. Device-specific states (Lock Mode status, YouTube Pause status, Quick Block active sessions) are excluded from exports. This feature is available in the Options page under the Manage Settings section and respects Lock Mode restrictions (import is blocked while Lock Mode is active).
+
 ---
 
 ## UX Principles

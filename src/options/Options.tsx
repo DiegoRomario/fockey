@@ -293,13 +293,17 @@ const Options: React.FC = () => {
     }
   };
 
-  // Handle import
-  const handleImport = async (importedSettings: ExtensionSettings) => {
+  // Handle import - reload settings from storage after import
+  const handleImport = async () => {
     try {
       setSaveStatus('saving');
-      await updateSettings(importedSettings);
-      setSettings(importedSettings);
+      // Reload settings from storage (import function already saved them)
+      const freshSettings = await getSettings();
+      setSettings(freshSettings);
       setSaveStatus('saved');
+
+      // Reload theme to apply imported theme preference
+      await initializeTheme();
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
       console.error('Failed to import settings:', error);
@@ -963,7 +967,7 @@ const Options: React.FC = () => {
                     <Separator className="my-4" />
 
                     {/* Blocked Channels List */}
-                    {settings.blockedChannels.length === 0 ? (
+                    {settings.youtube.blockedChannels.length === 0 ? (
                       <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
                         <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
                           <Youtube className="h-6 w-6 text-muted-foreground" />
@@ -978,10 +982,10 @@ const Options: React.FC = () => {
                     ) : (
                       <div className="space-y-3">
                         <div className="text-sm font-medium">
-                          Blocked Channels ({settings.blockedChannels.length})
+                          Blocked Channels ({settings.youtube.blockedChannels.length})
                         </div>
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-                          {settings.blockedChannels.map((channel) => (
+                          {settings.youtube.blockedChannels.map((channel) => (
                             <div
                               key={channel.id}
                               className="flex items-center justify-between p-4 rounded-lg border border-border/40 bg-card shadow-sm hover:shadow-md transition-all duration-200"
@@ -1055,7 +1059,6 @@ const Options: React.FC = () => {
                     </p>
                   </div>
                   <ImportExportButtons
-                    settings={settings}
                     onImport={handleImport}
                     onError={(message) =>
                       toast({ title: 'Error', description: message, variant: 'destructive' })

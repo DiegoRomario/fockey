@@ -22,5 +22,7 @@ export {
   resumeYouTubeModule,
   getRemainingPauseTime,
   getSchedules,
+  exportAllSettings,
+  importAllSettings,
 } from './settings-manager';
 export { validateSettings, validateLockModeState } from './validation';

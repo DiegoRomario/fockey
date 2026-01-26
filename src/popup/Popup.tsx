@@ -238,7 +238,7 @@ const Popup: React.FC = () => {
           setCurrentChannel(channelInfo);
 
           // Check if channel is blocked
-          const blocked = settings.blockedChannels.some(
+          const blocked = settings.youtube.blockedChannels.some(
             (c) =>
               c.id === channelInfo.id ||
               c.handle === channelInfo.handle ||

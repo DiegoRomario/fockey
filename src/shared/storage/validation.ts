@@ -11,6 +11,8 @@ import {
   WatchPageSettings,
   CreatorProfilePageSettings,
   YouTubeModuleSettings,
+  GeneralModuleSettings,
+  QuickBlockConfig,
   LockModeState,
 } from '../types/settings';
 
@@ -50,6 +52,7 @@ function validateGlobalNavigationSettings(settings: unknown): settings is Global
     'enableHoverPreviews',
     'enableShorts',
     'enablePosts',
+    'enableSearchSuggestions',
   ]);
 }
 
@@ -104,6 +107,7 @@ function validateCreatorProfilePageSettings(
 
 /**
  * Validates YouTubeModuleSettings structure
+ * Note: homePage and creatorProfilePage are optional (deprecated, may be missing in imports)
  */
 function validateYouTubeModuleSettings(settings: unknown): settings is YouTubeModuleSettings {
   if (!settings || typeof settings !== 'object') {
@@ -125,8 +129,8 @@ function validateYouTubeModuleSettings(settings: unknown): settings is YouTubeMo
     return false;
   }
 
-  // Validate nested settings
-  if (!validateHomePageSettings(youtubeSettings.homePage)) {
+  // Validate nested settings (homePage is optional - may be missing in exports)
+  if (youtubeSettings.homePage && !validateHomePageSettings(youtubeSettings.homePage)) {
     console.error('Validation failed: invalid homePage settings');
     return false;
   }
@@ -141,8 +145,68 @@ function validateYouTubeModuleSettings(settings: unknown): settings is YouTubeMo
     return false;
   }
 
-  if (!validateCreatorProfilePageSettings(youtubeSettings.creatorProfilePage)) {
+  // Validate nested settings (creatorProfilePage is optional - may be missing in exports)
+  if (
+    youtubeSettings.creatorProfilePage &&
+    !validateCreatorProfilePageSettings(youtubeSettings.creatorProfilePage)
+  ) {
     console.error('Validation failed: invalid creatorProfilePage settings');
+    return false;
+  }
+
+  // Validate blockedChannels is an array
+  if (!Array.isArray(youtubeSettings.blockedChannels)) {
+    console.error('Validation failed: blockedChannels must be an array');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates QuickBlockConfig structure
+ */
+function validateQuickBlockConfig(config: unknown): config is QuickBlockConfig {
+  if (!config || typeof config !== 'object') {
+    console.error('Validation failed: QuickBlockConfig is not an object');
+    return false;
+  }
+
+  const quickBlockConfig = config as Record<string, unknown>;
+
+  // Validate all properties are arrays
+  if (
+    !Array.isArray(quickBlockConfig.blockedDomains) ||
+    !Array.isArray(quickBlockConfig.urlKeywords) ||
+    !Array.isArray(quickBlockConfig.contentKeywords)
+  ) {
+    console.error('Validation failed: QuickBlockConfig properties must be arrays');
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates GeneralModuleSettings structure
+ */
+function validateGeneralModuleSettings(settings: unknown): settings is GeneralModuleSettings {
+  if (!settings || typeof settings !== 'object') {
+    console.error('Validation failed: GeneralModuleSettings is not an object');
+    return false;
+  }
+
+  const generalSettings = settings as Record<string, unknown>;
+
+  // Validate schedules is an array
+  if (!Array.isArray(generalSettings.schedules)) {
+    console.error('Validation failed: schedules must be an array');
+    return false;
+  }
+
+  // Validate quickBlock config
+  if (!validateQuickBlockConfig(generalSettings.quickBlock)) {
+    console.error('Validation failed: invalid quickBlock config');
     return false;
   }
 
@@ -190,6 +254,11 @@ export function validateSettings(settings: unknown): settings is ExtensionSettin
 
   // Validate YouTube module settings
   if (!validateYouTubeModuleSettings(settingsToValidate.youtube)) {
+    return false;
+  }
+
+  // Validate General module settings
+  if (!validateGeneralModuleSettings(settingsToValidate.general)) {
     return false;
   }
 

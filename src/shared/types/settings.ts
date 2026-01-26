@@ -34,10 +34,37 @@ export function normalizeContentKeywords(
 // ==================== QUICK BLOCK (TEMPORARY FOCUS SESSIONS) ====================
 
 /**
- * Quick Block Session
- * Temporary, time-based blocking for immediate focus sessions
- * Designed for fast activation with preset durations
+ * Quick Block Configuration
+ * User-configured items to block during Quick Block sessions
+ * This configuration is persistent and should be exported/imported across devices
+ */
+export interface QuickBlockConfig {
+  /** Domains to block during Quick Block sessions */
+  blockedDomains: string[];
+  /** URL keywords to block during Quick Block sessions */
+  urlKeywords: string[];
+  /**
+   * Content keywords to block during Quick Block sessions
+   * Elements containing these keywords will be blurred/hidden
+   */
+  contentKeywords: string[];
+}
+
+/**
+ * Default Quick Block configuration
+ * Used when initializing Quick Block for the first time
+ */
+export const DEFAULT_QUICK_BLOCK_CONFIG: Readonly<QuickBlockConfig> = {
+  blockedDomains: [],
+  urlKeywords: [],
+  contentKeywords: [],
+} as const;
+
+/**
+ * Quick Block Session State
+ * Temporary session state for active Quick Block sessions
  * Stored in local storage (device-specific, like Lock Mode)
+ * This is NOT exported/imported - it's device-specific and temporary
  */
 export interface QuickBlockSession {
   /** Whether Quick Block is currently active */
@@ -300,6 +327,8 @@ export interface YouTubeModuleSettings {
   watchPage: WatchPageSettings;
   /** Creator profile page settings */
   creatorProfilePage: CreatorProfilePageSettings;
+  /** List of blocked YouTube channels */
+  blockedChannels: BlockedChannel[];
 }
 
 /**
@@ -315,6 +344,19 @@ export interface BlockedChannel {
   name: string;
   /** Timestamp when channel was blocked */
   blockedAt: number;
+}
+
+// ==================== GENERAL MODULE ====================
+
+/**
+ * Settings for the General blocking module
+ * Controls time-based blocking schedules and Quick Block configuration
+ */
+export interface GeneralModuleSettings {
+  /** List of time-based blocking schedules */
+  schedules: BlockingSchedule[];
+  /** Quick Block configuration (domains, keywords to block) */
+  quickBlock: QuickBlockConfig;
 }
 
 /**
@@ -402,12 +444,37 @@ export const DEFAULT_YOUTUBE_PAUSE_STATE: Readonly<YouTubePauseState> = {
 export interface ExtensionSettings {
   /** Settings schema version for migration support */
   version: string;
-  /** YouTube module settings */
+  /** YouTube module settings (includes blocked channels) */
   youtube: YouTubeModuleSettings;
-  /** List of blocked YouTube channels */
-  blockedChannels: BlockedChannel[];
-  /** List of time-based blocking schedules (General module) */
-  schedules: BlockingSchedule[];
+  /** General blocking module settings (includes schedules and Quick Block config) */
+  general: GeneralModuleSettings;
+}
+
+/**
+ * Export data format for complete extension state
+ * Includes all user preferences that should transfer across devices
+ *
+ * Includes:
+ * - YouTube module settings (global, search, watch pages)
+ * - Blocked YouTube channels
+ * - General module settings (schedules and Quick Block configuration)
+ * - Theme preference
+ *
+ * Excludes (device-specific or temporary states):
+ * - Lock Mode state (device-specific commitment)
+ * - YouTube Pause state (device-specific)
+ * - Quick Block session state (temporary, device-specific)
+ * - HomePage settings (deprecated, empty)
+ */
+export interface ExportData {
+  /** Settings schema version for migration support */
+  version: string;
+  /** Core extension settings */
+  settings: ExtensionSettings;
+  /** Theme preference (light/dark) */
+  theme: 'light' | 'dark';
+  /** Timestamp when export was created */
+  exportedAt: number;
 }
 
 /**
@@ -455,7 +522,14 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       // Empty for now - Shorts and Posts are controlled globally via GlobalNavigationSettings
       // Future expansion point for creator profile-specific features
     },
+    blockedChannels: [],
   },
-  blockedChannels: [],
-  schedules: [],
+  general: {
+    schedules: [],
+    quickBlock: {
+      blockedDomains: [],
+      urlKeywords: [],
+      contentKeywords: [],
+    },
+  },
 } as const;

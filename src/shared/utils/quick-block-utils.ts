@@ -124,6 +124,8 @@ export async function clearQuickBlockSession(): Promise<void> {
  * affecting the active session state. This allows users to configure items for later
  * use or add new items during an active session.
  *
+ * IMPORTANT: This saves to BOTH settings (for export) AND session (for runtime use)
+ *
  * @param blockedDomains - Domains to block
  * @param urlKeywords - URL keywords to block
  * @param contentKeywords - Content keywords to block
@@ -134,8 +136,24 @@ export async function updateQuickBlockItems(
   urlKeywords: string[],
   contentKeywords: string[]
 ): Promise<QuickBlockSession> {
-  const session = await getQuickBlockSession();
+  // Import settings functions dynamically to avoid circular dependency
+  const { getSettings, updateSettings } = await import('../storage/settings-manager');
 
+  // Update settings (for export)
+  const settings = await getSettings();
+  await updateSettings({
+    general: {
+      ...settings.general,
+      quickBlock: {
+        blockedDomains,
+        urlKeywords,
+        contentKeywords,
+      },
+    },
+  });
+
+  // Update session (for runtime use)
+  const session = await getQuickBlockSession();
   const updatedSession: QuickBlockSession = {
     ...session,
     blockedDomains,
@@ -150,28 +168,53 @@ export async function updateQuickBlockItems(
 // ==================== SESSION MANAGEMENT ====================
 
 /**
+ * Loads Quick Block configuration from settings
+ * Used to sync session with saved configuration
+ *
+ * @returns Quick Block configuration from settings
+ */
+export async function loadQuickBlockConfigFromSettings(): Promise<{
+  blockedDomains: string[];
+  urlKeywords: string[];
+  contentKeywords: string[];
+}> {
+  const { getSettings } = await import('../storage/settings-manager');
+  const settings = await getSettings();
+
+  return {
+    blockedDomains: settings.general.quickBlock.blockedDomains,
+    urlKeywords: settings.general.quickBlock.urlKeywords,
+    contentKeywords: settings.general.quickBlock.contentKeywords,
+  };
+}
+
+/**
  * Starts a Quick Block session with specified duration and blocking rules
+ * If no blocking rules are provided, loads them from settings
  *
  * @param durationMs - Duration in milliseconds, or null for indefinite blocking
- * @param blockedDomains - Domains to block
- * @param urlKeywords - URL keywords to block
- * @param contentKeywords - Content keywords to block (elements will be blurred)
+ * @param blockedDomains - Domains to block (optional, loads from settings if not provided)
+ * @param urlKeywords - URL keywords to block (optional, loads from settings if not provided)
+ * @param contentKeywords - Content keywords to block (optional, loads from settings if not provided)
  * @returns The started Quick Block session
  */
 export async function startQuickBlockSession(
   durationMs: number | null,
-  blockedDomains: string[],
-  urlKeywords: string[] = [],
-  contentKeywords: string[] = []
+  blockedDomains?: string[],
+  urlKeywords?: string[],
+  contentKeywords?: string[]
 ): Promise<QuickBlockSession> {
+  // Load from settings if not provided
+  const config = await loadQuickBlockConfigFromSettings();
+
   const now = Date.now();
   const session: QuickBlockSession = {
     isActive: true,
     startTime: now,
     endTime: durationMs !== null ? now + durationMs : null,
-    blockedDomains,
-    urlKeywords,
-    contentKeywords,
+    blockedDomains: blockedDomains ?? config.blockedDomains,
+    urlKeywords: urlKeywords ?? config.urlKeywords,
+    contentKeywords: contentKeywords ?? config.contentKeywords,
   };
 
   await setQuickBlockSession(session);

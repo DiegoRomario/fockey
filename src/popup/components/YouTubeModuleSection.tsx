@@ -54,7 +54,7 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
   disabled = false,
   lockState = null,
 }) => {
-  const blockedChannelsCount = settings.blockedChannels?.length || 0;
+  const blockedChannelsCount = settings.youtube.blockedChannels?.length || 0;
   const [pauseState, setPauseState] = useState<YouTubePauseState | null>(null);
   const [remainingTime, setRemainingTime] = useState<number | null>(0);
   const [showPauseModal, setShowPauseModal] = useState(false);
@@ -405,7 +405,7 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
                   Blocked YouTube Channels
                 </h4>
                 <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {settings.blockedChannels.map((channel) => (
+                  {settings.youtube.blockedChannels.map((channel) => (
                     <div
                       key={channel.id}
                       className="flex flex-col gap-0.5 px-2 py-1.5 bg-muted/50 rounded text-xs"

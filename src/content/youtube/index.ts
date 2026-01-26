@@ -196,7 +196,7 @@ function getPageSettings(pageType: PageType, settings: ExtensionSettings): Modul
   return {
     pageSettings,
     globalNavigation: settings.youtube.globalNavigation,
-    blockedChannels: settings.blockedChannels,
+    blockedChannels: settings.youtube.blockedChannels,
   };
 }
 
@@ -479,7 +479,7 @@ async function initialize(): Promise<void> {
     state.currentSettings = settings;
 
     // Initialize ChannelBlocker
-    channelBlocker = new ChannelBlocker(settings.blockedChannels);
+    channelBlocker = new ChannelBlocker(settings.youtube.blockedChannels);
 
     // Check if current page should be blocked FIRST (before initializing modules)
     channelBlocker.checkAndBlock();
@@ -502,7 +502,7 @@ async function initialize(): Promise<void> {
 
       // Update ChannelBlocker with new blocked channels
       if (channelBlocker) {
-        channelBlocker.updateBlockedChannels(updatedSettings.blockedChannels);
+        channelBlocker.updateBlockedChannels(updatedSettings.youtube.blockedChannels);
       }
 
       // If YouTube module is disabled, cleanup and exit

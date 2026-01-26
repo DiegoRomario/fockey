@@ -1,14 +1,11 @@
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
-import { ExtensionSettings } from '@/shared/types/settings';
-import { validateSettings } from '@/shared/storage/validation';
+import { exportAllSettings, importAllSettings } from '@/shared/storage/settings-manager';
 
 interface ImportExportButtonsProps {
-  /** Current settings to export */
-  settings: ExtensionSettings;
-  /** Callback when settings are successfully imported */
-  onImport: (settings: ExtensionSettings) => void;
+  /** Callback when settings are successfully imported (triggers reload) */
+  onImport: () => void;
   /** Callback for showing error messages */
   onError: (message: string) => void;
   /** Callback for showing success messages */
@@ -20,9 +17,41 @@ interface ImportExportButtonsProps {
 /**
  * Import and Export buttons for settings management
  * Handles JSON file download and upload with validation
+ *
+ * Export Structure:
+ * {
+ *   version: "1.0.0",
+ *   settings: {
+ *     youtube: {
+ *       enabled: boolean,
+ *       globalNavigation: {...},
+ *       searchPage: {...},
+ *       watchPage: {...},
+ *       blockedChannels: [...]
+ *       // homePage and creatorProfilePage excluded (empty)
+ *     },
+ *     general: {
+ *       schedules: [...],
+ *       quickBlock: { blockedDomains: [], urlKeywords: [], contentKeywords: [] }
+ *     }
+ *   },
+ *   theme: "light" | "dark",
+ *   exportedAt: number
+ * }
+ *
+ * Exports include:
+ * - YouTube module (enabled, global, search, watch settings)
+ * - Blocked YouTube channels
+ * - General module (schedules and Quick Block config)
+ * - Theme preference
+ *
+ * Does NOT export (empty, deprecated, or device-specific):
+ * - homePage/creatorProfilePage (deprecated, always empty)
+ * - Lock Mode state (device-specific commitment)
+ * - YouTube Pause state (device-specific)
+ * - Quick Block session state (active session is temporary)
  */
 export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
-  settings,
   onImport,
   onError,
   onSuccess,
@@ -31,12 +60,15 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
-   * Export current settings as JSON file
+   * Export all settings and preferences as JSON file
    */
-  const handleExport = () => {
+  const handleExport = async () => {
     try {
-      // Serialize settings to formatted JSON
-      const jsonString = JSON.stringify(settings, null, 2);
+      // Get complete export data (settings + theme)
+      const exportData = await exportAllSettings();
+
+      // Serialize to formatted JSON
+      const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
 
@@ -55,7 +87,9 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      onSuccess('Settings exported successfully');
+      onSuccess(
+        'Settings exported (YouTube, blocked channels, schedules, Quick Block config, theme)'
+      );
     } catch (error) {
       console.error('Failed to export settings:', error);
       onError('Failed to export settings. Please try again.');
@@ -72,7 +106,7 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
   /**
    * Handle file selection and validation
    */
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -84,28 +118,32 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
 
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
 
         // Parse JSON
-        let parsedSettings: unknown;
+        let parsedData: unknown;
         try {
-          parsedSettings = JSON.parse(content);
+          parsedData = JSON.parse(content);
         } catch {
           onError('Invalid JSON file. Please check the file format.');
           return;
         }
 
-        // Validate settings structure
-        if (!validateSettings(parsedSettings)) {
-          onError('Invalid settings file. The file does not match the expected settings schema.');
-          return;
-        }
+        // Import using the comprehensive import function
+        try {
+          await importAllSettings(parsedData);
+          onSuccess(
+            'Settings imported (YouTube, blocked channels, schedules, Quick Block config, theme)'
+          );
 
-        // Import successful
-        onImport(parsedSettings as ExtensionSettings);
-        onSuccess('Settings imported successfully');
+          // Trigger reload to reflect imported settings
+          onImport();
+        } catch (importError) {
+          const error = importError as Error;
+          onError(error.message || 'Failed to import settings. Please check the file format.');
+        }
       } catch (error) {
         console.error('Failed to import settings:', error);
         onError('Failed to import settings. Please try again.');
