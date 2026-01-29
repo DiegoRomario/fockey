@@ -26,8 +26,9 @@ export const HOME_PAGE_SELECTORS = {
   HAMBURGER_MENU: '#guide-button',
   PROFILE_AVATAR: '#avatar-btn',
   NOTIFICATIONS: 'ytd-notification-topbar-button-renderer',
+  // Upload/Create button - Icon-based selector (video camera icon is universal)
   UPLOAD_BUTTON:
-    'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
+    'ytd-topbar-menu-button-renderer:has(yt-icon[icon="video_call"]), ytd-topbar-menu-button-renderer:has(button > yt-icon > svg > path[d*="M17 10.5V7c0-.55-.45-1-1-1H4c-.55"])',
   TOPBAR_BUTTONS: '#buttons ytd-button-renderer',
 
   // Sidebar items (always hidden)

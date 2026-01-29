@@ -46,8 +46,9 @@ export const CREATOR_PROFILE_SELECTORS = {
   LEFT_SIDEBAR: '#guide-inner-content, ytd-guide-renderer, ytd-mini-guide-renderer, #guide',
   PROFILE_AVATAR: '#avatar-btn, button#avatar-btn',
   NOTIFICATIONS_BELL: 'ytd-notification-topbar-button-renderer',
+  // Upload/Create button - Icon-based selector (video camera icon is universal)
   UPLOAD_BUTTON:
-    'ytd-topbar-menu-button-renderer[aria-label*="Create"], button[aria-label*="Create"]',
+    'ytd-topbar-menu-button-renderer:has(yt-icon[icon="video_call"]), ytd-topbar-menu-button-renderer:has(button > yt-icon > svg > path[d*="M17 10.5V7c0-.55-.45-1-1-1H4c-.55"])',
 
   // Sidebar items (always hidden)
   SIDEBAR_SHORTS:

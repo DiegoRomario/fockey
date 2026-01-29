@@ -77,10 +77,12 @@ ytd-watch-flexy .skeleton-light-border-bottom {
   visibility: hidden !important;
 }
 
-/* Upload/Create Button */
-ytd-topbar-menu-button-renderer[aria-label*='Create'],
-#upload-button,
-ytd-topbar-menu-button-renderer ytd-button-renderer:has([aria-label*='Create']) {
+/* Upload/Create Button - Language-agnostic icon-based selector */
+ytd-topbar-menu-button-renderer:has(yt-icon[icon='video_call']),
+ytd-topbar-menu-button-renderer:has(
+  button > yt-icon > svg > path[d*='M17 10.5V7c0-.55-.45-1-1-1H4c-.55']
+),
+#upload-button {
   display: none !important;
 }
 
@@ -220,21 +222,44 @@ ytd-browse[page-subtype='channels'] ytd-statement-banner-renderer {
    All toggleable Watch Page elements (Like/Dislike, Comments, Related, etc.)
    are handled by the Watch Page module's dynamic CSS injection. */
 
-/* Share button - Always hidden, non-configurable */
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']),
-ytd-watch-metadata-actions ytd-button-renderer[is-icon-button]:has(button[aria-label*='Share']) {
+/* Share button - Always hidden by default - SVG path-based language-agnostic selector */
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M10 3.158V7.51c-5.428']),
+ytd-watch-flexy button-view-model:has(svg path[d*='M10 3.158V7.51c-5.428']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='M10 3.158V7.51c-5.428']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M10 3.158V7.51c-5.428']) {
   display: none !important;
 }
 
-/* More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) - Always hidden, non-configurable */
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Save']),
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Download']),
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Clip']),
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Thanks']),
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Report']),
-ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*='Ask']),
+/* More Actions (Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu) - Always hidden by default - SVG path-based selectors */
+/* Save button */
+ytd-watch-flexy ytd-download-and-save-button-renderer,
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M19 2H5a2 2 0 00-2 2v16.887']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='M19 2H5a2 2 0 00-2 2v16.887']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M19 2H5a2 2 0 00-2 2v16.887']),
+/* Download button */
+ytd-watch-flexy ytd-download-button-renderer,
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M17 18v1H6v-1h11Z']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M17 18v1H6v-1h11Z']),
+/* Clip button */
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M6 2.002a4 4 0 102.03 7.445']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='M6 2.002a4 4 0 102.03 7.445']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M6 2.002a4 4 0 102.03 7.445']),
+/* Thanks button */
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M12 21.35l-1.45']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='M12 21.35l-1.45']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M12 21.35l-1.45']),
+/* Report button */
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='M14.4 6L14 4H5v17h2v-7h5.6']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='M14.4 6L14 4H5v17h2v-7h5.6']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='M14.4 6L14 4H5v17h2v-7h5.6']),
+/* Ask button */
+ytd-watch-flexy yt-button-view-model:has(svg path[d*='m10.6 7.8-4.6.9']),
+ytd-watch-flexy ytd-button-renderer:has(svg path[d*='m10.6 7.8-4.6.9']),
+ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*='m10.6 7.8-4.6.9']),
+/* Overflow menu (three dots) */
 ytd-watch-metadata-actions ytd-menu-renderer,
-ytd-watch-metadata-actions button[aria-label*='More actions'] {
+ytd-watch-flexy yt-button-shape:has(svg path[d*='M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4']),
+ytd-watch-flexy ytd-menu-renderer button:has(svg path[d*='M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4']) {
   display: none !important;
 }
 

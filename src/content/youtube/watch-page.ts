@@ -27,27 +27,47 @@ export const WATCH_PAGE_SELECTORS = {
 
   // ========================================
   // ENGAGEMENT ACTION BUTTONS (hidden by default, individually toggleable)
+  // Language-agnostic selectors that work across all YouTube language settings
   // ========================================
+
+  // Like/Dislike buttons - Uses YouTube's web component selectors (language-independent)
   LIKE_BUTTON:
-    '#segmented-like-button, ytd-segmented-like-dislike-button-renderer button[aria-label*="like"], ytd-segmented-like-dislike-button-renderer, ytd-toggle-button-renderer#like-button, button[aria-label*="like this video"]',
+    'like-button-view-model button, segmented-like-dislike-button-view-model like-button-view-model button, #segmented-like-button, ytd-toggle-button-renderer#like-button',
   DISLIKE_BUTTON:
-    '#segmented-dislike-button, ytd-segmented-like-dislike-button-renderer button[aria-label*="dislike"], button[aria-label*="Dislike this video"]',
+    'dislike-button-view-model button, segmented-like-dislike-button-view-model dislike-button-view-model button, #segmented-dislike-button',
+
+  // Share button - SVG path-based selector (works in flexible buttons and overflow menu)
   SHARE_BUTTON:
-    '#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*="Share"]), ytd-button-renderer:has(button[aria-label*="Share"]), button[aria-label*="Share"]',
+    'yt-button-view-model:has(svg path[d*="M10 3.158V7.51c-5.428"]), button-view-model:has(svg path[d*="M10 3.158V7.51c-5.428"]), ytd-button-renderer:has(svg path[d*="M10 3.158V7.51c-5.428"]), ytd-menu-service-item-renderer:has(svg path[d*="M10 3.158V7.51c-5.428"])',
+
+  // Save button - Component + SVG path selector (flexible button + overflow menu)
+  // SVG path: bookmark icon "M19 2H5a2 2 0 00-2 2v16.887..."
   SAVE_BUTTON:
-    '#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*="Save"]), ytd-download-and-save-button-renderer, ytd-button-renderer:has(button[aria-label*="Save to playlist"]), button[aria-label*="Save"]',
+    'ytd-download-and-save-button-renderer, yt-button-view-model:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"]), ytd-button-renderer:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"]), ytd-menu-service-item-renderer:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"])',
+
   // Conditional: appears only when user is logged in
-  DOWNLOAD_BUTTON: 'ytd-download-button-renderer, button[aria-label*="Download"]',
+  // Download button - Component + SVG path selector
+  DOWNLOAD_BUTTON:
+    'ytd-download-button-renderer, yt-button-view-model:has(svg path[d*="M17 18v1H6v-1h11Z"]), ytd-menu-service-item-renderer:has(svg path[d*="M17 18v1H6v-1h11Z"])',
+
+  // Clip button - SVG path selector (flexible button + overflow menu)
+  // SVG path: scissors icon "M6 2.002a4 4 0 102.03 7.445..."
   CLIP_BUTTON:
-    '#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*="Clip"]), ytd-button-renderer:has(button[aria-label*="Clip"]), button[aria-label*="Clip"]',
+    'yt-button-view-model:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"]), ytd-button-renderer:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"]), ytd-menu-service-item-renderer:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"])',
+
   // Conditional: appears only when user is logged in
+  // Thanks button - SVG path selector (heart icon)
   THANKS_BUTTON:
-    'ytd-button-renderer:has(button[aria-label*="Thanks"]), ytd-button-renderer:has(a[aria-label*="Thanks"]), button[aria-label*="Thanks"]',
+    'yt-button-view-model:has(svg path[d*="M12 21.35l-1.45"]), ytd-button-renderer:has(svg path[d*="M12 21.35l-1.45"]), ytd-menu-service-item-renderer:has(svg path[d*="M12 21.35l-1.45"])',
+
   // May appear inline or in overflow menu
-  REPORT_BUTTON: 'ytd-menu-renderer button[aria-label*="Report"], button[aria-label*="Report"]',
-  // New YouTube AI assistant button
+  // Report button - SVG path selector (flag icon)
+  REPORT_BUTTON:
+    'yt-button-view-model:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]), ytd-button-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]), ytd-menu-service-item-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"])',
+
+  // New YouTube AI assistant button - SVG path selector (sparkle/AI icon)
   ASK_BUTTON:
-    '#top-level-buttons-computed ytd-button-renderer:has(button[aria-label*="Ask"]), ytd-button-renderer:has(button[aria-label*="Ask"]), button[aria-label*="Ask"]',
+    'yt-button-view-model:has(svg path[d*="m10.6 7.8-4.6.9"]), ytd-button-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]), ytd-menu-service-item-renderer:has(svg path[d*="m10.6 7.8-4.6.9"])',
 
   // ========================================
   // CHANNEL-RELATED BUTTONS (hidden by default, individually toggleable)
@@ -61,8 +81,9 @@ export const WATCH_PAGE_SELECTORS = {
   JOIN_BUTTON:
     'ytd-button-renderer[is-join-action], ytd-sponsor-button-renderer, ytd-button-renderer:has(a[href*="/sponsor"])',
   // Conditional: appears only when user has active channel membership
+  // See Perks button - Href-based selector (sponsor links are language-independent)
   SEE_PERKS_BUTTON:
-    '#sponsor-button, ytd-button-renderer:has(button[aria-label*="See perks"]), ytd-button-renderer:has(a[aria-label*="See perks"])',
+    '#sponsor-button, ytd-button-renderer:has(a[href*="/sponsor"]), ytd-video-owner-renderer ytd-button-renderer:has(a[href*="/sponsor"])',
 
   // ========================================
   // CHANNEL INFO SECTION (hidden by default, toggleable as one unit)
@@ -72,9 +93,10 @@ export const WATCH_PAGE_SELECTORS = {
 
   // ========================================
   // THREE-DOTS OVERFLOW MENU (hidden by default, toggleable)
+  // SVG path selector for three-dot icon (works across DOM structures)
   // ========================================
   OVERFLOW_MENU:
-    'ytd-menu-renderer.ytd-watch-metadata #button, ytd-menu-renderer.ytd-watch-metadata button[aria-label*="More"]',
+    'ytd-menu-renderer.ytd-watch-metadata #button, yt-button-shape:has(svg path[d*="M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4"]), ytd-menu-renderer button:has(svg path[d*="M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4"])',
 
   // ========================================
   // SOCIAL & DISCOVERY ELEMENTS (hidden by default, individually toggleable)
@@ -109,8 +131,9 @@ export const WATCH_PAGE_SELECTORS = {
   LEFT_SIDEBAR: '#guide-inner-content, ytd-guide-renderer, ytd-mini-guide-renderer',
   PROFILE_AVATAR: '#avatar-btn',
   NOTIFICATIONS_TOPBAR: 'ytd-notification-topbar-button-renderer',
+  // Upload/Create button - Icon-based selector (video camera icon is universal)
   UPLOAD_BUTTON:
-    'ytd-topbar-menu-button-renderer[aria-label*="Create"], ytd-topbar-menu-button-renderer:has(> button[aria-label*="Create"])',
+    'ytd-topbar-menu-button-renderer:has(yt-icon[icon="video_call"]), ytd-topbar-menu-button-renderer:has(button > yt-icon > svg > path[d*="M17 10.5V7c0-.55-.45-1-1-1H4c-.55"])',
 
   // Sidebar items (always hidden)
   SIDEBAR_SHORTS:
@@ -216,11 +239,14 @@ function generateWatchPageCSS(
     `);
   } else {
     // Explicitly show Like/Dislike buttons when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Language-agnostic: matches component-based selectors
     rules.push(`
+      ytd-watch-flexy like-button-view-model button,
+      ytd-watch-flexy dislike-button-view-model button,
+      ytd-watch-flexy segmented-like-dislike-button-view-model,
       ytd-watch-flexy ytd-segmented-like-dislike-button-renderer,
-      ytd-watch-flexy button[aria-label*='like this video'],
-      ytd-watch-flexy button[aria-label*='Dislike this video'] {
+      ytd-watch-flexy #segmented-like-button,
+      ytd-watch-flexy #segmented-dislike-button {
         display: flex !important;
       }
     `);
@@ -229,21 +255,19 @@ function generateWatchPageCSS(
   if (!settings.showShare) {
     rules.push(`
       /* Hide Share button */
-      ${WATCH_PAGE_SELECTORS.SHARE_BUTTON} {
-        display: none !important;
-      }
-
-      /* Also target via attribute selector */
-      ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]) {
+      ytd-watch-flexy ${WATCH_PAGE_SELECTORS.SHARE_BUTTON} {
         display: none !important;
       }
     `);
   } else {
     // Explicitly show Share button when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Language-agnostic: SVG path-based selectors + button element (like Like/Dislike pattern)
     rules.push(`
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]),
-      ytd-watch-metadata-actions ytd-button-renderer[is-icon-button]:has(button[aria-label*="Share"]) {
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M10 3.158V7.51c-5.428"]),
+      ytd-watch-flexy button-view-model:has(svg path[d*="M10 3.158V7.51c-5.428"]),
+      ytd-watch-flexy button:has(svg path[d*="M10 3.158V7.51c-5.428"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M10 3.158V7.51c-5.428"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M10 3.158V7.51c-5.428"]) {
         display: flex !important;
       }
     `);
@@ -256,11 +280,6 @@ function generateWatchPageCSS(
     rules.push(`
       /* Hide Save button */
       ${WATCH_PAGE_SELECTORS.SAVE_BUTTON} {
-        display: none !important;
-      }
-
-      /* Also target via attribute selector */
-      ytd-button-renderer[is-icon-button]:has(button[aria-label*="Save"]) {
         display: none !important;
       }
 
@@ -289,11 +308,6 @@ function generateWatchPageCSS(
         display: none !important;
       }
 
-      /* Also target via attribute selector */
-      ytd-button-renderer[is-icon-button]:has(button[aria-label*="Ask"]) {
-        display: none !important;
-      }
-
       /* Hide Overflow Menu */
       ${WATCH_PAGE_SELECTORS.OVERFLOW_MENU} {
         display: none !important;
@@ -301,16 +315,42 @@ function generateWatchPageCSS(
     `);
   } else {
     // Explicitly show More Actions buttons when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Language-agnostic: SVG path-based selectors for flexible buttons + overflow menu
     rules.push(`
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Save"]),
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Download"]),
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Clip"]),
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Thanks"]),
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Report"]),
-      ytd-watch-flexy ytd-button-renderer[is-icon-button]:has(button[aria-label*="Ask"]),
+      /* Ensure flexible-item-buttons container uses flexbox layout */
+      ytd-watch-flexy #flexible-item-buttons {
+        display: flex !important;
+      }
+
+      /* Save button */
+      ytd-watch-flexy ytd-download-and-save-button-renderer,
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M19 2H5a2 2 0 00-2 2v16.887"]),
+      /* Download button */
+      ytd-watch-flexy ytd-download-button-renderer,
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M17 18v1H6v-1h11Z"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M17 18v1H6v-1h11Z"]),
+      /* Clip button */
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M6 2.002a4 4 0 102.03 7.445"]),
+      /* Thanks button */
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M12 21.35l-1.45"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M12 21.35l-1.45"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M12 21.35l-1.45"]),
+      /* Report button */
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]),
+      /* Ask button */
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="m10.6 7.8-4.6.9"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]),
+      /* Overflow menu (three dots) */
       ytd-watch-metadata-actions ytd-menu-renderer,
-      ytd-watch-metadata-actions button[aria-label*="More actions"] {
+      ytd-watch-flexy yt-button-shape:has(svg path[d*="M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4"]),
+      ytd-watch-flexy ytd-menu-renderer button:has(svg path[d*="M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4"]) {
         display: flex !important;
       }
     `);
