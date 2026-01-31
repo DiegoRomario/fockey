@@ -509,10 +509,10 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       blurThumbnails: false,
     },
     watchPage: {
-      showLikeDislike: true, // Visible by default - basic engagement metric
+      showLikeDislike: false, // Visible by default - basic engagement metric
       showShare: false,
       showMoreActions: false, // Unified toggle for Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu
-      showSubscriptionActions: true, // Unified toggle for Subscribe, Join, Notifications, See Perks
+      showSubscriptionActions: false, // Unified toggle for Subscribe, Join, Notifications, See Perks
       showComments: false,
       showRelated: false,
       showPlaylists: false,
