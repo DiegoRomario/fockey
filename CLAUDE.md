@@ -58,36 +58,7 @@ Claude **must not**:
 
 ---
 
-## 4. Serena MCP — Mandatory Codebase Operations
-
-**Serena MCP is the default tool for all codebase navigation, search, and refactoring operations.**
-
-### Required Usage
-
-Claude **must use Serena MCP** for:
-
-* Searching files, directories, symbols, exports, imports, and references
-* Navigating unfamiliar code or large codebases
-* Performing safe, precise bulk changes using regular expressions
-* Refactoring repeated or structurally similar code
-* Renaming symbols or identifiers across multiple files
-* Applying mechanical transformations (format changes, API updates, migrations)
-
-### Operational Rules
-
-* **Always evaluate Serena MCP first** before manual search, grep, or free-form edits
-* Use Serena MCP to **locate source of truth** instead of guessing file locations
-* **Preview matches** before applying modifications
-* **Regex-based edits must use Serena MCP** for consistency and safety
-* **Cross-file changes require Serena MCP** to confirm scope first
-
-### Fallback Only When Necessary
-
-Skip Serena MCP **only if** it cannot accomplish the task, and briefly state why.
-
----
-
-## 5. Architecture
+## 4. Architecture
 
 ### Extension Structure
 
@@ -99,6 +70,7 @@ src/
 │   ├── home-page.ts         # Hide feed, shorts, sidebar
 │   ├── search-page.ts       # Filter shorts, posts from results
 │   └── watch-page.ts        # Hide comments, recommendations
+│   └── critical.css         # Handles FOUC bugs
 ├── popup/                   # Extension popup UI
 │   └── Popup.tsx            # Quick settings toggles
 ├── options/                 # Full settings page
@@ -111,68 +83,9 @@ src/
 
 ---
 
-## 6. Mandatory Development Flow
-
-Claude must **always** follow this workflow.
-
-### 6.1 Initial Context
-
-* Task may be:
-
-  * Explicitly provided by the user
-  * Retrieved from **Taskmaster MCP**
-
-**Goal**: Execute the task strictly following the steps below.
-
 ---
 
-### 6.2 Step 1 — Analysis & Planning
-
-Claude must:
-
-* Fully understand the task scope
-* Identify affected YouTube pages or extension layers
-* Define a clear implementation plan
-* Identify dependencies and technical constraints
-* Retrieve the task from Taskmaster if not explicitly provided
-
-Claude must **present the plan before coding**, unless explicitly instructed otherwise.
-
----
-
-### 6.3 Step 2 — Task Start (Taskmaster)
-
-Before writing production code, Claude must mark the task as **in-progress**.
-
-**Via MCP Tool:**
-
-```bash
-set_task_status(id="TASK_ID", status="in-progress")
-```
-
-**Via CLI:**
-
-```bash
-task-master set-status --id=TASK_ID --status=in-progress
-```
-
-Claude must verify task dependencies before proceeding.
-
----
-
-### 6.4 Step 3 — Pre-Development Quality Assurance
-
-Claude must:
-
-* Validate the initial codebase state
-* Ensure no failing checks already exist
-* Avoid stacking changes on top of broken code
-
-If issues are found, Claude must stop and report them.
-
----
-
-### 6.5 Step 4 — Development
+## 5 Development
 
 Claude must:
 
@@ -185,7 +98,7 @@ For long-running tasks, Claude should periodically update progress.
 
 ---
 
-### 6.6 Step 5 — Post-Development Quality Assurance
+## 6 Post-Development Quality Assurance
 
 Claude must validate:
 
@@ -204,15 +117,11 @@ This command runs both linting and formatting checks. If any issues are found, C
 
 ---
 
-### 6.7 Mandatory Testing for Chrome Extension Changes
+## 7 Testing for Chrome Extension Changes
 
-⚠️ **Critical Rule**
+**Automated Testing with Playwright**
 
-For **any task related to the Chrome Extension itself** (content scripts, popup UI, options page, service worker, or DOM behavior), Claude **must validate behavior using at least one**:
-
-* ✅ **Playwright MCP** (for testing behavior)
-
-Claude must:
+Claude will run automated tests with **Playwright MCP** **only when explicitly requested by the user**. When tests are requested, Claude must:
 
 * Verify elements are correctly hidden / shown
 * Validate page-specific behavior (Home vs Search vs Watch)
@@ -226,7 +135,7 @@ When testing the extension, certain DOM elements and behaviors are conditional o
 * Subscribe, Notifications (bell), Join, and See Perks buttons depend on subscription/membership state
 * The DOM structure may differ between logged-in and logged-out states
 
-**When using Playwright MCP**, Claude must:
+**When running Playwright tests**, Claude must:
 
 * ✅ Pause test execution and **wait for the user to complete manual login** when authentication is required
 * ✅ Verify the authenticated state is confirmed before proceeding with DOM assertions
@@ -234,42 +143,6 @@ When testing the extension, certain DOM elements and behaviors are conditional o
 * ✅ Test both logged-out and logged-in states where behavior differs significantly
 
 **Do not attempt to automate login flows** — wait for user intervention to complete authentication manually.
-
-Unverified DOM changes are **not acceptable**.
-
----
-
-### 6.8 Step 6 — Task Completion (Taskmaster)
-
-After successful validation, Claude must mark the task as **done** and summarize changes.
-
----
-
-## 7. Documentation & Knowledge Retrieval
-
-When searching for **technical documentation, APIs, or best practices** (e.g., React, TypeScript, Tailwind, Chrome Extensions):
-
-* ✅ **Use Context7 MCP as the primary source of truth**
-* Avoid outdated blog posts or unofficial snippets
-* Prefer official documentation and stable APIs
-
-Context7 should be used **before making architectural or implementation decisions** based on documentation.
-
----
-
-## 8. Quality Bar / Definition of Done
-
-A task is considered **DONE** only if:
-
-* ✅ Task was set to *in-progress* before development
-* ✅ Code follows the defined tech stack
-* ✅ **All lint checks pass** (`npm run lint` returns no errors)
-* ✅ **All formatting checks pass** (`npm run format:check` returns no errors)
-* ✅ **TypeScript compilation succeeds** (no type errors)
-* ✅ Minimalist default behavior is preserved
-* ✅ DOM changes are verified via MCP tools
-* ✅ No broken UX flows
-* ✅ Task is marked as *done* in Taskmaster
 
 ---
 
@@ -341,4 +214,3 @@ Decisions must prioritize:
 * If instructions are ambiguous → **ask before coding**
 * If instructions conflict with the PRD or this document → **this document takes precedence**
 
-@./.taskmaster/CLAUDE.md
