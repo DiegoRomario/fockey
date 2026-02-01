@@ -124,9 +124,21 @@ function generateSearchPageCSS(
     `);
   } else {
     // Explicitly ensure Shorts are visible when enabled
+    // IMPORTANT: Must use same specificity as critical.css (ytd-search prefix) to override
     rules.push(`
       /* Ensure Shorts are visible in search results */
-      ${SEARCH_PAGE_SELECTORS.SHORTS} {
+      ytd-search ytd-reel-shelf-renderer,
+      ytd-search ytd-short-shelf-renderer,
+      ytd-search ytd-shelf-renderer[is-shorts],
+      ytd-search ytd-short-renderer,
+      ytd-search ytd-rich-shelf-renderer[is-shorts],
+      ytd-search ytd-grid-video-renderer[is-shorts],
+      ytd-search ytd-rich-item-renderer[is-shorts],
+      ytd-search ytd-reel-item-renderer,
+      ytd-search grid-shelf-view-model,
+      ytd-search ytm-shorts-lockup-view-model-v2,
+      ytd-search ytm-shorts-lockup-view-model,
+      ytd-search ytd-video-renderer:has(a[href*="/shorts/"]) {
         display: block !important;
       }
     `);
