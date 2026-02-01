@@ -75,15 +75,17 @@ export const WATCH_PAGE_SELECTORS = {
   SUBSCRIBE_BUTTON:
     '#subscribe-button, ytd-subscribe-button-renderer, ytd-button-renderer#subscribe-button',
   // Conditional: appears only when subscribed to channel
+  // Notifications bell - Component + SVG path-based selector for bell icon (language-agnostic)
   NOTIFICATIONS_BUTTON:
-    'ytd-subscription-notification-toggle-button-renderer, #notification-preference-button',
+    'ytd-subscription-notification-toggle-button-renderer, ytd-subscription-notification-toggle-button-renderer-next, #notification-preference-button, button:has(svg path[d*="M19.395 1.196a1 1 0 00-.199 1.4A9 9 0 0121 8"])',
   // Conditional: appears when channel offers memberships and user is not a member
+  // Join button - Href-based selector (membership links are language-independent)
   JOIN_BUTTON:
-    'ytd-button-renderer[is-join-action], ytd-sponsor-button-renderer, ytd-button-renderer:has(a[href*="/sponsor"])',
+    'ytd-button-renderer[is-join-action], ytd-sponsor-button-renderer, ytd-button-renderer:has(a[href*="/membership"]), ytd-button-renderer:has(a[href*="/sponsor"])',
   // Conditional: appears only when user has active channel membership
   // See Perks button - Href-based selector (sponsor links are language-independent)
   SEE_PERKS_BUTTON:
-    '#sponsor-button, ytd-button-renderer:has(a[href*="/sponsor"]), ytd-video-owner-renderer ytd-button-renderer:has(a[href*="/sponsor"])',
+    '#sponsor-button, ytd-button-renderer:has(a[href*="/sponsor"]), ytd-video-owner-renderer ytd-button-renderer:has(a[href*="/sponsor"]), ytd-button-renderer:has(a[href*="/membership"])',
 
   // ========================================
   // CHANNEL INFO SECTION (hidden by default, toggleable as one unit)
@@ -383,16 +385,24 @@ function generateWatchPageCSS(
     `);
   } else {
     // Explicitly show Subscription Actions when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Must match ALL selectors from critical.css - Language-agnostic selectors
     rules.push(`
+      /* Subscribe button */
       ytd-watch-flexy ytd-subscribe-button-renderer,
-      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Subscribe"]),
-      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Join"]),
-      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="Notifications"]),
-      ytd-watch-flexy ytd-button-renderer:has(button[aria-label*="See perks"]),
       ytd-watch-metadata-actions ytd-subscribe-button-renderer,
+      /* Notifications bell */
+      ytd-watch-flexy ytd-subscription-notification-toggle-button-renderer,
+      ytd-watch-flexy ytd-subscription-notification-toggle-button-renderer-next,
+      ytd-watch-flexy #notification-preference-button,
+      ytd-watch-flexy button:has(svg path[d*="M19.395 1.196a1 1 0 00-.199 1.4A9 9 0 0121 8"]),
+      ytd-watch-metadata-actions ytd-notification-preferences-button-renderer,
+      /* Join button */
+      ytd-watch-flexy ytd-button-renderer:has(a[href*="/membership"]),
       ytd-watch-metadata-actions ytd-membership-button-renderer,
-      ytd-watch-metadata-actions ytd-notification-preferences-button-renderer {
+      /* See Perks button */
+      ytd-watch-flexy #sponsor-button,
+      ytd-watch-flexy ytd-button-renderer:has(a[href*="/sponsor"]),
+      ytd-watch-flexy ytd-video-owner-renderer ytd-button-renderer:has(a[href*="/sponsor"]) {
         display: flex !important;
       }
     `);
