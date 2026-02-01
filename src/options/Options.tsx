@@ -9,19 +9,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Check,
-  Loader2,
-  Youtube,
-  Settings,
-  Lock,
-  Database,
-  Info,
-  X,
-  Menu,
-  Pause,
-  Play,
-} from 'lucide-react';
+import { Check, Loader2, Youtube, Settings, Lock, Database, Info, X, Menu } from 'lucide-react';
 import { SettingToggle } from './components/SettingToggle';
 import { ImportExportButtons } from './components/ImportExportButtons';
 import { ResetButton } from './components/ResetButton';
@@ -35,28 +23,14 @@ import {
   addBlockedChannel,
   removeBlockedChannel,
   getLockModeStatus,
-  getYouTubePauseStatus,
-  pauseYouTubeModule,
-  resumeYouTubeModule,
 } from '@/shared/storage/settings-manager';
-import {
-  ExtensionSettings,
-  BlockedChannel,
-  LockModeState,
-  YouTubePauseState,
-} from '@/shared/types/settings';
+import { ExtensionSettings, BlockedChannel, LockModeState } from '@/shared/types/settings';
 import { normalizeChannelInput } from '@/shared/utils/channel-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { initializeTheme } from '@/shared/utils/theme-utils';
-import { PauseYouTubeModal } from '@/shared/components/PauseYouTubeModal';
-import {
-  formatCountdown,
-  calculateRemainingTime,
-  formatExpirationTime,
-} from '@/shared/utils/lock-mode-utils';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -83,9 +57,6 @@ const Options: React.FC = () => {
   const [blockChannelInput, setBlockChannelInput] = useState('');
   const [isBlockingChannel, setIsBlockingChannel] = useState(false);
   const [lockState, setLockState] = useState<LockModeState | null>(null);
-  const [youtubePauseState, setYoutubePauseState] = useState<YouTubePauseState | null>(null);
-  const [pauseRemainingTime, setPauseRemainingTime] = useState<number | null>(0);
-  const [showPauseModal, setShowPauseModal] = useState(false);
   const [activeTab, setActiveTab] = useState<PrimaryTab>('youtube');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
@@ -153,16 +124,9 @@ const Options: React.FC = () => {
       });
 
     // Listen for lock status changes from service worker
-    const handleMessage = (message: {
-      type: string;
-      lockState?: LockModeState;
-      pauseState?: YouTubePauseState;
-    }) => {
+    const handleMessage = (message: { type: string; lockState?: LockModeState }) => {
       if (message.type === 'LOCK_STATUS_CHANGED' && message.lockState) {
         setLockState(message.lockState);
-      }
-      if (message.type === 'YOUTUBE_PAUSE_STATUS_CHANGED' && message.pauseState) {
-        setYoutubePauseState(message.pauseState);
       }
     };
 
@@ -172,57 +136,6 @@ const Options: React.FC = () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, []);
-
-  // Load YouTube pause state on mount
-  useEffect(() => {
-    getYouTubePauseStatus()
-      .then((loadedPauseState) => {
-        setYoutubePauseState(loadedPauseState);
-      })
-      .catch((error) => {
-        console.error('Failed to load YouTube pause state:', error);
-      });
-
-    // Listen for storage changes
-    const handleStorageChange = (
-      changes: { [key: string]: chrome.storage.StorageChange },
-      areaName: string
-    ) => {
-      if (areaName === 'local' && changes['fockey_youtube_pause_state']) {
-        getYouTubePauseStatus()
-          .then((updatedState) => {
-            setYoutubePauseState(updatedState);
-          })
-          .catch((error) => {
-            console.error('Failed to reload YouTube pause state:', error);
-          });
-      }
-    };
-
-    chrome.storage.onChanged.addListener(handleStorageChange);
-
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
-  }, []);
-
-  // Update pause remaining time every second
-  useEffect(() => {
-    if (!youtubePauseState?.isPaused || !youtubePauseState.pauseEndTime) {
-      setPauseRemainingTime(youtubePauseState?.pauseEndTime === null ? null : 0);
-      return;
-    }
-
-    const updateRemainingTime = () => {
-      const remaining = calculateRemainingTime(youtubePauseState.pauseEndTime!);
-      setPauseRemainingTime(remaining);
-    };
-
-    updateRemainingTime();
-    const interval = setInterval(updateRemainingTime, 1000);
-
-    return () => clearInterval(interval);
-  }, [youtubePauseState?.isPaused, youtubePauseState?.pauseEndTime]);
 
   // Handle setting changes with auto-save
   const handleSettingChange = async (path: string[], value: boolean): Promise<void> => {
@@ -406,59 +319,6 @@ const Options: React.FC = () => {
     }
   };
 
-  // Handle YouTube pause
-  const handlePauseYouTube = async (durationMs: number | null) => {
-    try {
-      await pauseYouTubeModule(durationMs);
-      const updatedState = await getYouTubePauseStatus();
-      setYoutubePauseState(updatedState);
-
-      const durationText =
-        durationMs === null
-          ? 'indefinitely'
-          : durationMs < 3600000
-            ? `${Math.round(durationMs / 60000)} minutes`
-            : `${Math.round(durationMs / 3600000)} hours`;
-
-      toast({
-        title: 'YouTube Module Paused',
-        description: `YouTube will return to normal for ${durationText}`,
-        variant: 'success',
-      });
-    } catch (error) {
-      console.error('Failed to pause YouTube:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to pause YouTube module',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
-
-  // Handle YouTube resume
-  const handleResumeYouTube = async () => {
-    try {
-      await resumeYouTubeModule();
-      const updatedState = await getYouTubePauseStatus();
-      setYoutubePauseState(updatedState);
-
-      toast({
-        title: 'YouTube Module Resumed',
-        description: 'Fockey is now active on YouTube',
-        variant: 'success',
-      });
-    } catch (error) {
-      console.error('Failed to resume YouTube:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to resume YouTube module',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
-
   // Loading state
   if (!settings) {
     return (
@@ -562,61 +422,10 @@ const Options: React.FC = () => {
           {activeTab === 'youtube' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-semibold mb-2">YouTube Settings</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Customize your minimalist YouTube experience
-                    </p>
-                  </div>
-
-                  {/* Pause Button */}
-                  <Button
-                    onClick={() => setShowPauseModal(true)}
-                    disabled={lockState?.isLocked === true}
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0"
-                    title={
-                      lockState?.isLocked
-                        ? 'Cannot pause while Lock Mode is active'
-                        : 'Pause YouTube module'
-                    }
-                  >
-                    {youtubePauseState?.isPaused ? (
-                      <Play className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Pause className="h-4 w-4 mr-2" />
-                    )}
-                    {youtubePauseState?.isPaused ? 'Resume' : 'Pause'}
-                  </Button>
-                </div>
-
-                {/* Paused Status Indicator */}
-                {youtubePauseState?.isPaused && (
-                  <div className="mt-4 p-4 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-600/20">
-                    <div className="flex items-start gap-2">
-                      <Pause className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                          YouTube module is paused
-                        </div>
-                        <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                          {youtubePauseState.pauseEndTime === null ? (
-                            'Paused indefinitely - resume manually'
-                          ) : pauseRemainingTime !== null && pauseRemainingTime > 0 ? (
-                            <>
-                              Resumes in {formatCountdown(pauseRemainingTime)} (at{' '}
-                              {formatExpirationTime(youtubePauseState.pauseEndTime)})
-                            </>
-                          ) : (
-                            'Resuming...'
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <h2 className="text-2xl font-semibold mb-2">YouTube Settings</h2>
+                <p className="text-sm text-muted-foreground">
+                  Customize your minimalist YouTube experience
+                </p>
               </div>
 
               {/* YouTube Sub-Tabs (Horizontal) */}
@@ -1170,15 +979,6 @@ const Options: React.FC = () => {
 
       {/* Toast Notifications */}
       <Toaster />
-
-      {/* Pause YouTube Modal */}
-      <PauseYouTubeModal
-        open={showPauseModal}
-        onOpenChange={setShowPauseModal}
-        onPause={handlePauseYouTube}
-        onResume={handleResumeYouTube}
-        isPaused={youtubePauseState?.isPaused ?? false}
-      />
     </div>
   );
 };

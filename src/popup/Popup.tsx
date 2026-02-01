@@ -637,7 +637,6 @@ const Popup: React.FC = () => {
               onModuleToggle={handleModuleToggle}
               onOpenSettings={handleOpenYouTubeSettings}
               disabled={lockState?.isLocked}
-              lockState={lockState}
             />
 
             {/* Lock Mode Status Indicator */}

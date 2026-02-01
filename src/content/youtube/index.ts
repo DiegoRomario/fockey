@@ -4,11 +4,7 @@
  * Detects page type and loads appropriate sub-modules with lazy loading
  */
 
-import {
-  getSettings,
-  watchSettings,
-  isYouTubeModulePaused,
-} from '../../shared/storage/settings-manager';
+import { getSettings, watchSettings } from '../../shared/storage/settings-manager';
 import type { ExtensionSettings } from '../../shared/types/settings';
 import {
   PageType,
@@ -378,101 +374,12 @@ function setupServiceWorkerConnection(): void {
 }
 
 /**
- * Removes critical CSS that was injected at page load
- * Called when pausing to restore YouTube to original state
- */
-function removeCriticalCSS(): void {
-  const criticalCSS = document.getElementById('fockey-critical-css');
-  if (criticalCSS) {
-    criticalCSS.remove();
-    console.log('[Fockey] Critical CSS removed');
-  }
-}
-
-/**
- * Re-injects critical CSS when resuming
- * Mirrors the logic from youtube-css-injector.ts
- */
-async function reinjectCriticalCSS(): Promise<void> {
-  try {
-    // Only inject if not already present
-    if (document.getElementById('fockey-critical-css')) {
-      console.log('[Fockey] Critical CSS already present, skipping injection');
-      return;
-    }
-
-    // Fetch the critical CSS file
-    const cssUrl = chrome.runtime.getURL('src/content/critical.css');
-    const response = await fetch(cssUrl);
-    const cssText = await response.text();
-
-    // Create and inject style element
-    const styleElement = document.createElement('style');
-    styleElement.id = 'fockey-critical-css';
-    styleElement.textContent = cssText;
-
-    // Inject into head
-    (document.head || document.documentElement).appendChild(styleElement);
-
-    console.log('[Fockey] Critical CSS re-injected');
-  } catch (error) {
-    console.error('[Fockey] Failed to re-inject critical CSS:', error);
-  }
-}
-
-/**
- * Sets up listener for pause state changes
- * Handles pause/resume transitions dynamically without page reload
- */
-function setupPauseStateListener(): void {
-  chrome.storage.onChanged.addListener(async (changes, areaName) => {
-    if (areaName === 'local' && changes['fockey_youtube_pause_state']) {
-      const newValue = changes['fockey_youtube_pause_state'].newValue as
-        | import('../../shared/types/settings').YouTubePauseState
-        | undefined;
-      const isPaused = newValue?.isPaused ?? false;
-
-      console.log('[Fockey] Pause state changed:', isPaused ? 'PAUSED' : 'RESUMED');
-
-      if (isPaused) {
-        // Module paused - cleanup all modifications and remove critical CSS
-        if (state.currentModule) {
-          console.log('[Fockey] Cleaning up module (pause)');
-          state.currentModule.destroy();
-          state.currentModule = null;
-          state.currentPageType = null;
-        }
-        // Remove critical CSS to restore YouTube to 100% original state
-        removeCriticalCSS();
-      } else {
-        // Module resumed - re-inject critical CSS and re-initialize module
-        console.log('[Fockey] Re-initializing module (resume)');
-        await reinjectCriticalCSS();
-        if (state.currentSettings) {
-          await handlePageChange(state.currentSettings);
-        }
-      }
-    }
-  });
-}
-
-/**
  * Initializes the orchestrator
  * Main entry point called on DOM ready
  */
 async function initialize(): Promise<void> {
   try {
     console.log('[Fockey] Initializing YouTube orchestrator...');
-
-    // CRITICAL: Set up pause listener FIRST (before any other initialization)
-    setupPauseStateListener();
-
-    // CRITICAL: Check pause state and exit early if paused
-    const isPaused = await isYouTubeModulePaused();
-    if (isPaused) {
-      console.log('[Fockey] YouTube module is PAUSED - skipping initialization');
-      return; // Exit early - pause listener remains active for resume
-    }
 
     // Load initial settings
     const settings = await getSettings();

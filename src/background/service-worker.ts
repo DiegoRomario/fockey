@@ -12,8 +12,6 @@ import {
   extendLockMode,
   unlockLockMode,
   getSchedules,
-  getYouTubePauseStatus,
-  resumeYouTubeModule,
 } from '../shared/storage';
 import { DEFAULT_SETTINGS, ExtensionSettings, LockModeState } from '../shared/types/settings';
 import type {
@@ -106,10 +104,6 @@ chrome.runtime.onStartup.addListener(async () => {
     // CRITICAL: Recreate Quick Block alarm if session is active
     // Chrome alarms don't persist across browser restarts
     await recreateQuickBlockAlarmOnStartup();
-
-    // CRITICAL: Recreate YouTube pause alarm if pause is active
-    // Chrome alarms don't persist across browser restarts
-    await recreateYouTubePauseAlarmOnStartup();
   } catch (error) {
     logger.error('Failed during startup validation', error);
     // Attempt to reset to defaults as fallback
@@ -287,89 +281,6 @@ async function broadcastLockStatusChange(lockState: LockModeState): Promise<void
     logger.info('Lock status change (no active listeners)');
   }
 }
-
-// ==================== YOUTUBE PAUSE ALARM MANAGEMENT ====================
-
-/**
- * YouTube pause alarm name constant
- */
-const YOUTUBE_PAUSE_ALARM_NAME = 'youtube-pause-end';
-
-/**
- * Recreate YouTube pause alarm on service worker startup
- * Chrome alarms DO NOT persist across browser restarts
- */
-async function recreateYouTubePauseAlarmOnStartup(): Promise<void> {
-  try {
-    const pauseState = await getYouTubePauseStatus();
-
-    if (!pauseState.isPaused || !pauseState.pauseEndTime) {
-      logger.info('No active YouTube pause on startup');
-      return;
-    }
-
-    const now = Date.now();
-    const timeRemaining = pauseState.pauseEndTime - now;
-
-    if (timeRemaining > 0) {
-      // Pause is still active - recreate alarm
-      await chrome.alarms.create(YOUTUBE_PAUSE_ALARM_NAME, {
-        when: pauseState.pauseEndTime,
-      });
-
-      const minutesRemaining = Math.ceil(timeRemaining / 60000);
-      logger.info(
-        `YouTube pause alarm recreated: ${minutesRemaining} minute(s) remaining until ${new Date(pauseState.pauseEndTime).toLocaleString()}`
-      );
-    } else {
-      // Pause expired during shutdown - resume immediately
-      logger.info('YouTube pause expired during shutdown - resuming now');
-      await resumeYouTubeModule();
-    }
-  } catch (error) {
-    logger.error('Failed to recreate YouTube pause alarm on startup', error);
-  }
-}
-
-/**
- * Handle YouTube pause expiration when alarm fires
- * Silently resumes YouTube module
- */
-async function handleYouTubePauseExpire(): Promise<void> {
-  try {
-    logger.info('YouTube pause alarm fired - resuming module');
-    await resumeYouTubeModule();
-    logger.info('YouTube module resumed successfully');
-  } catch (error) {
-    logger.error('Failed to resume YouTube module', error);
-  }
-}
-
-/**
- * Listen for YouTube pause state changes and create/clear alarms
- */
-chrome.storage.onChanged.addListener(async (changes, areaName) => {
-  if (areaName === 'local' && changes['fockey_youtube_pause_state']) {
-    try {
-      const pauseState = await getYouTubePauseStatus();
-
-      if (pauseState.isPaused && pauseState.pauseEndTime) {
-        // Pause activated with a specific end time - create alarm
-        await chrome.alarms.clear(YOUTUBE_PAUSE_ALARM_NAME);
-        await chrome.alarms.create(YOUTUBE_PAUSE_ALARM_NAME, {
-          when: pauseState.pauseEndTime,
-        });
-        logger.info('YouTube pause alarm created');
-      } else {
-        // Pause cleared or indefinite - clear alarm
-        await chrome.alarms.clear(YOUTUBE_PAUSE_ALARM_NAME);
-        logger.info('YouTube pause alarm cleared');
-      }
-    } catch (error) {
-      logger.error('Failed to handle YouTube pause state change', error);
-    }
-  }
-});
 
 /**
  * Broadcast settings update to all active YouTube tabs
@@ -677,10 +588,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // Quick Block session end alarm fired
     logger.info('Quick Block end alarm triggered');
     await handleQuickBlockEnd();
-  } else if (alarm.name === YOUTUBE_PAUSE_ALARM_NAME) {
-    // YouTube pause expire alarm fired
-    logger.info('YouTube pause expire alarm triggered');
-    await handleYouTubePauseExpire();
   }
 });
 

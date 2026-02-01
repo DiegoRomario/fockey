@@ -735,11 +735,13 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Stop Quick Block?</DialogTitle>
-              <DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground">
                 Are you sure you want to stop this focus session? Your configured items will be
                 saved for future sessions.
-              </DialogDescription>
-            </DialogHeader>
+              </p>
+            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowStopConfirmDialog(false)}>
                 Cancel
@@ -1089,14 +1091,16 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
-            <DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
               Lock Mode is currently active. If you start Quick Block now,
               {pendingStartDuration === null
                 ? ' you will not be able to stop it until Lock Mode expires.'
-                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}{' '}
-              Do you want to proceed?
-            </DialogDescription>
-          </DialogHeader>
+                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
+            </p>
+            <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLockModeWarning(false)}>
               Cancel

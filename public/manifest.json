@@ -12,7 +12,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
-      "js": ["src/content/youtube-css-injector.ts"],
+      "css": ["src/content/critical.css"],
       "run_at": "document_start"
     },
     {
@@ -38,7 +38,7 @@
   "options_page": "src/options/index.html",
   "web_accessible_resources": [
     {
-      "resources": ["blocked/index.html", "src/content/critical.css"],
+      "resources": ["blocked/index.html"],
       "matches": ["*://*.youtube.com/*", "<all_urls>"]
     }
   ],
