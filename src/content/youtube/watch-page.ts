@@ -65,9 +65,9 @@ export const WATCH_PAGE_SELECTORS = {
   REPORT_BUTTON:
     'yt-button-view-model:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]), ytd-button-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]), ytd-menu-service-item-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"])',
 
-  // New YouTube AI assistant button - SVG path selector (sparkle/AI icon)
+  // New YouTube AI assistant button - SVG path selector (sparkle/AI icon) + aria-label fallback
   ASK_BUTTON:
-    'yt-button-view-model:has(svg path[d*="m10.6 7.8-4.6.9"]), ytd-button-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]), ytd-menu-service-item-renderer:has(svg path[d*="m10.6 7.8-4.6.9"])',
+    'yt-button-view-model:has(svg path[d*="M480-80"]), ytd-button-renderer:has(svg path[d*="M480-80"]), ytd-menu-service-item-renderer:has(svg path[d*="M480-80"]), button[aria-label="Ask"], yt-button-view-model:has(button[aria-label="Ask"])',
 
   // ========================================
   // CHANNEL-RELATED BUTTONS (hidden by default, individually toggleable)
@@ -346,9 +346,11 @@ function generateWatchPageCSS(
       ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]),
       ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M14.4 6L14 4H5v17h2v-7h5.6"]),
       /* Ask button */
-      ytd-watch-flexy yt-button-view-model:has(svg path[d*="m10.6 7.8-4.6.9"]),
-      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]),
-      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="m10.6 7.8-4.6.9"]),
+      ytd-watch-flexy yt-button-view-model:has(svg path[d*="M480-80"]),
+      ytd-watch-flexy ytd-button-renderer:has(svg path[d*="M480-80"]),
+      ytd-watch-flexy ytd-menu-service-item-renderer:has(svg path[d*="M480-80"]),
+      ytd-watch-flexy button[aria-label="Ask"],
+      ytd-watch-flexy yt-button-view-model:has(button[aria-label="Ask"]),
       /* Overflow menu (three dots) */
       ytd-watch-metadata-actions ytd-menu-renderer,
       ytd-watch-flexy yt-button-shape:has(svg path[d*="M6 10a2 2 0 100 4 2 2 0 000-4Zm6 0a2 2 0 100 4"]),
