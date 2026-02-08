@@ -5,7 +5,11 @@
  */
 
 import type { ModuleInterface, ModuleSettings } from '../types';
-import type { WatchPageSettings, GlobalNavigationSettings } from '../../../shared/types/settings';
+import type {
+  WatchPageSettings,
+  GlobalNavigationSettings,
+  SearchPageSettings,
+} from '../../../shared/types/settings';
 import { initWatchPageModule, cleanupWatchPageModule, applyWatchPageSettings } from '../watch-page';
 
 /**
@@ -14,6 +18,7 @@ import { initWatchPageModule, cleanupWatchPageModule, applyWatchPageSettings } f
 class WatchPageModule implements ModuleInterface {
   private settings: WatchPageSettings | null = null;
   private globalNavigation: GlobalNavigationSettings | null = null;
+  private searchPageSettings: SearchPageSettings | null = null;
   private isInitialized = false;
 
   /**
@@ -22,8 +27,9 @@ class WatchPageModule implements ModuleInterface {
   async init(settings: ModuleSettings): Promise<void> {
     this.settings = settings.pageSettings as WatchPageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     this.isInitialized = true;
-    await initWatchPageModule(this.settings, this.globalNavigation);
+    await initWatchPageModule(this.settings, this.globalNavigation, this.searchPageSettings);
   }
 
   /**
@@ -33,9 +39,10 @@ class WatchPageModule implements ModuleInterface {
   updateSettings(settings: ModuleSettings): void {
     this.settings = settings.pageSettings as WatchPageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     if (this.isInitialized) {
       // Re-apply settings using existing functionality
-      applyWatchPageSettings(this.settings, this.globalNavigation);
+      applyWatchPageSettings(this.settings, this.globalNavigation, this.searchPageSettings);
     }
   }
 
@@ -46,6 +53,7 @@ class WatchPageModule implements ModuleInterface {
     cleanupWatchPageModule();
     this.settings = null;
     this.globalNavigation = null;
+    this.searchPageSettings = null;
     this.isInitialized = false;
   }
 }

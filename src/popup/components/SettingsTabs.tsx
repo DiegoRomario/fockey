@@ -95,11 +95,11 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="global-enable-search-suggestions"
-            label="Enable Search Suggestions"
-            tooltip="Enable search suggestions (autocomplete dropdown). When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges."
-            checked={settings.youtube.globalNavigation.enableSearchSuggestions}
-            onChange={(checked) => onGlobalNavigationToggle('enableSearchSuggestions', checked)}
+            id="global-blur-thumbnails"
+            label="Blur Thumbnails"
+            tooltip="Blur all video thumbnails across all YouTube pages. When enabled, thumbnails in search results, related videos, and creator profiles are blurred to reduce visual stimulation."
+            checked={settings.youtube.globalNavigation.blurThumbnails}
+            onChange={(checked) => onGlobalNavigationToggle('blurThumbnails', checked)}
             disabled={disabled}
           />
         </TabsContent>
@@ -115,11 +115,11 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
             disabled={disabled}
           />
           <ModuleToggle
-            id="search-blur"
-            label="Blur Thumbnails"
-            tooltip="Reduces visual stimulation while keeping structural awareness"
-            checked={settings.youtube.searchPage.blurThumbnails}
-            onChange={(checked) => onSearchPageToggle('blurThumbnails', checked)}
+            id="search-suggestions"
+            label="Enable Search Suggestions"
+            tooltip="Enable search suggestions (autocomplete dropdown). When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges."
+            checked={settings.youtube.searchPage.enableSearchSuggestions}
+            onChange={(checked) => onSearchPageToggle('enableSearchSuggestions', checked)}
             disabled={disabled}
           />
         </TabsContent>

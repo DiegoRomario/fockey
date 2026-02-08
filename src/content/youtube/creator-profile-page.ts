@@ -4,7 +4,11 @@
  * Hides navigation chrome, Shorts/Community tabs, action buttons while preserving channel info
  */
 
-import { CreatorProfilePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
+import {
+  CreatorProfilePageSettings,
+  GlobalNavigationSettings,
+  SearchPageSettings,
+} from '../../shared/types/settings';
 import { injectCSS, removeCSS, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 import { SearchSuggestionsBlocker } from './utils/search-suggestions-blocker';
@@ -85,6 +89,8 @@ let searchSuggestionsBlocker: SearchSuggestionsBlocker | null = null;
  * Stores the latest settings to ensure mutation observer uses up-to-date values
  */
 let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let currentSearchPageSettings: SearchPageSettings | null = null;
 
 /**
  * Generates CSS rules based on creator profile page and global navigation settings
@@ -389,6 +395,50 @@ function generateCreatorProfileCSS(
     }
   `);
 
+  // Apply thumbnail blur if enabled globally
+  if (globalNavigation.blurThumbnails) {
+    rules.push(`
+      /* Blur video thumbnails on creator profile pages */
+      /* Target thumbnail containers specifically, exclude channel avatars */
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer ytd-thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer ytd-thumbnail yt-image,
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer #thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-rich-item-renderer a#thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-video-renderer ytd-thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-video-renderer ytd-thumbnail yt-image,
+      ytd-browse[page-subtype='channels'] ytd-grid-video-renderer #thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-video-renderer a#thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer ytd-thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer ytd-thumbnail yt-image,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer yt-image img,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer #thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer a#thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-video-renderer img.ytCoreImageHost,
+      ytd-browse[page-subtype='channels'] ytd-playlist-renderer ytd-thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-playlist-renderer ytd-thumbnail yt-image,
+      ytd-browse[page-subtype='channels'] ytd-playlist-renderer #thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-playlist-renderer a#thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-playlist-renderer ytd-thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-playlist-renderer ytd-thumbnail yt-image,
+      ytd-browse[page-subtype='channels'] ytd-grid-playlist-renderer #thumbnail img,
+      ytd-browse[page-subtype='channels'] ytd-grid-playlist-renderer a#thumbnail img,
+      ytd-browse[page-subtype='channels'] yt-collection-thumbnail-view-model img,
+      ytd-browse[page-subtype='channels'] yt-collection-thumbnail-view-model img.ytCoreImageHost,
+      ytd-browse[page-subtype='channels'] yt-thumbnail-view-model img,
+      ytd-browse[page-subtype='channels'] yt-thumbnail-view-model img.ytCoreImageHost,
+      ytd-browse[page-subtype='channels'] yt-lockup-view-model img.ytCoreImageHost {
+        filter: blur(10px) !important;
+      }
+
+      /* Explicitly exclude channel avatars from blur */
+      ytd-browse[page-subtype='channels'] #avatar img,
+      ytd-browse[page-subtype='channels'] yt-img-shadow#avatar img,
+      ytd-browse[page-subtype='channels'] ytd-channel-name img {
+        filter: none !important;
+      }
+    `);
+  }
+
   return rules.join('\n');
 }
 
@@ -487,15 +537,18 @@ function setupCreatorProfileObserver(): MutationObserver {
  */
 export async function initCreatorProfileModule(
   pageSettings: CreatorProfilePageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): Promise<void> {
   console.log('[Fockey] Initializing Creator Profile page module', {
     pageSettings,
     globalNavigation,
+    searchPageSettings,
   });
 
   // Store current settings for mutation observer to use
   currentGlobalNavigation = globalNavigation;
+  currentSearchPageSettings = searchPageSettings;
 
   // Generate and inject CSS
   const css = generateCreatorProfileCSS(pageSettings, globalNavigation);
@@ -512,7 +565,9 @@ export async function initCreatorProfileModule(
   hoverPreviewBlocker.init();
 
   // Initialize search suggestions blocker
-  searchSuggestionsBlocker = new SearchSuggestionsBlocker(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker = new SearchSuggestionsBlocker(
+    searchPageSettings.enableSearchSuggestions
+  );
   searchSuggestionsBlocker.init();
 
   console.log('[Fockey] Creator Profile page module initialized');
@@ -527,15 +582,18 @@ export async function initCreatorProfileModule(
  */
 export function applyCreatorProfileSettings(
   pageSettings: CreatorProfilePageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): void {
   console.log('[Fockey] Applying updated Creator Profile settings', {
     pageSettings,
     globalNavigation,
+    searchPageSettings,
   });
 
   // Store current settings for mutation observer to use
   currentGlobalNavigation = globalNavigation;
+  currentSearchPageSettings = searchPageSettings;
 
   // Regenerate and inject CSS with updated settings
   const css = generateCreatorProfileCSS(pageSettings, globalNavigation);
@@ -548,7 +606,7 @@ export function applyCreatorProfileSettings(
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 
   // Update search suggestions blocker settings
-  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker?.updateSettings(searchPageSettings.enableSearchSuggestions);
 
   console.log('[Fockey] Creator Profile settings applied');
 }
@@ -565,6 +623,7 @@ export function cleanupCreatorProfileModule(): void {
 
   // Clear current settings
   currentGlobalNavigation = null;
+  currentSearchPageSettings = null;
 
   // Disconnect mutation observer
   if (mutationObserver) {

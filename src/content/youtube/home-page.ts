@@ -4,7 +4,11 @@
  * Hides feed, sidebar, and navigation elements while preserving search bar
  */
 
-import { HomePageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
+import {
+  HomePageSettings,
+  GlobalNavigationSettings,
+  SearchPageSettings,
+} from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 import { SearchSuggestionsBlocker } from './utils/search-suggestions-blocker';
@@ -78,6 +82,7 @@ let searchSuggestionsBlocker: SearchSuggestionsBlocker | null = null;
  */
 let currentPageSettings: HomePageSettings | null = null;
 let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+let currentSearchPageSettings: SearchPageSettings | null = null;
 
 /**
  * Generates CSS rules based on home page and global navigation settings
@@ -342,11 +347,13 @@ function generateHomePageCSS(
  */
 export function applyHomePageSettings(
   pageSettings: HomePageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): void {
   // Store current settings for mutation observer to use
   currentPageSettings = pageSettings;
   currentGlobalNavigation = globalNavigation;
+  currentSearchPageSettings = searchPageSettings;
 
   const css = generateHomePageCSS(pageSettings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
@@ -355,7 +362,7 @@ export function applyHomePageSettings(
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 
   // Update search suggestions blocker settings
-  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker?.updateSettings(searchPageSettings.enableSearchSuggestions);
 }
 
 /**
@@ -366,6 +373,7 @@ export function removeHomePageStyles(): void {
   removeCSS(STYLE_TAG_ID);
   currentPageSettings = null;
   currentGlobalNavigation = null;
+  currentSearchPageSettings = null;
 }
 
 /**
@@ -384,8 +392,12 @@ function setupMutationObserver(): void {
   // Create debounced re-apply function that uses current settings
   const debouncedReapply = debounce(() => {
     // Use current settings from module-level variables, not captured parameters
-    if (currentPageSettings && currentGlobalNavigation) {
-      applyHomePageSettings(currentPageSettings, currentGlobalNavigation);
+    if (currentPageSettings && currentGlobalNavigation && currentSearchPageSettings) {
+      applyHomePageSettings(
+        currentPageSettings,
+        currentGlobalNavigation,
+        currentSearchPageSettings
+      );
     }
   }, 200);
 
@@ -439,14 +451,15 @@ function setupMutationObserver(): void {
  */
 export async function initHomePageModule(
   pageSettings: HomePageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): Promise<void> {
   try {
     // Wait for essential elements to load
     await waitForElement(HOME_PAGE_SELECTORS.MASTHEAD, 5000);
 
     // Apply initial settings (this also stores them for the mutation observer)
-    applyHomePageSettings(pageSettings, globalNavigation);
+    applyHomePageSettings(pageSettings, globalNavigation, searchPageSettings);
 
     // Set up mutation observer for dynamic content (uses stored settings)
     setupMutationObserver();
@@ -457,7 +470,7 @@ export async function initHomePageModule(
 
     // Initialize search suggestions blocker
     searchSuggestionsBlocker = new SearchSuggestionsBlocker(
-      globalNavigation.enableSearchSuggestions
+      searchPageSettings.enableSearchSuggestions
     );
     searchSuggestionsBlocker.init();
 

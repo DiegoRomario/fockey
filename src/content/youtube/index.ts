@@ -192,6 +192,7 @@ function getPageSettings(pageType: PageType, settings: ExtensionSettings): Modul
   return {
     pageSettings,
     globalNavigation: settings.youtube.globalNavigation,
+    searchPageSettings: settings.youtube.searchPage,
     blockedChannels: settings.youtube.blockedChannels,
   };
 }

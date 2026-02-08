@@ -52,7 +52,7 @@ function validateGlobalNavigationSettings(settings: unknown): settings is Global
     'enableHoverPreviews',
     'enableShorts',
     'enablePosts',
-    'enableSearchSuggestions',
+    'blurThumbnails',
   ]);
 }
 
@@ -72,7 +72,7 @@ function validateHomePageSettings(settings: unknown): settings is HomePageSettin
  * Validates SearchPageSettings structure
  */
 function validateSearchPageSettings(settings: unknown): settings is SearchPageSettings {
-  return validateBooleanObject(settings, ['showMixes', 'blurThumbnails']);
+  return validateBooleanObject(settings, ['showMixes', 'enableSearchSuggestions']);
 }
 
 /**

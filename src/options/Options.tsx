@@ -557,13 +557,13 @@ const Options: React.FC = () => {
                           />
 
                           <SettingToggle
-                            id="global-enable-search-suggestions"
-                            label="Enable Search Suggestions"
-                            description="Enable search suggestions (autocomplete dropdown)"
-                            checked={settings.youtube.globalNavigation.enableSearchSuggestions}
+                            id="global-blur-thumbnails"
+                            label="Blur Thumbnails"
+                            description="Blur all video thumbnails across all YouTube pages"
+                            checked={settings.youtube.globalNavigation.blurThumbnails}
                             onChange={(checked) =>
                               handleSettingChange(
-                                ['youtube', 'globalNavigation', 'enableSearchSuggestions'],
+                                ['youtube', 'globalNavigation', 'blurThumbnails'],
                                 checked
                               )
                             }
@@ -601,13 +601,13 @@ const Options: React.FC = () => {
                             disabled={lockState?.isLocked === true}
                           />
                           <SettingToggle
-                            id="search-blur"
-                            label="Blur Thumbnails"
-                            description="Blur video thumbnails instead of showing them clearly"
-                            checked={settings.youtube.searchPage.blurThumbnails}
+                            id="search-suggestions"
+                            label="Enable Search Suggestions"
+                            description="Enable search suggestions (autocomplete dropdown)"
+                            checked={settings.youtube.searchPage.enableSearchSuggestions}
                             onChange={(checked) =>
                               handleSettingChange(
-                                ['youtube', 'searchPage', 'blurThumbnails'],
+                                ['youtube', 'searchPage', 'enableSearchSuggestions'],
                                 checked
                               )
                             }

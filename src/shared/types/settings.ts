@@ -242,11 +242,12 @@ export interface GlobalNavigationSettings {
    */
   enablePosts: boolean;
   /**
-   * Enable search suggestions (autocomplete dropdown)
-   * When false (default), the search suggestions dropdown is hidden to reduce distractions
-   * When true, YouTube's native search suggestions appear when typing in the search box
+   * Blur thumbnails globally
+   * When true, all video thumbnails are blurred across all YouTube pages
+   * When false (default), thumbnails are shown normally
+   * Applies to: Search results, Watch page (related videos), Creator profiles, etc.
    */
-  enableSearchSuggestions: boolean;
+  blurThumbnails: boolean;
 }
 
 /**
@@ -270,9 +271,12 @@ export interface SearchPageSettings {
   /** Show/hide Mixes/Playlists in search results */
   showMixes: boolean;
 
-  // Visual adjustments
-  /** Blur thumbnails instead of hiding them */
-  blurThumbnails: boolean;
+  /**
+   * Enable search suggestions (autocomplete dropdown)
+   * When false (default), the search suggestions dropdown is hidden to reduce distractions
+   * When true, YouTube's native search suggestions appear when typing in the search box
+   */
+  enableSearchSuggestions: boolean;
 }
 
 /**
@@ -460,7 +464,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
       enableHoverPreviews: false, // Disabled by default (minimalist principle)
       enableShorts: false, // Disabled by default (all Shorts blocked globally)
       enablePosts: false, // Disabled by default (all Posts blocked globally)
-      enableSearchSuggestions: false, // Disabled by default (no algorithmic nudges)
+      blurThumbnails: false, // Disabled by default - thumbnails shown normally
     },
     homePage: {
       // Empty for now - future expansion point
@@ -468,8 +472,7 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
     searchPage: {
       // Content (hidden by default - minimalist principle)
       showMixes: false,
-      // Visual adjustments
-      blurThumbnails: false,
+      enableSearchSuggestions: false, // Disabled by default (no algorithmic nudges)
     },
     watchPage: {
       showLikeDislike: false, // Visible by default - basic engagement metric

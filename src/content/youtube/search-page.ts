@@ -349,15 +349,31 @@ function generateSearchPageCSS(
     }
   `);
 
-  // Apply thumbnail blur if enabled
-  if (pageSettings.blurThumbnails) {
+  // Apply thumbnail blur if enabled globally
+  if (globalNavigation.blurThumbnails) {
     rules.push(`
       /* Blur video thumbnails including Shorts */
-      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} img,
-      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} yt-image,
-      ${SEARCH_PAGE_SELECTORS.SHORTS} img,
-      ${SEARCH_PAGE_SELECTORS.SHORTS} yt-image {
+      /* Target thumbnail containers specifically, exclude channel avatars */
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} ytd-thumbnail img,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} ytd-thumbnail yt-image,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} yt-image.ytd-thumbnail,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} #thumbnail img,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} a#thumbnail img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} ytd-thumbnail img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} ytd-thumbnail yt-image,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} #thumbnail img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} a#thumbnail img {
         filter: blur(10px) !important;
+      }
+
+      /* Explicitly exclude channel avatars from blur */
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} #avatar img,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} yt-img-shadow#avatar img,
+      ${SEARCH_PAGE_SELECTORS.VIDEO_RENDERER} ytd-channel-name img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} #avatar img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} yt-img-shadow#avatar img,
+      ${SEARCH_PAGE_SELECTORS.SHORTS} ytd-channel-name img {
+        filter: none !important;
       }
     `);
   }
@@ -446,7 +462,7 @@ export function applySearchPageSettings(
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 
   // Update search suggestions blocker settings
-  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker?.updateSettings(pageSettings.enableSearchSuggestions);
 
   // Update channel blocker and filter content
   if (channelBlocker) {
@@ -579,9 +595,7 @@ export async function initSearchPageModule(
     hoverPreviewBlocker.init();
 
     // Initialize search suggestions blocker
-    searchSuggestionsBlocker = new SearchSuggestionsBlocker(
-      globalNavigation.enableSearchSuggestions
-    );
+    searchSuggestionsBlocker = new SearchSuggestionsBlocker(pageSettings.enableSearchSuggestions);
     searchSuggestionsBlocker.init();
 
     console.log('[Fockey] Search page module initialized');

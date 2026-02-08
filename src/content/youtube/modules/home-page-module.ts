@@ -5,7 +5,11 @@
  */
 
 import type { ModuleInterface, ModuleSettings } from '../types';
-import type { HomePageSettings, GlobalNavigationSettings } from '../../../shared/types/settings';
+import type {
+  HomePageSettings,
+  GlobalNavigationSettings,
+  SearchPageSettings,
+} from '../../../shared/types/settings';
 import { initHomePageModule, cleanupHomePageModule, applyHomePageSettings } from '../home-page';
 
 /**
@@ -14,6 +18,7 @@ import { initHomePageModule, cleanupHomePageModule, applyHomePageSettings } from
 class HomePageModule implements ModuleInterface {
   private pageSettings: HomePageSettings | null = null;
   private globalNavigation: GlobalNavigationSettings | null = null;
+  private searchPageSettings: SearchPageSettings | null = null;
   private isInitialized = false;
 
   /**
@@ -22,8 +27,9 @@ class HomePageModule implements ModuleInterface {
   async init(settings: ModuleSettings): Promise<void> {
     this.pageSettings = settings.pageSettings as HomePageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     this.isInitialized = true;
-    await initHomePageModule(this.pageSettings, this.globalNavigation);
+    await initHomePageModule(this.pageSettings, this.globalNavigation, this.searchPageSettings);
   }
 
   /**
@@ -33,9 +39,10 @@ class HomePageModule implements ModuleInterface {
   updateSettings(settings: ModuleSettings): void {
     this.pageSettings = settings.pageSettings as HomePageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     if (this.isInitialized && this.globalNavigation) {
       // Re-apply settings using existing functionality
-      applyHomePageSettings(this.pageSettings, this.globalNavigation);
+      applyHomePageSettings(this.pageSettings, this.globalNavigation, this.searchPageSettings);
     }
   }
 
@@ -46,6 +53,7 @@ class HomePageModule implements ModuleInterface {
     cleanupHomePageModule();
     this.pageSettings = null;
     this.globalNavigation = null;
+    this.searchPageSettings = null;
     this.isInitialized = false;
   }
 }

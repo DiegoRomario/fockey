@@ -49,6 +49,8 @@ export interface ModuleSettings {
   pageSettings: PageSettings;
   /** Global navigation settings (applies to all pages) */
   globalNavigation: GlobalNavigationSettings;
+  /** Search page settings (needed by all pages for search suggestions) */
+  searchPageSettings: SearchPageSettings;
   /** Blocked YouTube channels */
   blockedChannels: BlockedChannel[];
 }

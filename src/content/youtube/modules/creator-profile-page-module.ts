@@ -8,6 +8,7 @@ import type { ModuleInterface, ModuleSettings } from '../types';
 import type {
   CreatorProfilePageSettings,
   GlobalNavigationSettings,
+  SearchPageSettings,
 } from '../../../shared/types/settings';
 import {
   initCreatorProfileModule,
@@ -21,6 +22,7 @@ import {
 class CreatorProfilePageModule implements ModuleInterface {
   private pageSettings: CreatorProfilePageSettings | null = null;
   private globalNavigation: GlobalNavigationSettings | null = null;
+  private searchPageSettings: SearchPageSettings | null = null;
   private isInitialized = false;
 
   /**
@@ -29,8 +31,13 @@ class CreatorProfilePageModule implements ModuleInterface {
   async init(settings: ModuleSettings): Promise<void> {
     this.pageSettings = settings.pageSettings as CreatorProfilePageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     this.isInitialized = true;
-    await initCreatorProfileModule(this.pageSettings, this.globalNavigation);
+    await initCreatorProfileModule(
+      this.pageSettings,
+      this.globalNavigation,
+      this.searchPageSettings
+    );
   }
 
   /**
@@ -40,9 +47,14 @@ class CreatorProfilePageModule implements ModuleInterface {
   updateSettings(settings: ModuleSettings): void {
     this.pageSettings = settings.pageSettings as CreatorProfilePageSettings;
     this.globalNavigation = settings.globalNavigation;
+    this.searchPageSettings = settings.searchPageSettings;
     if (this.isInitialized && this.globalNavigation) {
       // Re-apply settings using existing functionality
-      applyCreatorProfileSettings(this.pageSettings, this.globalNavigation);
+      applyCreatorProfileSettings(
+        this.pageSettings,
+        this.globalNavigation,
+        this.searchPageSettings
+      );
     }
   }
 
@@ -53,6 +65,7 @@ class CreatorProfilePageModule implements ModuleInterface {
     cleanupCreatorProfileModule();
     this.pageSettings = null;
     this.globalNavigation = null;
+    this.searchPageSettings = null;
     this.isInitialized = false;
   }
 }

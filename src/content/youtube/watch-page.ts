@@ -4,7 +4,11 @@
  * Hides engagement buttons, comments, recommendations while preserving video player and controls
  */
 
-import { WatchPageSettings, GlobalNavigationSettings } from '../../shared/types/settings';
+import {
+  WatchPageSettings,
+  GlobalNavigationSettings,
+  SearchPageSettings,
+} from '../../shared/types/settings';
 import { injectCSS, removeCSS, waitForElement, debounce } from './utils/dom-helpers';
 import { HoverPreviewBlocker } from './utils/hover-preview-blocker';
 import { SearchSuggestionsBlocker } from './utils/search-suggestions-blocker';
@@ -178,6 +182,7 @@ let currentVideoId: string | null = null;
  */
 let currentWatchPageSettings: WatchPageSettings | null = null;
 let currentGlobalNavigation: GlobalNavigationSettings | null = null;
+let currentSearchPageSettings: SearchPageSettings | null = null;
 
 /**
  * Generates CSS rules based on watch page settings
@@ -730,6 +735,38 @@ function generateWatchPageCSS(
     }
   `);
 
+  // ========================================
+  // Apply thumbnail blur if enabled globally
+  // ========================================
+  if (globalNavigation.blurThumbnails) {
+    rules.push(`
+      /* Blur video thumbnails in related videos and playlists */
+      /* Target thumbnail containers specifically, exclude channel avatars */
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} ytd-thumbnail img,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} ytd-thumbnail yt-image,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} yt-image.ytd-thumbnail,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} #thumbnail img,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} a#thumbnail img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} ytd-thumbnail img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} ytd-thumbnail yt-image,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} yt-image.ytd-thumbnail,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} #thumbnail img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} a#thumbnail img {
+        filter: blur(10px) !important;
+      }
+
+      /* Explicitly exclude channel avatars from blur */
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} #avatar img,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} yt-img-shadow#avatar img,
+      ${WATCH_PAGE_SELECTORS.RELATED_VIDEOS} ytd-channel-name img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} #avatar img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} yt-img-shadow#avatar img,
+      ${WATCH_PAGE_SELECTORS.PLAYLISTS} ytd-channel-name img {
+        filter: none !important;
+      }
+    `);
+  }
+
   return rules.join('\n');
 }
 
@@ -741,11 +778,13 @@ function generateWatchPageCSS(
  */
 export function applyWatchPageSettings(
   settings: WatchPageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): void {
   // Store current settings for mutation observer to use
   currentWatchPageSettings = settings;
   currentGlobalNavigation = globalNavigation;
+  currentSearchPageSettings = searchPageSettings;
 
   const css = generateWatchPageCSS(settings, globalNavigation);
   injectCSS(css, STYLE_TAG_ID);
@@ -754,7 +793,7 @@ export function applyWatchPageSettings(
   hoverPreviewBlocker?.updateSettings(globalNavigation.enableHoverPreviews);
 
   // Update search suggestions blocker settings
-  searchSuggestionsBlocker?.updateSettings(globalNavigation.enableSearchSuggestions);
+  searchSuggestionsBlocker?.updateSettings(searchPageSettings.enableSearchSuggestions);
 }
 
 /**
@@ -765,6 +804,7 @@ export function removeWatchPageStyles(): void {
   removeCSS(STYLE_TAG_ID);
   currentWatchPageSettings = null;
   currentGlobalNavigation = null;
+  currentSearchPageSettings = null;
 }
 
 /**
@@ -792,8 +832,12 @@ function setupMutationObserver(): void {
   // Create debounced re-apply function that uses current settings
   const debouncedReapply = debounce(() => {
     // Use current settings from module-level variables, not captured parameters
-    if (currentWatchPageSettings && currentGlobalNavigation) {
-      applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+    if (currentWatchPageSettings && currentGlobalNavigation && currentSearchPageSettings) {
+      applyWatchPageSettings(
+        currentWatchPageSettings,
+        currentGlobalNavigation,
+        currentSearchPageSettings
+      );
     }
   }, 200);
 
@@ -856,8 +900,12 @@ function setupVideoNavigationListener(): void {
       console.log(`[Fockey] Video changed to: ${newVideoId}`);
 
       // Re-apply settings for new video using current settings
-      if (currentWatchPageSettings && currentGlobalNavigation) {
-        applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+      if (currentWatchPageSettings && currentGlobalNavigation && currentSearchPageSettings) {
+        applyWatchPageSettings(
+          currentWatchPageSettings,
+          currentGlobalNavigation,
+          currentSearchPageSettings
+        );
       }
     }
   });
@@ -870,8 +918,12 @@ function setupVideoNavigationListener(): void {
       currentVideoId = newVideoId;
       console.log(`[Fockey] Video changed (popstate) to: ${newVideoId}`);
       // Re-apply settings using current settings
-      if (currentWatchPageSettings && currentGlobalNavigation) {
-        applyWatchPageSettings(currentWatchPageSettings, currentGlobalNavigation);
+      if (currentWatchPageSettings && currentGlobalNavigation && currentSearchPageSettings) {
+        applyWatchPageSettings(
+          currentWatchPageSettings,
+          currentGlobalNavigation,
+          currentSearchPageSettings
+        );
       }
     }
   });
@@ -886,7 +938,8 @@ function setupVideoNavigationListener(): void {
  */
 export async function initWatchPageModule(
   settings: WatchPageSettings,
-  globalNavigation: GlobalNavigationSettings
+  globalNavigation: GlobalNavigationSettings,
+  searchPageSettings: SearchPageSettings
 ): Promise<void> {
   try {
     // Wait for essential elements to load
@@ -896,7 +949,7 @@ export async function initWatchPageModule(
     currentVideoId = getVideoId();
 
     // Apply initial settings (this also stores them for mutation observer)
-    applyWatchPageSettings(settings, globalNavigation);
+    applyWatchPageSettings(settings, globalNavigation, searchPageSettings);
 
     // Set up mutation observer for dynamic content (uses stored settings)
     setupMutationObserver();
@@ -910,7 +963,7 @@ export async function initWatchPageModule(
 
     // Initialize search suggestions blocker
     searchSuggestionsBlocker = new SearchSuggestionsBlocker(
-      globalNavigation.enableSearchSuggestions
+      searchPageSettings.enableSearchSuggestions
     );
     searchSuggestionsBlocker.init();
 
