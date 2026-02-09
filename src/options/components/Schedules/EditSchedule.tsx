@@ -18,6 +18,7 @@ import {
 } from '@/shared/utils/schedule-utils';
 import { isValidDomainPattern } from '@/shared/utils/domain-utils';
 import { cn } from '@/lib/utils';
+import { useT } from '@/shared/i18n/hooks';
 
 interface EditScheduleProps {
   schedule?: BlockingSchedule | null;
@@ -25,11 +26,12 @@ interface EditScheduleProps {
   onCancel: () => void;
 }
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Day names are now translated via i18n - see usage below
 
 const ICON_OPTIONS = ['🎯', '🔒', '🚫', '⏰', '📚', '💼', '🏃', '🧘', ''];
 
 export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, onCancel }) => {
+  const t = useT();
   // Form state
   const [name, setName] = useState(schedule?.name || '');
   const [icon, setIcon] = useState(schedule?.icon || '');
@@ -145,7 +147,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
   // Blocking rules helpers
   const addDomain = () => {
     if (!domainInput.trim()) {
-      setDomainInputError('Please enter a domain');
+      setDomainInputError(
+        t('options.general.schedules.edit.blockedDomains.error', { error: 'Please enter a domain' })
+      );
       return;
     }
 
@@ -155,14 +159,20 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
     // Validate domain pattern
     if (!isValidDomainPattern(normalized)) {
       setDomainInputError(
-        'Please enter a valid domain (e.g., example.com or *.example.com for wildcards)'
+        t('options.general.schedules.edit.blockedDomains.error', {
+          error: 'Please enter a valid domain (e.g., example.com or *.example.com for wildcards)',
+        })
       );
       return;
     }
 
     // Check if already exists
     if (blockedDomains.includes(normalized)) {
-      setDomainInputError('This domain is already in the list');
+      setDomainInputError(
+        t('options.general.schedules.edit.blockedDomains.error', {
+          error: 'This domain is already in the list',
+        })
+      );
       return;
     }
 
@@ -203,28 +213,24 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
     const newErrors: string[] = [];
 
     if (!name.trim()) {
-      newErrors.push('Schedule name is required');
+      newErrors.push(t('options.general.schedules.edit.validation.nameRequired'));
     }
 
     if (selectedDays.length === 0) {
-      newErrors.push('At least one day must be selected');
+      newErrors.push(t('options.general.schedules.edit.validation.daysRequired'));
     }
 
     if (timePeriods.length === 0) {
-      newErrors.push('At least one time period is required');
+      newErrors.push(t('options.general.schedules.edit.validation.timePeriodsRequired'));
     }
 
     // Check for overlapping time periods
     if (overlappingPeriods.size > 0) {
-      newErrors.push(
-        "Time periods cannot overlap. Please adjust the times so periods don't conflict with each other."
-      );
+      newErrors.push(t('options.general.schedules.edit.validation.timePeriodsOverlap'));
     }
 
     if (blockedDomains.length === 0 && urlKeywords.length === 0 && contentKeywords.length === 0) {
-      newErrors.push(
-        'At least one blocking rule is required (domain, URL keyword, or content keyword)'
-      );
+      newErrors.push(t('options.general.schedules.edit.validation.rulesRequired'));
     }
 
     setErrors(newErrors);
@@ -261,17 +267,17 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
         {/* Schedule Info */}
         <Card className="p-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="schedule-name">Schedule Name</Label>
+            <Label htmlFor="schedule-name">{t('options.general.schedules.edit.name.label')}</Label>
             <Input
               id="schedule-name"
-              placeholder="e.g., Focus Work"
+              placeholder={t('options.general.schedules.edit.name.placeholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Icon (Optional)</Label>
+            <Label>{t('options.general.schedules.edit.icon.label')}</Label>
             <div className="flex flex-wrap gap-2">
               {ICON_OPTIONS.map((iconOption, index) => (
                 <button
@@ -295,25 +301,25 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
         {/* Days Selector */}
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Days</Label>
+            <Label>{t('options.general.schedules.edit.days.label')}</Label>
             <div className="flex gap-2">
               <Button type="button" variant="outline" size="sm" onClick={selectAllDays}>
-                All
+                {t('options.general.schedules.edit.days.all')}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={selectWeekdays}>
-                Weekdays
+                {t('options.general.schedules.edit.days.weekdays')}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={selectWeekend}>
-                Weekend
+                {t('options.general.schedules.edit.days.weekend')}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={clearDays}>
-                Clear
+                {t('options.general.schedules.edit.days.clear')}
               </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-7 gap-2">
-            {DAY_NAMES.map((dayName, index) => (
+            {(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const).map((dayKey, index) => (
               <button
                 key={index}
                 type="button"
@@ -325,7 +331,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                     : 'border-border hover:border-primary/50'
                 )}
               >
-                {dayName}
+                {t(`options.general.schedules.edit.days.${dayKey}`)}
               </button>
             ))}
           </div>
@@ -335,14 +341,13 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label>Active Time Periods</Label>
+              <Label>{t('options.general.schedules.edit.timePeriods.label')}</Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Schedule will be active during these times. Add multiple periods for breaks (e.g.,
-                pause for lunch).
+                {t('options.general.schedules.edit.timePeriods.hint')}
               </p>
               {!canAddMorePeriods && (
                 <p className="text-xs text-destructive mt-1">
-                  ⚠ No more time available in the day. Periods must stay within 00:00 - 23:59.
+                  {t('options.general.schedules.edit.timePeriods.warning')}
                 </p>
               )}
             </div>
@@ -354,7 +359,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
               disabled={!canAddMorePeriods}
             >
               <Plus className="w-4 h-4 mr-1" />
-              Add Period
+              {t('options.general.schedules.edit.timePeriods.addPeriod')}
             </Button>
           </div>
 
@@ -381,7 +386,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                         hasOverlap ? 'text-destructive font-medium' : 'text-muted-foreground'
                       )}
                     >
-                      Period {index + 1}
+                      {t('options.general.schedules.edit.timePeriods.periodLabel', {
+                        index: index + 1,
+                      })}
                     </span>
                     <Input
                       type="time"
@@ -411,7 +418,7 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                   {hasOverlap && (
                     <div className="flex items-start gap-2 px-3">
                       <span className="text-xs text-destructive">
-                        ⚠ This period overlaps with another time window
+                        {t('options.general.schedules.edit.timePeriods.overlap')}
                       </span>
                     </div>
                   )}
@@ -421,9 +428,11 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
           </div>
           {overlappingPeriods.size > 0 && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
-              <p className="text-sm text-destructive font-medium">⚠ Time periods cannot overlap</p>
+              <p className="text-sm text-destructive font-medium">
+                {t('options.general.schedules.edit.timePeriods.overlapError')}
+              </p>
               <p className="text-xs text-destructive/80 mt-1">
-                Please adjust the times so that periods don&apos;t conflict with each other.
+                {t('options.general.schedules.edit.timePeriods.overlapErrorDescription')}
               </p>
             </div>
           )}
@@ -436,7 +445,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
             onClick={() => setWhatToBlockExpanded(!whatToBlockExpanded)}
             className="w-full flex items-center justify-between mb-4"
           >
-            <Label className="cursor-pointer">What to Block</Label>
+            <Label className="cursor-pointer">
+              {t('options.general.schedules.edit.whatToBlock')}
+            </Label>
             {whatToBlockExpanded ? (
               <ChevronUp className="w-5 h-5 text-muted-foreground" />
             ) : (
@@ -450,12 +461,12 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-muted-foreground" />
-                  <Label>Blocked Domains</Label>
+                  <Label>{t('options.general.schedules.edit.blockedDomains.label')}</Label>
                 </div>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="example.com"
+                      placeholder={t('options.general.schedules.edit.blockedDomains.placeholder')}
                       value={domainInput}
                       onChange={(e) => {
                         setDomainInput(e.target.value);
@@ -469,11 +480,13 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                     </Button>
                   </div>
                   {domainInputError && (
-                    <p className="text-xs text-destructive">⚠ {domainInputError}</p>
+                    <p className="text-xs text-destructive">{domainInputError}</p>
                   )}
                 </div>
                 {blockedDomains.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No domains added</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('options.general.schedules.edit.blockedDomains.empty')}
+                  </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {blockedDomains.map((domain) => (
@@ -501,14 +514,14 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Link className="w-4 h-4 text-muted-foreground" />
-                  <Label>URL Keywords</Label>
+                  <Label>{t('options.general.schedules.edit.urlKeywords.label')}</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Block pages with these keywords in the URL
+                  {t('options.general.schedules.edit.urlKeywords.hint')}
                 </p>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="e.g., trending, viral"
+                    placeholder={t('options.general.schedules.edit.urlKeywords.placeholder')}
                     value={urlKeywordInput}
                     onChange={(e) => setUrlKeywordInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addUrlKeyword())}
@@ -518,7 +531,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                   </Button>
                 </div>
                 {urlKeywords.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No URL keywords added</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('options.general.schedules.edit.urlKeywords.empty')}
+                  </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {urlKeywords.map((keyword) => (
@@ -546,14 +561,14 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-muted-foreground" />
-                  <Label>Content Keywords</Label>
+                  <Label>{t('options.general.schedules.edit.contentKeywords.label')}</Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Block elements containing these keywords.
+                  {t('options.general.schedules.edit.contentKeywords.hint')}
                 </p>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="e.g., breaking news, celebrity"
+                    placeholder={t('options.general.schedules.edit.contentKeywords.placeholder')}
                     value={contentKeywordInput}
                     onChange={(e) => setContentKeywordInput(e.target.value)}
                     onKeyDown={(e) =>
@@ -565,7 +580,9 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
                   </Button>
                 </div>
                 {contentKeywords.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No content keywords added</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('options.general.schedules.edit.contentKeywords.empty')}
+                  </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {contentKeywords.map((keyword) => (
@@ -604,11 +621,11 @@ export const EditSchedule: React.FC<EditScheduleProps> = ({ schedule, onSave, on
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('options.general.schedules.edit.buttons.cancel')}
           </Button>
           <Button type="button" onClick={handleSave}>
             <Plus className="w-4 h-4 mr-1" />
-            Save Schedule
+            {t('options.general.schedules.edit.buttons.save')}
           </Button>
         </div>
       </div>

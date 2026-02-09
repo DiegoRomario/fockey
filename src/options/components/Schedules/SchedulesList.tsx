@@ -38,6 +38,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { BlockingSchedule } from '@/shared/types/settings';
 import { formatDays, formatTimePeriod } from '@/shared/utils/schedule-utils';
 import { cn } from '@/lib/utils';
+import { useT } from '@/shared/i18n/hooks';
 
 interface SchedulesListProps {
   schedules: BlockingSchedule[];
@@ -56,6 +57,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
   onToggleSchedule,
   isLocked = false,
 }) => {
+  const t = useT();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
 
@@ -78,15 +80,14 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
       <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h2 className="text-2xl font-semibold mb-2">Schedules</h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('options.general.schedules.title')}</h2>
             <p className="text-sm text-muted-foreground">
-              Time-based blocking rules. Each schedule can block specific domains and keywords
-              during designated times.
+              {t('options.general.schedules.description')}
             </p>
           </div>
           <Button onClick={onAddSchedule} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            Add Schedule
+            {t('options.general.schedules.addSchedule')}
           </Button>
         </div>
       </div>
@@ -99,9 +100,9 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
               <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">No schedules configured</h3>
+              <h3 className="text-lg font-semibold">{t('options.general.schedules.emptyState')}</h3>
               <p className="text-sm text-muted-foreground max-w-md">
-                Click &quot;Add Schedule&quot; to create one.
+                {t('options.general.schedules.emptyStateDescription')}
               </p>
             </div>
           </div>
@@ -136,7 +137,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                       size="icon"
                       className="h-8 w-8 rounded-full"
                       disabled={isLocked}
-                      aria-label="Schedule options"
+                      aria-label={t('options.general.schedules.card.optionsAriaLabel')}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <MoreVertical className="w-4 h-4" />
@@ -153,12 +154,12 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                       {schedule.enabled ? (
                         <>
                           <Pause className="w-4 h-4 mr-2" />
-                          Pause
+                          {t('options.general.schedules.card.pause')}
                         </>
                       ) : (
                         <>
                           <Play className="w-4 h-4 mr-2" />
-                          Resume
+                          {t('options.general.schedules.card.resume')}
                         </>
                       )}
                     </DropdownMenuItem>
@@ -171,7 +172,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
+                      {t('options.general.schedules.card.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -208,7 +209,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                 {schedule.enabled && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/20 text-xs font-medium text-green-700 dark:text-green-400">
                     <Play className="w-3 h-3" />
-                    Active
+                    {t('options.general.schedules.card.active')}
                   </span>
                 )}
 
@@ -224,8 +225,11 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         >
                           <Shield className="w-3.5 h-3.5" />
                           <span>
-                            {schedule.blockedDomains.length} Domain
-                            {schedule.blockedDomains.length !== 1 ? 's' : ''}
+                            {schedule.blockedDomains.length === 1
+                              ? t('options.general.schedules.rules.domain', { count: 1 })
+                              : t('options.general.schedules.rules.domains', {
+                                  count: schedule.blockedDomains.length,
+                                })}
                           </span>
                         </div>
                       </HoverCardTrigger>
@@ -233,7 +237,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm flex items-center gap-2">
                             <Shield className="w-4 h-4 text-red-700 dark:text-red-400" />
-                            Blocked Domains
+                            {t('options.general.schedules.rules.blockedDomains')}
                           </h4>
                           <div className="flex flex-wrap gap-1.5 max-h-60 overflow-y-auto">
                             {schedule.blockedDomains.map((domain, index) => (
@@ -260,8 +264,11 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         >
                           <Link className="w-3.5 h-3.5" />
                           <span>
-                            {schedule.urlKeywords.length} URL Keyword
-                            {schedule.urlKeywords.length !== 1 ? 's' : ''}
+                            {schedule.urlKeywords.length === 1
+                              ? t('options.general.schedules.rules.urlKeyword', { count: 1 })
+                              : t('options.general.schedules.rules.urlKeywords', {
+                                  count: schedule.urlKeywords.length,
+                                })}
                           </span>
                         </div>
                       </HoverCardTrigger>
@@ -269,7 +276,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm flex items-center gap-2">
                             <Link className="w-4 h-4 text-orange-700 dark:text-orange-400" />
-                            URL Keywords
+                            {t('options.general.schedules.rules.urlKeywordsLabel')}
                           </h4>
                           <div className="flex flex-wrap gap-1.5 max-h-60 overflow-y-auto">
                             {schedule.urlKeywords.map((keyword, index) => (
@@ -296,8 +303,11 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>
-                            {schedule.contentKeywords.length} Content Keyword
-                            {schedule.contentKeywords.length !== 1 ? 's' : ''}
+                            {schedule.contentKeywords.length === 1
+                              ? t('options.general.schedules.rules.contentKeyword', { count: 1 })
+                              : t('options.general.schedules.rules.contentKeywords', {
+                                  count: schedule.contentKeywords.length,
+                                })}
                           </span>
                         </div>
                       </HoverCardTrigger>
@@ -305,7 +315,7 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
                         <div className="space-y-2">
                           <h4 className="font-semibold text-sm flex items-center gap-2">
                             <FileText className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                            Content Keywords
+                            {t('options.general.schedules.rules.contentKeywordsLabel')}
                           </h4>
                           <div className="flex flex-wrap gap-1.5 max-h-60 overflow-y-auto">
                             {schedule.contentKeywords.map((keyword, index) => (
@@ -332,18 +342,20 @@ export const SchedulesList: React.FC<SchedulesListProps> = ({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Schedule</AlertDialogTitle>
+            <AlertDialogTitle>{t('options.general.schedules.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this schedule? This action cannot be undone.
+              {t('options.general.schedules.deleteDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t('options.general.schedules.deleteDialog.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('options.general.schedules.deleteDialog.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

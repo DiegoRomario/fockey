@@ -8,6 +8,7 @@ import { SCHEDULE_TEMPLATES } from '@/shared/types/settings';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
+import { useT } from '@/shared/i18n/hooks';
 
 interface ScheduleTemplatesProps {
   onSelectTemplate: (templateId: string) => void;
@@ -18,12 +19,20 @@ interface ScheduleTemplatesProps {
  * Formats days array into human-readable text
  * Examples: "Mon - Fri", "Every day", "Weekends"
  */
-function formatDays(days: number[]): string {
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function formatDays(days: number[], t: ReturnType<typeof useT>): string {
+  const dayNames = [
+    t('popup.schedules.days.sun'),
+    t('popup.schedules.days.mon'),
+    t('popup.schedules.days.tue'),
+    t('popup.schedules.days.wed'),
+    t('popup.schedules.days.thu'),
+    t('popup.schedules.days.fri'),
+    t('popup.schedules.days.sat'),
+  ];
 
   // Check for every day
   if (days.length === 7) {
-    return 'Every day';
+    return t('popup.schedules.days.everyDay');
   }
 
   // Check for weekdays (Mon-Fri)
@@ -35,13 +44,13 @@ function formatDays(days: number[]): string {
     days.includes(4) &&
     days.includes(5);
   if (isWeekdays) {
-    return 'Weekdays';
+    return t('popup.schedules.days.weekdays');
   }
 
   // Check for weekends (Sat-Sun)
   const isWeekends = days.length === 2 && days.includes(0) && days.includes(6);
   if (isWeekends) {
-    return 'Weekends';
+    return t('popup.schedules.days.weekends');
   }
 
   // Check for consecutive days
@@ -63,7 +72,10 @@ function formatDays(days: number[]): string {
  * Formats time periods into human-readable text
  * Examples: "9:00 AM → 5:00 PM", "All day"
  */
-function formatTimePeriods(timePeriods: { startTime: string; endTime: string }[]): string {
+function formatTimePeriods(
+  timePeriods: { startTime: string; endTime: string }[],
+  t: ReturnType<typeof useT>
+): string {
   if (timePeriods.length === 0) return '';
 
   // Check for all-day (00:00 - 23:59)
@@ -72,7 +84,7 @@ function formatTimePeriods(timePeriods: { startTime: string; endTime: string }[]
     timePeriods[0].startTime === '00:00' &&
     timePeriods[0].endTime === '23:59'
   ) {
-    return 'All day';
+    return t('popup.schedules.time.allDay');
   }
 
   // Format single period with arrow
@@ -83,7 +95,7 @@ function formatTimePeriods(timePeriods: { startTime: string; endTime: string }[]
   }
 
   // Multiple periods: show count
-  return `${timePeriods.length} time periods`;
+  return t('popup.schedules.time.periods', { count: timePeriods.length });
 }
 
 /**
@@ -100,15 +112,17 @@ export const ScheduleTemplates: React.FC<ScheduleTemplatesProps> = ({
   onSelectTemplate,
   isLocked,
 }) => {
+  const t = useT();
+
   return (
     <div className="mt-8 mb-8">
       {/* Section Header */}
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Schedule Templates
+          {t('options.general.schedules.templates.title')}
         </h4>
         <p className="mt-1 text-sm text-muted-foreground">
-          Quick-start templates for common blocking patterns
+          {t('options.general.schedules.templates.description')}
         </p>
       </div>
 
@@ -127,12 +141,12 @@ export const ScheduleTemplates: React.FC<ScheduleTemplatesProps> = ({
 
             {/* Days */}
             <p className="mb-1 text-sm text-muted-foreground text-center">
-              {formatDays(template.days)}
+              {formatDays(template.days, t)}
             </p>
 
             {/* Time Periods */}
             <p className="mb-4 text-sm text-muted-foreground text-center">
-              {formatTimePeriods(template.timePeriods)}
+              {formatTimePeriods(template.timePeriods, t)}
             </p>
 
             {/* Add Button */}
@@ -144,7 +158,7 @@ export const ScheduleTemplates: React.FC<ScheduleTemplatesProps> = ({
               disabled={isLocked}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Use Template
+              {t('options.general.schedules.templates.useTemplate')}
             </Button>
           </Card>
         ))}

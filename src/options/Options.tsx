@@ -30,7 +30,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { LanguageSelector } from '@/shared/components/LanguageSelector';
 import { initializeTheme } from '@/shared/utils/theme-utils';
+import { useT } from '@/shared/i18n/hooks';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -43,15 +45,8 @@ interface SidebarItem {
   disabled?: boolean;
 }
 
-const sidebarItems: SidebarItem[] = [
-  { id: 'youtube', label: 'YouTube', icon: Youtube },
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'lockMode', label: 'Lock Mode', icon: Lock },
-  { id: 'manageSettings', label: 'Manage Settings', icon: Database },
-  { id: 'about', label: 'About', icon: Info },
-];
-
 const Options: React.FC = () => {
+  const t = useT();
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [blockChannelInput, setBlockChannelInput] = useState('');
@@ -60,6 +55,14 @@ const Options: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PrimaryTab>('youtube');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+
+  const sidebarItems: SidebarItem[] = [
+    { id: 'youtube', label: t('options.tabs.youtube'), icon: Youtube },
+    { id: 'general', label: t('options.tabs.general'), icon: Settings },
+    { id: 'lockMode', label: t('options.tabs.lockMode'), icon: Lock },
+    { id: 'manageSettings', label: t('options.tabs.manageSettings'), icon: Database },
+    { id: 'about', label: t('options.tabs.about'), icon: Info },
+  ];
 
   // Initialize theme on mount
   useEffect(() => {
@@ -75,12 +78,12 @@ const Options: React.FC = () => {
       .catch((error) => {
         console.error('Failed to load settings:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to load settings. Please refresh the page.',
+          title: t('common.error'),
+          description: t('toasts.failedToLoadSettings'),
           variant: 'destructive',
         });
       });
-  }, [toast]);
+  }, [toast, t]);
 
   // Handle URL parameters for context-aware navigation
   useEffect(() => {
@@ -175,8 +178,8 @@ const Options: React.FC = () => {
       console.error('Failed to save settings:', error);
       setSaveStatus('error');
       toast({
-        title: 'Error',
-        description: 'Failed to save settings. Please try again.',
+        title: t('common.error'),
+        description: t('toasts.failedToResetSettings'),
         variant: 'destructive',
       });
     }
@@ -191,16 +194,16 @@ const Options: React.FC = () => {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
       toast({
-        title: 'Success',
-        description: 'All settings have been reset to defaults.',
+        title: t('common.success'),
+        description: t('toasts.settingsReset'),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to reset settings:', error);
       setSaveStatus('error');
       toast({
-        title: 'Error',
-        description: 'Failed to reset settings. Please try again.',
+        title: t('common.error'),
+        description: t('toasts.failedToResetSettings'),
         variant: 'destructive',
       });
     }
@@ -222,8 +225,8 @@ const Options: React.FC = () => {
       console.error('Failed to import settings:', error);
       setSaveStatus('error');
       toast({
-        title: 'Error',
-        description: 'Failed to import settings. Please try again.',
+        title: t('common.error'),
+        description: t('toasts.failedToImportSettings'),
         variant: 'destructive',
       });
     }
@@ -279,15 +282,15 @@ const Options: React.FC = () => {
 
       setBlockChannelInput('');
       toast({
-        title: 'Channel Blocked',
-        description: `${newChannel.name} has been blocked.`,
+        title: t('common.success'),
+        description: t('toasts.channelBlocked', { name: newChannel.name }),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to block channel:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to block channel. Please try again.',
+        title: t('common.error'),
+        description: t('toasts.failedToBlockChannel'),
         variant: 'destructive',
       });
     } finally {
@@ -305,15 +308,15 @@ const Options: React.FC = () => {
       setSettings(updatedSettings);
 
       toast({
-        title: 'Channel Unblocked',
-        description: `${channelName} has been unblocked.`,
+        title: t('common.success'),
+        description: t('toasts.channelUnblocked', { name: channelName }),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to unblock channel:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to unblock channel. Please try again.',
+        title: t('common.error'),
+        description: t('toasts.failedToUnblockChannel'),
         variant: 'destructive',
       });
     }
@@ -325,7 +328,7 @@ const Options: React.FC = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading settings...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -337,7 +340,7 @@ const Options: React.FC = () => {
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border/40 shadow-lg hover:bg-accent/50 transition-colors"
-        aria-label="Toggle menu"
+        aria-label={t('common.loading')}
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -363,9 +366,9 @@ const Options: React.FC = () => {
           {/* Sidebar Header */}
           <div className="p-6 border-b border-border/40">
             <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Fockey Settings
+              {t('options.title')}
             </h1>
-            <p className="text-xs text-muted-foreground mt-1">Distraction-free YouTube</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('options.subtitle')}</p>
           </div>
 
           {/* Navigation Items */}
@@ -403,16 +406,18 @@ const Options: React.FC = () => {
             {saveStatus === 'saving' && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Saving changes...
+                {t('options.saveStatus.saving')}
               </div>
             )}
             {saveStatus === 'saved' && (
               <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-500">
                 <Check className="h-3 w-3" />
-                All changes saved
+                {t('options.saveStatus.saved')}
               </div>
             )}
-            {saveStatus === 'idle' && <div className="text-xs text-muted-foreground">Ready</div>}
+            {saveStatus === 'idle' && (
+              <div className="text-xs text-muted-foreground">{t('options.saveStatus.ready')}</div>
+            )}
           </div>
         </aside>
 
@@ -422,17 +427,17 @@ const Options: React.FC = () => {
           {activeTab === 'youtube' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <h2 className="text-2xl font-semibold mb-2">YouTube Settings</h2>
-                <p className="text-sm text-muted-foreground">
-                  Customize your minimalist YouTube experience
-                </p>
+                <h2 className="text-2xl font-semibold mb-2">{t('options.youtube.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('options.youtube.description')}</p>
               </div>
 
               {/* YouTube Sub-Tabs (Horizontal) */}
               <Tabs defaultValue="elements" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="elements">Elements Settings</TabsTrigger>
-                  <TabsTrigger value="blockedChannels">Blocked Channels</TabsTrigger>
+                  <TabsTrigger value="elements">{t('options.youtube.tabs.elements')}</TabsTrigger>
+                  <TabsTrigger value="blockedChannels">
+                    {t('options.youtube.tabs.blockedChannels')}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Elements Settings Sub-Tab */}
@@ -448,20 +453,18 @@ const Options: React.FC = () => {
                       className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
                     >
                       <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
-                        Global Navigation Elements
+                        {t('options.youtube.globalNavigation.title')}
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
                         <div className="space-y-1 pt-2">
                           <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
-                            These settings apply to <strong>all YouTube pages</strong> (Home,
-                            Search, Watch). Control persistent header and sidebar navigation
-                            elements that appear consistently across all pages.
+                            {t('options.youtube.globalNavigation.description')}
                           </p>
 
                           <SettingToggle
                             id="global-logo"
-                            label="YouTube Logo"
-                            description="Show the YouTube logo in the top-left corner"
+                            label={t('popup.youtube.settings.logo.label')}
+                            description={t('popup.youtube.settings.logo.tooltip')}
                             checked={settings.youtube.globalNavigation.showLogo}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -474,8 +477,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-sidebar"
-                            label="Left Sidebar"
-                            description="Show the navigation sidebar and hamburger menu (unified component)"
+                            label={t('popup.youtube.settings.sidebar.label')}
+                            description={t('popup.youtube.settings.sidebar.tooltip')}
                             checked={settings.youtube.globalNavigation.showSidebar}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -488,8 +491,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-profile"
-                            label="Profile Avatar"
-                            description="Show your account profile picture"
+                            label={t('popup.youtube.settings.profile.label')}
+                            description={t('popup.youtube.settings.profile.tooltip')}
                             checked={settings.youtube.globalNavigation.showProfile}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -502,8 +505,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-notifications"
-                            label="Notifications Bell"
-                            description="Show the notifications bell icon"
+                            label={t('popup.youtube.settings.notifications.label')}
+                            description={t('popup.youtube.settings.notifications.tooltip')}
                             checked={settings.youtube.globalNavigation.showNotifications}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -516,8 +519,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-hover-previews"
-                            label="Hover Previews"
-                            description="Enable video preview autoplay when hovering over thumbnails"
+                            label={t('popup.youtube.settings.hoverPreviews.label')}
+                            description={t('popup.youtube.settings.hoverPreviews.tooltip')}
                             checked={settings.youtube.globalNavigation.enableHoverPreviews}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -530,8 +533,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-enable-shorts"
-                            label="Enable Shorts"
-                            description="Enable YouTube Shorts globally across all pages"
+                            label={t('popup.youtube.settings.shorts.label')}
+                            description={t('popup.youtube.settings.shorts.tooltip')}
                             checked={settings.youtube.globalNavigation.enableShorts}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -544,8 +547,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-enable-posts"
-                            label="Enable Posts"
-                            description="Enable YouTube Posts globally across all pages"
+                            label={t('popup.youtube.settings.posts.label')}
+                            description={t('popup.youtube.settings.posts.tooltip')}
                             checked={settings.youtube.globalNavigation.enablePosts}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -558,8 +561,8 @@ const Options: React.FC = () => {
 
                           <SettingToggle
                             id="global-blur-thumbnails"
-                            label="Blur Thumbnails"
-                            description="Blur all video thumbnails across all YouTube pages"
+                            label={t('popup.youtube.settings.blurThumbnails.label')}
+                            description={t('popup.youtube.settings.blurThumbnails.tooltip')}
                             checked={settings.youtube.globalNavigation.blurThumbnails}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -579,21 +582,18 @@ const Options: React.FC = () => {
                       className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
                     >
                       <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
-                        Search Page Settings
+                        {t('options.youtube.searchPage.title')}
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
                         <div className="space-y-1 pt-2">
                           <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
-                            Control which content appears in YouTube search results. By default,
-                            only long-form videos are shown. Use{' '}
-                            <strong>Global Navigation Elements</strong> above to control header,
-                            sidebar elements, Shorts, and Posts visibility.
+                            {t('options.youtube.searchPage.description')}
                           </p>
 
                           <SettingToggle
                             id="search-mixes"
-                            label="Show Mixes/Playlists"
-                            description="Display mixes and playlists in search results"
+                            label={t('popup.youtube.settings.mixes.label')}
+                            description={t('popup.youtube.settings.mixes.tooltip')}
                             checked={settings.youtube.searchPage.showMixes}
                             onChange={(checked) =>
                               handleSettingChange(['youtube', 'searchPage', 'showMixes'], checked)
@@ -602,8 +602,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="search-suggestions"
-                            label="Enable Search Suggestions"
-                            description="Enable search suggestions (autocomplete dropdown)"
+                            label={t('popup.youtube.settings.searchSuggestions.label')}
+                            description={t('popup.youtube.settings.searchSuggestions.tooltip')}
                             checked={settings.youtube.searchPage.enableSearchSuggestions}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -623,19 +623,18 @@ const Options: React.FC = () => {
                       className="bg-card rounded-lg border border-border/40 shadow-sm px-8 overflow-hidden"
                     >
                       <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">
-                        Watch Page Settings
+                        {t('options.youtube.watchPage.title')}
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
                         <div className="space-y-1 pt-2">
                           <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-md border border-border/20">
-                            Control which buttons and elements are visible while watching videos.
-                            Video player controls are always preserved.
+                            {t('options.youtube.watchPage.description')}
                           </p>
 
                           <SettingToggle
                             id="watch-like-dislike"
-                            label="Like/Dislike Buttons"
-                            description="Thumbs up and thumbs down buttons"
+                            label={t('popup.youtube.settings.likeDislike.label')}
+                            description={t('popup.youtube.settings.likeDislike.tooltip')}
                             checked={settings.youtube.watchPage.showLikeDislike}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -647,8 +646,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-subscription-actions"
-                            label="Subscription Actions"
-                            description="Subscribe, Join, Notifications, See Perks"
+                            label={t('popup.youtube.settings.subscriptionActions.label')}
+                            description={t('popup.youtube.settings.subscriptionActions.tooltip')}
                             checked={settings.youtube.watchPage.showSubscriptionActions}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -660,8 +659,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-share"
-                            label="Share Button"
-                            description="Share video with others"
+                            label={t('popup.youtube.settings.share.label')}
+                            description={t('popup.youtube.settings.share.tooltip')}
                             checked={settings.youtube.watchPage.showShare}
                             onChange={(checked) =>
                               handleSettingChange(['youtube', 'watchPage', 'showShare'], checked)
@@ -670,8 +669,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-comments"
-                            label="Comments Section"
-                            description="User comments and discussion area"
+                            label={t('popup.youtube.settings.comments.label')}
+                            description={t('popup.youtube.settings.comments.tooltip')}
                             checked={settings.youtube.watchPage.showComments}
                             onChange={(checked) =>
                               handleSettingChange(['youtube', 'watchPage', 'showComments'], checked)
@@ -680,8 +679,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-related"
-                            label="Related Videos Sidebar"
-                            description="Recommended and related videos"
+                            label={t('popup.youtube.settings.related.label')}
+                            description={t('popup.youtube.settings.related.tooltip')}
                             checked={settings.youtube.watchPage.showRelated}
                             onChange={(checked) =>
                               handleSettingChange(['youtube', 'watchPage', 'showRelated'], checked)
@@ -690,8 +689,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-playlists"
-                            label="Playlists Sidebar"
-                            description="When watching a video from a playlist"
+                            label={t('popup.youtube.settings.playlists.label')}
+                            description={t('popup.youtube.settings.playlists.tooltip')}
                             checked={settings.youtube.watchPage.showPlaylists}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -703,8 +702,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-recommended-video"
-                            label="Recommended Video Cards"
-                            description="Creator-placed video recommendations during playback"
+                            label={t('popup.youtube.settings.recommendedVideo.label')}
+                            description={t('popup.youtube.settings.recommendedVideo.tooltip')}
                             checked={settings.youtube.watchPage.showRecommendedVideo}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -716,8 +715,8 @@ const Options: React.FC = () => {
                           />
                           <SettingToggle
                             id="watch-more-actions"
-                            label="More Actions"
-                            description="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+                            label={t('popup.youtube.settings.moreActions.label')}
+                            description={t('popup.youtube.settings.moreActions.tooltip')}
                             checked={settings.youtube.watchPage.showMoreActions}
                             onChange={(checked) =>
                               handleSettingChange(
@@ -740,18 +739,18 @@ const Options: React.FC = () => {
                 >
                   <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6 space-y-4">
                     <div>
-                      <h2 className="text-xl font-semibold mb-2">Blocked YouTube Channels</h2>
+                      <h2 className="text-xl font-semibold mb-2">
+                        {t('options.youtube.blockedChannels.title')}
+                      </h2>
                       <p className="text-sm text-muted-foreground">
-                        Block specific YouTube channels to prevent access to their content across
-                        all pages. You can block by channel handle (@username), channel URL, or
-                        channel name.
+                        {t('options.youtube.blockedChannels.description')}
                       </p>
                     </div>
 
                     {/* Block Channel Input */}
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Enter channel handle, URL, or name"
+                        placeholder={t('options.youtube.blockedChannels.inputPlaceholder')}
                         value={blockChannelInput}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setBlockChannelInput(e.target.value)
@@ -769,7 +768,9 @@ const Options: React.FC = () => {
                         variant="destructive"
                         className="shadow-sm"
                       >
-                        {isBlockingChannel ? 'Blocking...' : 'Block'}
+                        {isBlockingChannel
+                          ? t('options.youtube.blockedChannels.blocking')
+                          : t('options.youtube.blockedChannels.blockButton')}
                       </Button>
                     </div>
 
@@ -782,16 +783,18 @@ const Options: React.FC = () => {
                           <Youtube className="h-6 w-6 text-muted-foreground" />
                         </div>
                         <p className="text-sm font-medium text-muted-foreground">
-                          No blocked channels yet
+                          {t('options.youtube.blockedChannels.emptyState')}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Add a channel above to get started
+                          {t('options.youtube.blockedChannels.emptyStateDescription')}
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         <div className="text-sm font-medium">
-                          Blocked Channels ({settings.youtube.blockedChannels.length})
+                          {t('options.youtube.blockedChannels.count', {
+                            count: settings.youtube.blockedChannels.length,
+                          })}
                         </div>
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                           {settings.youtube.blockedChannels.map((channel) => (
@@ -816,7 +819,7 @@ const Options: React.FC = () => {
                                 disabled={lockState?.isLocked === true}
                               >
                                 <X className="h-4 w-4 mr-1" />
-                                Unblock
+                                {t('options.youtube.blockedChannels.unblock')}
                               </Button>
                             </div>
                           ))}
@@ -833,10 +836,8 @@ const Options: React.FC = () => {
           {activeTab === 'lockMode' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <h2 className="text-2xl font-semibold mb-2">Lock Mode</h2>
-                <p className="text-sm text-muted-foreground">
-                  Prevent impulsive changes by locking your settings for a set period
-                </p>
+                <h2 className="text-2xl font-semibold mb-2">{t('options.lockMode.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('options.lockMode.description')}</p>
               </div>
 
               {lockState && (
@@ -853,27 +854,37 @@ const Options: React.FC = () => {
           {activeTab === 'manageSettings' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <h2 className="text-2xl font-semibold mb-2">Manage Settings</h2>
+                <h2 className="text-2xl font-semibold mb-2">{t('options.manageSettings.title')}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Import, export, or reset your extension settings
+                  {t('options.manageSettings.description')}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6 space-y-3">
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Import & Export</h3>
+                    <h3 className="font-semibold text-lg mb-1">
+                      {t('options.manageSettings.importExport.title')}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Save your settings to a file or load them from a previous export
+                      {t('options.manageSettings.importExport.description')}
                     </p>
                   </div>
                   <ImportExportButtons
                     onImport={handleImport}
                     onError={(message) =>
-                      toast({ title: 'Error', description: message, variant: 'destructive' })
+                      toast({
+                        title: t('common.error'),
+                        description: message,
+                        variant: 'destructive',
+                      })
                     }
                     onSuccess={(message) =>
-                      toast({ title: 'Success', description: message, variant: 'success' })
+                      toast({
+                        title: t('common.success'),
+                        description: message,
+                        variant: 'success',
+                      })
                     }
                     disabled={lockState?.isLocked === true}
                   />
@@ -882,11 +893,10 @@ const Options: React.FC = () => {
                 <div className="bg-card rounded-xl shadow-sm border-2 border-destructive/20 p-6 space-y-3">
                   <div>
                     <h3 className="font-semibold text-lg mb-1 text-destructive">
-                      Reset to Defaults
+                      {t('options.manageSettings.reset.title')}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Restore all settings to their original default values. This action cannot be
-                      undone.
+                      {t('options.manageSettings.reset.description')}
                     </p>
                   </div>
                   <ResetButton onReset={handleReset} disabled={lockState?.isLocked === true} />
@@ -895,12 +905,29 @@ const Options: React.FC = () => {
                 <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-semibold text-lg mb-1">Appearance</h3>
+                      <h3 className="font-semibold text-lg mb-1">
+                        {t('options.manageSettings.appearance.title')}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        Choose between light and dark theme
+                        {t('options.manageSettings.appearance.description')}
                       </p>
                     </div>
                     <ThemeToggle variant="segmented" />
+                  </div>
+                </div>
+
+                {/* Language Section */}
+                <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">
+                        {t('options.manageSettings.language.title')}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t('options.manageSettings.language.description')}
+                      </p>
+                    </div>
+                    <LanguageSelector variant="full" />
                   </div>
                 </div>
               </div>
@@ -911,40 +938,36 @@ const Options: React.FC = () => {
           {activeTab === 'about' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
-                <h2 className="text-2xl font-semibold mb-2">About Fockey</h2>
-                <p className="text-sm text-muted-foreground">
-                  Minimalist, distraction-free YouTube experience
-                </p>
+                <h2 className="text-2xl font-semibold mb-2">{t('options.about.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('options.about.subtitle')}</p>
               </div>
 
               <div className="space-y-4">
                 <div className="bg-card rounded-xl shadow-sm border border-border/40 p-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Version</span>
+                    <span className="text-sm font-medium">{t('options.about.version')}</span>
                     <span className="text-sm text-muted-foreground font-mono">0.1.0</span>
                   </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl shadow-sm border border-primary/20 p-6">
-                  <h3 className="font-semibold text-lg mb-3">What is Fockey?</h3>
+                  <h3 className="font-semibold text-lg mb-3">{t('options.about.whatIs.title')}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Fockey is a productivity-focused Chrome extension designed to transform complex,
-                    noisy websites into intent-driven, minimalistic experiences. The extension
-                    allows you to remove cognitive distractions and interact with content only when
-                    you explicitly choose to.
+                    {t('options.about.whatIs.description')}
                   </p>
                 </div>
 
                 <div className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 rounded-xl shadow-sm border border-amber-500/20 p-6">
-                  <h3 className="font-semibold text-lg mb-3">Core Philosophy</h3>
+                  <h3 className="font-semibold text-lg mb-3">
+                    {t('options.about.philosophy.title')}
+                  </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     <strong className="text-foreground">
-                      Minimal by default. Everything else is opt-in.
+                      {t('options.about.philosophy.quote')}
                     </strong>
                     <br />
                     <br />
-                    Fockey enforces a clean, distraction-free default experience while preserving
-                    full user control through configurable settings.
+                    {t('options.about.philosophy.description')}
                   </p>
                 </div>
               </div>
@@ -955,11 +978,8 @@ const Options: React.FC = () => {
           {activeTab === 'general' && (
             <div className="space-y-6">
               <div>
-                <h2 className="mb-2 text-2xl font-bold">General Blocking</h2>
-                <p className="text-sm text-muted-foreground">
-                  Block websites and content across the internet with permanent and temporary
-                  blocking rules.
-                </p>
+                <h2 className="mb-2 text-2xl font-bold">{t('options.general.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('options.general.description')}</p>
               </div>
 
               {/* Quick Block */}
@@ -969,7 +989,9 @@ const Options: React.FC = () => {
 
               {/* Schedules */}
               <div id="schedules">
-                <h3 className="mb-4 text-xl font-semibold">Time-Based Schedules</h3>
+                <h3 className="mb-4 text-xl font-semibold">
+                  {t('options.general.schedulesTitle')}
+                </h3>
                 <Schedules lockState={lockState} />
               </div>
             </div>

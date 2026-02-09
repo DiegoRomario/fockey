@@ -22,13 +22,16 @@ import QuickBlockHero from './components/QuickBlockHero';
 import YouTubeModuleSection from './components/YouTubeModuleSection';
 import SchedulesSection from './components/SchedulesSection';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { LanguageSelector } from '@/shared/components/LanguageSelector';
 import { initializeTheme } from '@/shared/utils/theme-utils';
+import { useT } from '@/shared/i18n/hooks';
 
 /**
  * Extension popup component
  * Provides quick access to most common settings with optimistic UI updates
  */
 const Popup: React.FC = () => {
+  const t = useT();
   const [settings, setSettings] = useState<ExtensionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +92,7 @@ const Popup: React.FC = () => {
         setError(null);
       } catch (err) {
         console.error('Failed to load settings:', err);
-        setError('Failed to load settings. Please try again.');
+        setError(t('popup.failedToLoad'));
       } finally {
         setIsLoading(false);
       }
@@ -129,7 +132,7 @@ const Popup: React.FC = () => {
         });
       }
     };
-  }, []);
+  }, [t]);
 
   /**
    * Detect current channel when popup opens
@@ -575,13 +578,13 @@ const Popup: React.FC = () => {
       <div className="w-96 p-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-destructive">{error || 'Failed to load settings'}</p>
+            <p className="text-sm text-destructive">{error || t('popup.failedToLoad')}</p>
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
               className="mt-4 w-full"
             >
-              Retry
+              {t('common.retry')}
             </Button>
           </CardContent>
         </Card>
@@ -598,11 +601,13 @@ const Popup: React.FC = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-bold">FOCKEY</CardTitle>
               <div className="flex items-center gap-1">
+                <LanguageSelector variant="compact" />
                 <ThemeToggle variant="icon" />
                 <button
                   onClick={() => handleOpenSettings()}
                   className="rounded-full p-2 hover:bg-accent transition-colors"
-                  aria-label="Open Settings"
+                  aria-label={t('popup.settingsAriaLabel')}
+                  title={t('popup.settingsTooltip')}
                 >
                   <Settings className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                 </button>
@@ -651,10 +656,14 @@ const Popup: React.FC = () => {
                     <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                        Settings locked for {formatCountdown(remainingTime)}
+                        {t('popup.lockMode.settingsLocked', {
+                          time: formatCountdown(remainingTime),
+                        })}
                       </div>
                       <div className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                        Unlocks at {formatExpirationTime(lockState.lockEndTime)}
+                        {t('popup.lockMode.unlocksAt', {
+                          time: formatExpirationTime(lockState.lockEndTime),
+                        })}
                       </div>
                     </div>
                   </div>
@@ -667,7 +676,9 @@ const Popup: React.FC = () => {
               <>
                 <Separator />
                 <div className="space-y-2">
-                  <div className="text-xs text-muted-foreground">Current Channel</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t('popup.channel.currentChannel')}
+                  </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -687,12 +698,12 @@ const Popup: React.FC = () => {
                         className="shrink-0"
                       >
                         {isBlockingChannel
-                          ? 'Processing...'
+                          ? t('popup.channel.processing')
                           : isCurrentChannelBlocked
                             ? lockState?.isLocked
-                              ? 'Locked'
-                              : 'Unblock'
-                            : 'Block Channel'}
+                              ? t('popup.lockMode.locked')
+                              : t('popup.channel.unblock')
+                            : t('popup.channel.blockChannel')}
                       </Button>
                     </div>
                   </div>
@@ -703,7 +714,7 @@ const Popup: React.FC = () => {
             {/* Version Footer */}
             <div className="text-center pt-2">
               <p className="text-[10px] text-muted-foreground">
-                v{chrome.runtime.getManifest().version}
+                {t('popup.version', { version: chrome.runtime.getManifest().version })}
               </p>
             </div>
           </CardContent>

@@ -35,12 +35,15 @@ import {
 import { isValidDomainPattern, normalizeDomain } from '@/shared/utils/domain-utils';
 import { useToast } from '@/hooks/use-toast';
 import { LockModeState } from '@/shared/types/settings';
+import { useT } from '@/shared/i18n/hooks';
 
 interface QuickBlockProps {
   lockState: LockModeState | null;
 }
 
 export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
+  const t = useT();
+
   // Session state
   const [isActive, setIsActive] = useState(false);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -131,15 +134,15 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         setIsActive(false);
         setEndTime(null);
         toast({
-          title: 'Quick Block Ended',
-          description: 'Your focus session has expired',
+          title: t('toasts.quickBlockStopped'),
+          description: t('popup.quickBlock.description'),
           variant: 'success',
         });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isActive, endTime, toast]);
+  }, [isActive, endTime, toast, t]);
 
   // ==================== CONFIGURATION HANDLERS ====================
 
@@ -147,19 +150,17 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
     const domain = normalizeDomain(domainInput.trim());
 
     if (!domain) {
-      setDomainInputError('Please enter a domain');
+      setDomainInputError(t('toasts.invalidInput'));
       return;
     }
 
     if (!isValidDomainPattern(domain)) {
-      setDomainInputError(
-        'Please enter a valid domain (e.g., example.com or *.example.com for wildcards)'
-      );
+      setDomainInputError(t('options.general.quickBlock.domains.error'));
       return;
     }
 
     if (selectedDomains.includes(domain)) {
-      setDomainInputError('This domain is already in the list');
+      setDomainInputError(t('toasts.alreadyExists'));
       return;
     }
 
@@ -180,8 +181,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
     // Don't allow removal when Quick Block is active
     if (isActive) {
       toast({
-        title: 'Cannot Remove',
-        description: 'Items cannot be removed while Quick Block is active',
+        title: t('common.warning'),
+        description: t('toasts.cannotRemoveActive'),
         variant: 'warning',
       });
       return;
@@ -203,8 +204,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
     if (!keyword) {
       toast({
-        title: 'Invalid Input',
-        description: 'Please enter a URL keyword',
+        title: t('common.warning'),
+        description: t('toasts.invalidInput'),
         variant: 'warning',
       });
       return;
@@ -212,8 +213,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
     if (selectedUrlKeywords.includes(keyword)) {
       toast({
-        title: 'Already Exists',
-        description: 'This keyword is already in the list',
+        title: t('common.warning'),
+        description: t('toasts.alreadyExists'),
         variant: 'warning',
       });
       return;
@@ -235,8 +236,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
     // Don't allow removal when Quick Block is active
     if (isActive) {
       toast({
-        title: 'Cannot Remove',
-        description: 'Items cannot be removed while Quick Block is active',
+        title: t('common.warning'),
+        description: t('toasts.cannotRemoveActive'),
         variant: 'warning',
       });
       return;
@@ -258,8 +259,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
     if (!keyword) {
       toast({
-        title: 'Invalid Input',
-        description: 'Please enter a content keyword',
+        title: t('common.warning'),
+        description: t('toasts.invalidInput'),
         variant: 'warning',
       });
       return;
@@ -267,8 +268,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
     if (selectedContentKeywords.includes(keyword)) {
       toast({
-        title: 'Already Exists',
-        description: 'This keyword is already in the list',
+        title: t('common.warning'),
+        description: t('toasts.alreadyExists'),
         variant: 'warning',
       });
       return;
@@ -290,8 +291,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
     // Don't allow removal when Quick Block is active
     if (isActive) {
       toast({
-        title: 'Cannot Remove',
-        description: 'Items cannot be removed while Quick Block is active',
+        title: t('common.warning'),
+        description: t('toasts.cannotRemoveActive'),
         variant: 'warning',
       });
       return;
@@ -313,8 +314,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
   const handleQuickStart = async (durationMs: number | null) => {
     if (!hasConfiguredItems) {
       toast({
-        title: 'No Items Configured',
-        description: 'Please add at least one domain, URL keyword, or content keyword',
+        title: t('common.warning'),
+        description: t('toasts.noItemsConfigured'),
         variant: 'warning',
       });
       return;
@@ -344,22 +345,22 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
       if (durationMs === null) {
         toast({
-          title: 'Quick Block Started',
-          description: 'Focus session started with no time limit',
+          title: t('popup.quickBlock.title'),
+          description: t('toasts.quickBlockStartedIndefinite'),
           variant: 'success',
         });
       } else {
         toast({
-          title: 'Quick Block Started',
-          description: `Focus session started for ${formatDuration(durationMs)}`,
+          title: t('popup.quickBlock.title'),
+          description: t('toasts.quickBlockStarted', { duration: formatDuration(durationMs) }),
           variant: 'success',
         });
       }
     } catch (error) {
       console.error('Failed to start Quick Block:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to start Quick Block',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('errors.generic'),
         variant: 'destructive',
       });
     }
@@ -368,8 +369,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
   const handleStopSession = () => {
     if (lockState?.isLocked) {
       toast({
-        title: 'Settings Locked',
-        description: 'Cannot stop Quick Block while Lock Mode is active',
+        title: t('common.warning'),
+        description: t('toasts.settingsLocked'),
         variant: 'warning',
       });
       return;
@@ -384,15 +385,15 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       await loadQuickBlockSession();
       setShowStopConfirmDialog(false);
       toast({
-        title: 'Quick Block Stopped',
-        description: 'Focus session has been stopped',
+        title: t('popup.quickBlock.title'),
+        description: t('toasts.quickBlockStopped'),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to stop Quick Block:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to stop session',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('errors.generic'),
         variant: 'destructive',
       });
     }
@@ -401,8 +402,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
   const handleExtendClick = () => {
     if (endTime === null) {
       toast({
-        title: 'Cannot Extend',
-        description: 'This session has no time limit',
+        title: t('common.warning'),
+        description: t('toasts.cannotExtend'),
         variant: 'warning',
       });
       return;
@@ -421,15 +422,15 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       setRemainingTime(remaining);
       setShowExtendDialog(false);
       toast({
-        title: 'Session Extended',
-        description: `Added ${formatDuration(additionalMs)} to your focus session`,
+        title: t('options.general.quickBlock.dialogs.extend'),
+        description: t('toasts.sessionExtended', { duration: formatDuration(additionalMs) }),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to extend Quick Block:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to extend session',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('errors.generic'),
         variant: 'destructive',
       });
     }
@@ -454,27 +455,24 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Quick Block
+              {t('popup.quickBlock.title')}
             </CardTitle>
-            <CardDescription>
-              Fast, temporary blocking for immediate focus sessions. Designed to work with Lock
-              Mode.
-            </CardDescription>
+            <CardDescription>{t('options.general.quickBlock.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Timer Display */}
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-amber-500 bg-amber-50 p-8 text-center dark:bg-amber-950">
               <Clock className="mb-3 h-12 w-12 text-amber-600 dark:text-amber-400" />
               <p className="mb-2 text-xs font-medium text-amber-800 dark:text-amber-200">
-                Quick Block Active
+                {t('popup.quickBlock.active')}
               </p>
               {remainingTime === -1 ? (
                 <>
                   <div className="mb-2 text-4xl font-bold text-amber-900 dark:text-amber-100">
-                    No Time Limit
+                    {t('popup.quickBlock.noTimeLimit')}
                   </div>
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    Session will continue until manually stopped
+                    {t('popup.quickBlock.untilManuallyStopped')}
                   </p>
                 </>
               ) : (
@@ -483,7 +481,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     {formatDuration(remainingTime)}
                   </div>
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    Ends at {formatEndTime()}
+                    {t('options.general.quickBlock.endsAt', { time: formatEndTime() })}
                   </p>
                 </>
               )}
@@ -492,24 +490,26 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
             {/* Configuration Section - Can add items during active session */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Currently Blocking</Label>
+                <Label className="text-sm font-semibold">
+                  {t('options.general.quickBlock.currentlyBlocking')}
+                </Label>
                 <span className="text-xs text-muted-foreground">
-                  You can add new items during an active session
+                  {t('options.general.quickBlock.canAddDuringSession')}
                 </span>
               </div>
               <Tabs defaultValue="domains" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 h-auto">
                   <TabsTrigger value="domains" className="gap-2">
                     <Globe className="h-4 w-4" />
-                    Domains
+                    {t('options.general.quickBlock.tabs.domains')}
                   </TabsTrigger>
                   <TabsTrigger value="url-keywords" className="gap-2">
                     <Link className="h-4 w-4" />
-                    URL Keywords
+                    {t('options.general.quickBlock.tabs.urlKeywords')}
                   </TabsTrigger>
                   <TabsTrigger value="content-keywords" className="gap-2">
                     <FileText className="h-4 w-4" />
-                    Content Keywords
+                    {t('options.general.quickBlock.tabs.contentKeywords')}
                   </TabsTrigger>
                 </TabsList>
 
@@ -518,7 +518,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="example.com or *.example.com"
+                        placeholder={t('options.general.quickBlock.domains.placeholder')}
                         value={domainInput}
                         onChange={(e) => {
                           setDomainInput(e.target.value);
@@ -538,7 +538,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     )}
                     {!domainInputError && (
                       <p className="text-xs text-muted-foreground">
-                        Add more domains to block during this session
+                        {t('options.general.quickBlock.canAddDuringSession')}
                       </p>
                     )}
                   </div>
@@ -546,7 +546,9 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   {selectedDomains.length === 0 ? (
                     <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                       <Globe className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">No domains configured</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('options.general.quickBlock.domains.empty')}
+                      </p>
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-1">
@@ -567,7 +569,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="watch?v= or /shorts/ or playlist"
+                        placeholder={t('options.general.quickBlock.urlKeywords.placeholder')}
                         value={urlKeywordInput}
                         onChange={(e) => setUrlKeywordInput(e.target.value)}
                         onKeyDown={(e) => {
@@ -580,14 +582,16 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Add more URL keywords to block during this session
+                      {t('options.general.quickBlock.canAddDuringSession')}
                     </p>
                   </div>
 
                   {selectedUrlKeywords.length === 0 ? (
                     <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                       <Link className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">No URL keywords configured</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('options.general.quickBlock.urlKeywords.empty')}
+                      </p>
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-1">
@@ -608,7 +612,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="trending or celebrity or gossip"
+                        placeholder={t('options.general.quickBlock.contentKeywords.placeholder')}
                         value={contentKeywordInput}
                         onChange={(e) => setContentKeywordInput(e.target.value)}
                         onKeyDown={(e) => {
@@ -621,7 +625,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Add more content keywords to block during this session
+                      {t('options.general.quickBlock.canAddDuringSession')}
                     </p>
                   </div>
 
@@ -629,7 +633,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <p className="text-xs text-muted-foreground">
-                        No content keywords configured
+                        {t('options.general.quickBlock.contentKeywords.empty')}
                       </p>
                     </div>
                   ) : (
@@ -653,7 +657,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
               {endTime !== null && (
                 <Button onClick={handleExtendClick} variant="outline" className="flex-1">
                   <Plus className="mr-2 h-4 w-4" />
-                  Extend Time
+                  {t('options.general.quickBlock.buttons.extendTime')}
                 </Button>
               )}
               <Button
@@ -663,20 +667,20 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 disabled={lockState?.isLocked}
               >
                 <PauseCircle className="mr-2 h-4 w-4" />
-                Stop Session
+                {t('options.general.quickBlock.buttons.stopSession')}
               </Button>
             </div>
 
             {endTime !== null ? (
               <p className="text-xs text-muted-foreground">
-                Session will end automatically when the timer reaches zero
+                {t('options.general.quickBlock.durations.chooseOrNoLimit')}
                 {lockState?.isLocked && ' (Lock Mode active)'}.
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
                 {lockState?.isLocked
-                  ? 'Session cannot be stopped while Lock Mode is active'
-                  : 'Session will continue until you stop it manually'}
+                  ? t('options.general.quickBlock.untilStopped')
+                  : t('options.general.quickBlock.untilStopped')}
                 .
               </p>
             )}
@@ -687,44 +691,46 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Extend Quick Block</DialogTitle>
-              <DialogDescription>Add more time to your focus session</DialogDescription>
+              <DialogTitle>{t('options.general.quickBlock.dialogs.extendTitle')}</DialogTitle>
+              <DialogDescription>
+                {t('options.general.quickBlock.dialogs.extendDescription')}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Add Time</Label>
+                <Label>{t('options.general.quickBlock.dialogs.addTime')}</Label>
                 <div className="flex gap-2">
                   <Button
                     variant={extendDuration === '25min' ? 'default' : 'outline'}
                     onClick={() => setExtendDuration('25min')}
                     className="flex-1"
                   >
-                    25 min
+                    {t('options.general.quickBlock.durations.25min')}
                   </Button>
                   <Button
                     variant={extendDuration === '1hr' ? 'default' : 'outline'}
                     onClick={() => setExtendDuration('1hr')}
                     className="flex-1"
                   >
-                    1 hr
+                    {t('options.general.quickBlock.durations.1hr')}
                   </Button>
                   <Button
                     variant={extendDuration === '24hrs' ? 'default' : 'outline'}
                     onClick={() => setExtendDuration('24hrs')}
                     className="flex-1"
                   >
-                    24 hrs
+                    {t('options.general.quickBlock.durations.24hrs')}
                   </Button>
                 </div>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowExtendDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleExtendSession}>
                 <Plus className="mr-2 h-4 w-4" />
-                Extend
+                {t('options.general.quickBlock.dialogs.extend')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -734,20 +740,19 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         <Dialog open={showStopConfirmDialog} onOpenChange={setShowStopConfirmDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Stop Quick Block?</DialogTitle>
+              <DialogTitle>{t('options.general.quickBlock.dialogs.stopTitle')}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-muted-foreground">
-                Are you sure you want to stop this focus session? Your configured items will be
-                saved for future sessions.
+                {t('options.general.quickBlock.dialogs.stopDescription')}
               </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowStopConfirmDialog(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="destructive" onClick={performStopSession}>
-                Stop Session
+                {t('options.general.quickBlock.dialogs.stopButton')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -763,29 +768,29 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Quick Block
+            {t('popup.quickBlock.title')}
           </CardTitle>
-          <CardDescription>
-            Fast, temporary blocking for immediate focus sessions. Designed to work with Lock Mode.
-          </CardDescription>
+          <CardDescription>{t('options.general.quickBlock.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Configuration Section */}
           <div className="space-y-4">
-            <Label className="text-sm font-semibold">Configure Blocking Rules</Label>
+            <Label className="text-sm font-semibold">
+              {t('options.general.quickBlock.configureRules')}
+            </Label>
             <Tabs defaultValue="domains" className="w-full">
               <TabsList className="grid w-full grid-cols-3 h-auto">
                 <TabsTrigger value="domains" className="gap-2">
                   <Globe className="h-4 w-4" />
-                  Domains
+                  {t('options.general.quickBlock.tabs.domains')}
                 </TabsTrigger>
                 <TabsTrigger value="url-keywords" className="gap-2">
                   <Link className="h-4 w-4" />
-                  URL Keywords
+                  {t('options.general.quickBlock.tabs.urlKeywords')}
                 </TabsTrigger>
                 <TabsTrigger value="content-keywords" className="gap-2">
                   <FileText className="h-4 w-4" />
-                  Content Keywords
+                  {t('options.general.quickBlock.tabs.contentKeywords')}
                 </TabsTrigger>
               </TabsList>
 
@@ -794,7 +799,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="example.com or *.example.com"
+                      placeholder={t('options.general.quickBlock.domains.placeholder')}
                       value={domainInput}
                       onChange={(e) => {
                         setDomainInput(e.target.value);
@@ -814,7 +819,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   )}
                   {!domainInputError && (
                     <p className="text-xs text-muted-foreground">
-                      Examples: reddit.com, twitter.com, *.facebook.com
+                      {t('options.general.quickBlock.domains.hint')}
                     </p>
                   )}
                 </div>
@@ -822,7 +827,9 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 {selectedDomains.length === 0 ? (
                   <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                     <Globe className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">No domains configured yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('options.general.quickBlock.domains.empty')}
+                    </p>
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1">
@@ -850,7 +857,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="watch?v= or /shorts/ or playlist"
+                      placeholder={t('options.general.quickBlock.urlKeywords.placeholder')}
                       value={urlKeywordInput}
                       onChange={(e) => setUrlKeywordInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -863,14 +870,16 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Block any URL containing this keyword (case-insensitive)
+                    {t('options.general.quickBlock.urlKeywords.hint')}
                   </p>
                 </div>
 
                 {selectedUrlKeywords.length === 0 ? (
                   <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                     <Link className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground">No URL keywords configured yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('options.general.quickBlock.urlKeywords.empty')}
+                    </p>
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1">
@@ -898,7 +907,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="trending or celebrity or gossip"
+                      placeholder={t('options.general.quickBlock.contentKeywords.placeholder')}
                       value={contentKeywordInput}
                       onChange={(e) => setContentKeywordInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -911,7 +920,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Block elements containing this keyword.
+                    {t('options.general.quickBlock.contentKeywords.hint')}
                   </p>
                 </div>
 
@@ -919,7 +928,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   <div className="flex items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">
-                      No content keywords configured yet
+                      {t('options.general.quickBlock.contentKeywords.empty')}
                     </p>
                   </div>
                 ) : (
@@ -951,11 +960,13 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
           {/* Action Section */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Start Quick Block</Label>
+              <Label className="text-sm font-semibold">
+                {t('options.general.quickBlock.startQuickBlock')}
+              </Label>
               <p className="text-xs text-muted-foreground">
                 {hasConfiguredItems
-                  ? 'Choose a duration or start with no time limit'
-                  : 'Configure at least one blocking rule to start'}
+                  ? t('options.general.quickBlock.durations.chooseOrNoLimit')
+                  : t('options.general.quickBlock.durations.configureToStart')}
               </p>
             </div>
 
@@ -967,7 +978,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 disabled={!hasConfiguredItems}
                 className="w-full"
               >
-                25 min
+                {t('options.general.quickBlock.durations.25min')}
               </Button>
               <Button
                 variant="outline"
@@ -975,7 +986,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 disabled={!hasConfiguredItems}
                 className="w-full"
               >
-                1 hr
+                {t('options.general.quickBlock.durations.1hr')}
               </Button>
               <Button
                 variant="outline"
@@ -983,7 +994,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 disabled={!hasConfiguredItems}
                 className="w-full"
               >
-                8 hrs
+                {t('options.general.quickBlock.durations.8hrs')}
               </Button>
               <Button
                 variant="outline"
@@ -991,7 +1002,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 disabled={!hasConfiguredItems}
                 className="w-full"
               >
-                24 hrs
+                {t('options.general.quickBlock.durations.24hrs')}
               </Button>
               <Button
                 variant="outline"
@@ -1012,7 +1023,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 className="w-1/4"
               >
                 <Play className="mr-2 h-4 w-4" />
-                Start Quick Block
+                {t('options.general.quickBlock.durations.indefinite')}
               </Button>
             </div>
           </div>
@@ -1023,8 +1034,10 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       <Dialog open={showCustomTimeDialog} onOpenChange={setShowCustomTimeDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Custom Duration</DialogTitle>
-            <DialogDescription>Set a custom duration for Quick Block</DialogDescription>
+            <DialogTitle>{t('options.general.quickBlock.dialogs.customTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('options.general.quickBlock.dialogs.customDescription')}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex gap-2">
@@ -1037,7 +1050,9 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   min="0"
                   className="text-center"
                 />
-                <p className="mt-1 text-center text-xs text-muted-foreground">hours</p>
+                <p className="mt-1 text-center text-xs text-muted-foreground">
+                  {t('options.general.quickBlock.dialogs.hoursLabel')}
+                </p>
               </div>
               <div className="flex-1">
                 <Input
@@ -1049,13 +1064,15 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                   max="59"
                   className="text-center"
                 />
-                <p className="mt-1 text-center text-xs text-muted-foreground">minutes</p>
+                <p className="mt-1 text-center text-xs text-muted-foreground">
+                  {t('options.general.quickBlock.dialogs.minutesLabel')}
+                </p>
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCustomTimeDialog(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={async () => {
@@ -1065,8 +1082,8 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
 
                 if (totalMinutes <= 0) {
                   toast({
-                    title: 'Invalid Duration',
-                    description: 'Please enter a valid time greater than 0',
+                    title: t('toasts.invalidDuration'),
+                    description: t('toasts.invalidDurationMessage'),
                     variant: 'warning',
                   });
                   return;
@@ -1080,7 +1097,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
               }
             >
               <Play className="mr-2 h-4 w-4" />
-              Start
+              {t('options.general.quickBlock.dialogs.start')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1090,20 +1107,21 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
       <Dialog open={showLockModeWarning} onOpenChange={setShowLockModeWarning}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
+            <DialogTitle>{t('options.general.quickBlock.dialogs.lockWarningTitle')}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Lock Mode is currently active. If you start Quick Block now,
               {pendingStartDuration === null
-                ? ' you will not be able to stop it until Lock Mode expires.'
-                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
+                ? t('options.general.quickBlock.dialogs.lockWarningDescriptionIndefinite')
+                : t('options.general.quickBlock.dialogs.lockWarningDescription')}
             </p>
-            <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
+            <p className="mt-2 text-sm font-semibold">
+              {t('options.general.quickBlock.dialogs.lockWarningQuestion')}
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLockModeWarning(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -1112,7 +1130,7 @@ export const QuickBlock: React.FC<QuickBlockProps> = ({ lockState }) => {
                 setPendingStartDuration(null);
               }}
             >
-              Start Anyway
+              {t('options.general.quickBlock.dialogs.startAnyway')}
             </Button>
           </DialogFooter>
         </DialogContent>

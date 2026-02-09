@@ -25,6 +25,7 @@ import {
   endQuickBlockSession,
 } from '@/shared/utils/quick-block-utils';
 import { LockModeState } from '@/shared/types/settings';
+import { useT } from '@/shared/i18n/hooks';
 
 interface QuickBlockHeroProps {
   lockState: LockModeState | null;
@@ -36,6 +37,8 @@ interface QuickBlockHeroProps {
  * Provides instant focus session actions without full configuration UI
  */
 export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpenSettings }) => {
+  const t = useT();
+
   // Session state
   const [isActive, setIsActive] = useState(false);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -143,7 +146,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
 
   const handleQuickStart = async (durationMs: number | null) => {
     if (!hasConfiguredItems) {
-      setErrorMessage('No blocking rules configured');
+      setErrorMessage(t('popup.quickBlock.errors.noRules'));
       return;
     }
 
@@ -177,7 +180,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
 
   const handleStopSession = () => {
     if (lockState?.isLocked) {
-      setErrorMessage('Cannot stop Quick Block while Lock Mode is active');
+      setErrorMessage(t('popup.quickBlock.errors.cannotStopLocked'));
       return;
     }
 
@@ -198,7 +201,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
 
   const handleExtendClick = () => {
     if (endTime === null) {
-      setErrorMessage('This session has no time limit');
+      setErrorMessage(t('popup.quickBlock.errors.noTimeLimit'));
       return;
     }
 
@@ -240,14 +243,16 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 p-6 text-center">
             <Clock className="h-10 w-10 text-amber-600 dark:text-amber-400 mb-2" />
             <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-1">
-              Quick Block Active
+              {t('popup.quickBlock.active')}
             </p>
             {remainingTime === -1 ? (
               <>
                 <div className="text-3xl font-bold text-amber-900 dark:text-amber-100 mb-1">
-                  No Time Limit
+                  {t('popup.quickBlock.noTimeLimit')}
                 </div>
-                <p className="text-xs text-amber-700 dark:text-amber-300">Until manually stopped</p>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  {t('popup.quickBlock.untilManuallyStopped')}
+                </p>
               </>
             ) : (
               <>
@@ -255,7 +260,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                   {formatDuration(remainingTime)}
                 </div>
                 <p className="text-xs text-amber-700 dark:text-amber-300">
-                  Ends at {formatEndTime()}
+                  {t('popup.quickBlock.endsAt', { time: formatEndTime() })}
                 </p>
               </>
             )}
@@ -266,7 +271,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
             {endTime !== null && (
               <Button onClick={handleExtendClick} variant="outline" size="sm" className="flex-1">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Extend
+                {t('popup.quickBlock.extend')}
               </Button>
             )}
             <Button
@@ -277,7 +282,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
               disabled={lockState?.isLocked}
             >
               <PauseCircle className="mr-1.5 h-3.5 w-3.5" />
-              Stop
+              {t('popup.quickBlock.stop')}
             </Button>
           </div>
 
@@ -286,7 +291,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
             onClick={onOpenSettings}
             className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors text-center"
           >
-            View details →
+            {t('popup.quickBlock.viewDetails')}
           </button>
 
           {errorMessage && <p className="text-xs text-destructive text-center">⚠ {errorMessage}</p>}
@@ -296,8 +301,10 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
         <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Extend Quick Block</DialogTitle>
-              <DialogDescription>Add more time to your focus session</DialogDescription>
+              <DialogTitle>{t('popup.quickBlock.dialogs.extendTitle')}</DialogTitle>
+              <DialogDescription>
+                {t('popup.quickBlock.dialogs.extendDescription')}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -307,32 +314,32 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                     onClick={() => setExtendDuration('25min')}
                     size="sm"
                   >
-                    25 min
+                    {t('popup.quickBlock.durations.25min')}
                   </Button>
                   <Button
                     variant={extendDuration === '1hr' ? 'default' : 'outline'}
                     onClick={() => setExtendDuration('1hr')}
                     size="sm"
                   >
-                    1 hr
+                    {t('popup.quickBlock.durations.1hr')}
                   </Button>
                   <Button
                     variant={extendDuration === '24hrs' ? 'default' : 'outline'}
                     onClick={() => setExtendDuration('24hrs')}
                     size="sm"
                   >
-                    24 hrs
+                    {t('popup.quickBlock.durations.24hrs')}
                   </Button>
                 </div>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowExtendDialog(false)} size="sm">
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleExtendSession} size="sm">
                 <Plus className="mr-2 h-4 w-4" />
-                Extend
+                {t('popup.quickBlock.extend')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -342,20 +349,19 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
         <Dialog open={showStopConfirmDialog} onOpenChange={setShowStopConfirmDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Stop Quick Block?</DialogTitle>
+              <DialogTitle>{t('popup.quickBlock.dialogs.stopTitle')}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-muted-foreground">
-                Are you sure you want to stop this focus session? Your configured items will be
-                saved for future sessions.
+                {t('popup.quickBlock.dialogs.stopDescription')}
               </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowStopConfirmDialog(false)} size="sm">
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="destructive" onClick={performStopSession} size="sm">
-                Stop Session
+                {t('popup.quickBlock.dialogs.stopButton')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -365,20 +371,21 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
         <Dialog open={showLockModeWarning} onOpenChange={setShowLockModeWarning}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
+              <DialogTitle>{t('popup.quickBlock.dialogs.lockModeWarningTitle')}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-muted-foreground">
-                Lock Mode is currently active. If you start Quick Block now,
                 {pendingStartDuration === null
-                  ? ' you will not be able to stop it until Lock Mode expires.'
-                  : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
+                  ? t('popup.quickBlock.dialogs.lockModeWarningDescriptionIndefinite')
+                  : t('popup.quickBlock.dialogs.lockModeWarningDescriptionTimed')}
               </p>
-              <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
+              <p className="mt-2 text-sm font-semibold">
+                {t('popup.quickBlock.dialogs.lockModeWarningQuestion')}
+              </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowLockModeWarning(false)} size="sm">
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="destructive"
@@ -388,7 +395,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                 }}
                 size="sm"
               >
-                Start Anyway
+                {t('popup.quickBlock.dialogs.startAnyway')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -408,8 +415,8 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
               <Target className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <h3 className="font-semibold text-sm">Quick Block</h3>
-          <p className="text-xs text-muted-foreground">Start a focus session</p>
+          <h3 className="font-semibold text-sm">{t('popup.quickBlock.title')}</h3>
+          <p className="text-xs text-muted-foreground">{t('popup.quickBlock.description')}</p>
         </div>
 
         {/* Preset Duration Buttons */}
@@ -422,7 +429,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                 onClick={() => handleQuickStart(parseDurationPreset('25min'))}
                 className="h-9"
               >
-                25 min
+                {t('popup.quickBlock.durations.25min')}
               </Button>
               <Button
                 variant="outline"
@@ -430,7 +437,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                 onClick={() => handleQuickStart(parseDurationPreset('1hr'))}
                 className="h-9"
               >
-                1 hour
+                {t('popup.quickBlock.durations.1hr')}
               </Button>
               <Button
                 variant="outline"
@@ -438,7 +445,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                 onClick={() => handleQuickStart(parseDurationPreset('8hrs'))}
                 className="h-9"
               >
-                8 hours
+                {t('popup.quickBlock.durations.8hrs')}
               </Button>
               <Button
                 variant="outline"
@@ -446,7 +453,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
                 onClick={() => handleQuickStart(parseDurationPreset('24hrs'))}
                 className="h-9"
               >
-                24 hours
+                {t('popup.quickBlock.durations.24hrs')}
               </Button>
             </div>
 
@@ -455,7 +462,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
               onClick={onOpenSettings}
               className="w-full flex items-center justify-end gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span>Configure</span>
+              <span>{t('popup.quickBlock.configure')}</span>
               <span>→</span>
             </button>
           </>
@@ -463,11 +470,13 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
           <>
             {/* Not Configured State */}
             <div className="rounded-lg border border-dashed bg-muted/30 p-4 text-center space-y-2">
-              <p className="text-xs text-muted-foreground">⚠ No blocking rules configured</p>
+              <p className="text-xs text-muted-foreground">
+                ⚠ {t('popup.quickBlock.noRulesConfigured')}
+              </p>
             </div>
             <Button onClick={onOpenSettings} variant="default" size="sm" className="w-full">
               <Settings className="mr-2 h-3.5 w-3.5" />
-              Configure Quick Block
+              {t('popup.quickBlock.configureQuickBlock')}
             </Button>
           </>
         )}
@@ -479,20 +488,21 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
       <Dialog open={showLockModeWarning} onOpenChange={setShowLockModeWarning}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Start Quick Block with Lock Mode Active</DialogTitle>
+            <DialogTitle>{t('popup.quickBlock.dialogs.lockModeWarningTitle')}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Lock Mode is currently active. If you start Quick Block now,
               {pendingStartDuration === null
-                ? ' you will not be able to stop it until Lock Mode expires.'
-                : ' it will run until the timer expires, and you will not be able to stop it manually while Lock Mode is active.'}
+                ? t('popup.quickBlock.dialogs.lockModeWarningDescriptionIndefinite')
+                : t('popup.quickBlock.dialogs.lockModeWarningDescriptionTimed')}
             </p>
-            <p className="mt-2 text-sm font-semibold">Do you want to proceed?</p>
+            <p className="mt-2 text-sm font-semibold">
+              {t('popup.quickBlock.dialogs.lockModeWarningQuestion')}
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLockModeWarning(false)} size="sm">
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -502,7 +512,7 @@ export const QuickBlockHero: React.FC<QuickBlockHeroProps> = ({ lockState, onOpe
               }}
               size="sm"
             >
-              Start Anyway
+              {t('popup.quickBlock.dialogs.startAnyway')}
             </Button>
           </DialogFooter>
         </DialogContent>

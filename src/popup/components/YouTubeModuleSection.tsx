@@ -16,6 +16,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useT } from '@/shared/i18n/hooks';
 
 interface YouTubeModuleSectionProps {
   settings: ExtensionSettings;
@@ -39,6 +40,7 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
   onOpenSettings,
   disabled = false,
 }) => {
+  const t = useT();
   const blockedChannelsCount = settings.youtube.blockedChannels?.length || 0;
 
   return (
@@ -50,8 +52,8 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
             <Youtube className="h-5 w-5 text-red-600 dark:text-red-500" />
           </div>
         </div>
-        <h3 className="font-semibold text-sm">YouTube Module</h3>
-        <p className="text-xs text-muted-foreground">Control YouTube experience</p>
+        <h3 className="font-semibold text-sm">{t('popup.youtube.title')}</h3>
+        <p className="text-xs text-muted-foreground">{t('popup.youtube.description')}</p>
       </div>
 
       {/* Accordion Settings Interface */}
@@ -60,70 +62,70 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
           {/* Global Section */}
           <AccordionItem value="global" className="border-b last:border-b-0">
             <AccordionTrigger className="px-3 py-2.5 text-xs font-semibold hover:no-underline hover:bg-muted/50">
-              Global
+              {t('popup.youtube.global')}
             </AccordionTrigger>
             <AccordionContent className="px-3 pb-2">
               <div className="space-y-0">
                 <ModuleToggle
                   id="global-logo"
-                  label="YouTube Logo"
-                  tooltip="Display the YouTube logo in the top-left corner"
+                  label={t('popup.youtube.settings.logo.label')}
+                  tooltip={t('popup.youtube.settings.logo.tooltip')}
                   checked={settings.youtube.globalNavigation.showLogo}
                   onChange={(checked) => onGlobalNavigationToggle('showLogo', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-sidebar"
-                  label="Sidebar"
-                  tooltip="Navigation sidebar and hamburger menu"
+                  label={t('popup.youtube.settings.sidebar.label')}
+                  tooltip={t('popup.youtube.settings.sidebar.tooltip')}
                   checked={settings.youtube.globalNavigation.showSidebar}
                   onChange={(checked) => onGlobalNavigationToggle('showSidebar', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-profile"
-                  label="Profile"
-                  tooltip="Your account profile picture"
+                  label={t('popup.youtube.settings.profile.label')}
+                  tooltip={t('popup.youtube.settings.profile.tooltip')}
                   checked={settings.youtube.globalNavigation.showProfile}
                   onChange={(checked) => onGlobalNavigationToggle('showProfile', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-notifications"
-                  label="Notifications Bell"
-                  tooltip="Notifications bell icon in header"
+                  label={t('popup.youtube.settings.notifications.label')}
+                  tooltip={t('popup.youtube.settings.notifications.tooltip')}
                   checked={settings.youtube.globalNavigation.showNotifications}
                   onChange={(checked) => onGlobalNavigationToggle('showNotifications', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-hover-previews"
-                  label="Hover Previews"
-                  tooltip="Video preview autoplay on hover"
+                  label={t('popup.youtube.settings.hoverPreviews.label')}
+                  tooltip={t('popup.youtube.settings.hoverPreviews.tooltip')}
                   checked={settings.youtube.globalNavigation.enableHoverPreviews}
                   onChange={(checked) => onGlobalNavigationToggle('enableHoverPreviews', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-enable-shorts"
-                  label="Shorts"
-                  tooltip="Enable YouTube Shorts globally. When disabled (default), all Shorts content is blocked including direct URLs, search results, and creator profiles."
+                  label={t('popup.youtube.settings.shorts.label')}
+                  tooltip={t('popup.youtube.settings.shorts.tooltip')}
                   checked={settings.youtube.globalNavigation.enableShorts}
                   onChange={(checked) => onGlobalNavigationToggle('enableShorts', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-enable-posts"
-                  label="Posts"
-                  tooltip="Enable YouTube Posts globally. When disabled (default), all Posts content is blocked including direct URLs, search results, and creator profiles."
+                  label={t('popup.youtube.settings.posts.label')}
+                  tooltip={t('popup.youtube.settings.posts.tooltip')}
                   checked={settings.youtube.globalNavigation.enablePosts}
                   onChange={(checked) => onGlobalNavigationToggle('enablePosts', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="global-blur-thumbnails"
-                  label="Blur Thumbnails"
-                  tooltip="Blur all video thumbnails across all YouTube pages. When enabled, thumbnails in search results, related videos, and creator profiles are blurred to reduce visual stimulation."
+                  label={t('popup.youtube.settings.blurThumbnails.label')}
+                  tooltip={t('popup.youtube.settings.blurThumbnails.tooltip')}
                   checked={settings.youtube.globalNavigation.blurThumbnails}
                   onChange={(checked) => onGlobalNavigationToggle('blurThumbnails', checked)}
                   disabled={disabled || !settings.youtube.enabled}
@@ -135,22 +137,22 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
           {/* Search Section */}
           <AccordionItem value="search" className="border-b last:border-b-0">
             <AccordionTrigger className="px-3 py-2.5 text-xs font-semibold hover:no-underline hover:bg-muted/50">
-              Search
+              {t('popup.youtube.search')}
             </AccordionTrigger>
             <AccordionContent className="px-3 pb-2">
               <div className="space-y-0">
                 <ModuleToggle
                   id="search-mixes"
-                  label="Mixes/Playlists"
-                  tooltip="Auto-generated mixes and user-created playlists"
+                  label={t('popup.youtube.settings.mixes.label')}
+                  tooltip={t('popup.youtube.settings.mixes.tooltip')}
                   checked={settings.youtube.searchPage.showMixes}
                   onChange={(checked) => onSearchPageToggle('showMixes', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="search-suggestions"
-                  label="Search Suggestions"
-                  tooltip="Enable search suggestions (autocomplete dropdown). When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges."
+                  label={t('popup.youtube.settings.searchSuggestions.label')}
+                  tooltip={t('popup.youtube.settings.searchSuggestions.tooltip')}
                   checked={settings.youtube.searchPage.enableSearchSuggestions}
                   onChange={(checked) => onSearchPageToggle('enableSearchSuggestions', checked)}
                   disabled={disabled || !settings.youtube.enabled}
@@ -162,70 +164,70 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
           {/* Watch Section */}
           <AccordionItem value="watch" className="border-b last:border-b-0">
             <AccordionTrigger className="px-3 py-2.5 text-xs font-semibold hover:no-underline hover:bg-muted/50">
-              Watch
+              {t('popup.youtube.watch')}
             </AccordionTrigger>
             <AccordionContent className="px-3 pb-2">
               <div className="space-y-0">
                 <ModuleToggle
                   id="watch-like-dislike"
-                  label="Like/Dislike"
-                  tooltip="Thumbs up and thumbs down buttons"
+                  label={t('popup.youtube.settings.likeDislike.label')}
+                  tooltip={t('popup.youtube.settings.likeDislike.tooltip')}
                   checked={settings.youtube.watchPage.showLikeDislike}
                   onChange={(checked) => onWatchPageToggle('showLikeDislike', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-subscription-actions"
-                  label="Subscription Actions"
-                  tooltip="Subscribe, Join, Notifications, See Perks"
+                  label={t('popup.youtube.settings.subscriptionActions.label')}
+                  tooltip={t('popup.youtube.settings.subscriptionActions.tooltip')}
                   checked={settings.youtube.watchPage.showSubscriptionActions}
                   onChange={(checked) => onWatchPageToggle('showSubscriptionActions', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-share"
-                  label="Share"
-                  tooltip="Share video via link or social media"
+                  label={t('popup.youtube.settings.share.label')}
+                  tooltip={t('popup.youtube.settings.share.tooltip')}
                   checked={settings.youtube.watchPage.showShare}
                   onChange={(checked) => onWatchPageToggle('showShare', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-comments"
-                  label="Comments"
-                  tooltip="User comments below the video"
+                  label={t('popup.youtube.settings.comments.label')}
+                  tooltip={t('popup.youtube.settings.comments.tooltip')}
                   checked={settings.youtube.watchPage.showComments}
                   onChange={(checked) => onWatchPageToggle('showComments', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-related"
-                  label="Related"
-                  tooltip="Recommended and related videos"
+                  label={t('popup.youtube.settings.related.label')}
+                  tooltip={t('popup.youtube.settings.related.tooltip')}
                   checked={settings.youtube.watchPage.showRelated}
                   onChange={(checked) => onWatchPageToggle('showRelated', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-playlists"
-                  label="Playlists"
-                  tooltip="When watching a video from a playlist"
+                  label={t('popup.youtube.settings.playlists.label')}
+                  tooltip={t('popup.youtube.settings.playlists.tooltip')}
                   checked={settings.youtube.watchPage.showPlaylists}
                   onChange={(checked) => onWatchPageToggle('showPlaylists', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-recommended-video"
-                  label="Recommended Video"
-                  tooltip="Info Cards during playback"
+                  label={t('popup.youtube.settings.recommendedVideo.label')}
+                  tooltip={t('popup.youtube.settings.recommendedVideo.tooltip')}
                   checked={settings.youtube.watchPage.showRecommendedVideo}
                   onChange={(checked) => onWatchPageToggle('showRecommendedVideo', checked)}
                   disabled={disabled || !settings.youtube.enabled}
                 />
                 <ModuleToggle
                   id="watch-more-actions"
-                  label="More Actions"
-                  tooltip="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+                  label={t('popup.youtube.settings.moreActions.label')}
+                  tooltip={t('popup.youtube.settings.moreActions.tooltip')}
                   checked={settings.youtube.watchPage.showMoreActions}
                   onChange={(checked) => onWatchPageToggle('showMoreActions', checked)}
                   disabled={disabled || !settings.youtube.enabled}
@@ -249,14 +251,14 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
                 )}
               >
                 <Lock className="w-3 h-3" />
-                <span>{blockedChannelsCount} blocked</span>
+                <span>{t('popup.channel.blocked', { count: blockedChannelsCount })}</span>
               </button>
             </HoverCardTrigger>
             <HoverCardContent className="w-72 max-w-[90vw]" side="top" align="start">
               <div className="space-y-2">
                 <h4 className="font-semibold text-xs flex items-center gap-2">
                   <Lock className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
-                  Blocked YouTube Channels
+                  {t('popup.channel.blockedChannels')}
                 </h4>
                 <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                   {settings.youtube.blockedChannels.map((channel) => (
@@ -273,7 +275,9 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
             </HoverCardContent>
           </HoverCard>
         ) : (
-          <div className="text-xs text-muted-foreground">No blocked channels</div>
+          <div className="text-xs text-muted-foreground">
+            {t('popup.channel.noBlockedChannels')}
+          </div>
         )}
 
         {/* Configure Link */}
@@ -283,7 +287,7 @@ export const YouTubeModuleSection: React.FC<YouTubeModuleSectionProps> = ({
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
             disabled={disabled}
           >
-            <span>Configure</span>
+            <span>{t('common.configure')}</span>
             <span>→</span>
           </button>
         )}

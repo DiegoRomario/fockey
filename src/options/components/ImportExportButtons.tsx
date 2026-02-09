@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload } from 'lucide-react';
 import { exportAllSettings, importAllSettings } from '@/shared/storage/settings-manager';
+import { useT } from '@/shared/i18n/hooks';
 
 interface ImportExportButtonsProps {
   /** Callback when settings are successfully imported (triggers reload) */
@@ -57,6 +58,7 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
   onSuccess,
   disabled = false,
 }) => {
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -87,12 +89,10 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      onSuccess(
-        'Settings exported (YouTube, blocked channels, schedules, Quick Block config, theme)'
-      );
+      onSuccess(t('toasts.settingsExported'));
     } catch (error) {
       console.error('Failed to export settings:', error);
-      onError('Failed to export settings. Please try again.');
+      onError(t('toasts.failedToExportSettings'));
     }
   };
 
@@ -112,7 +112,7 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
 
     // Check file type
     if (!file.name.endsWith('.json')) {
-      onError('Please select a valid JSON file');
+      onError(t('toasts.selectValidFile'));
       return;
     }
 
@@ -127,31 +127,29 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
         try {
           parsedData = JSON.parse(content);
         } catch {
-          onError('Invalid JSON file. Please check the file format.');
+          onError(t('toasts.invalidFile'));
           return;
         }
 
         // Import using the comprehensive import function
         try {
           await importAllSettings(parsedData);
-          onSuccess(
-            'Settings imported (YouTube, blocked channels, schedules, Quick Block config, theme)'
-          );
+          onSuccess(t('toasts.settingsImported'));
 
           // Trigger reload to reflect imported settings
           onImport();
         } catch (importError) {
           const error = importError as Error;
-          onError(error.message || 'Failed to import settings. Please check the file format.');
+          onError(error.message || t('toasts.failedToImportSettings'));
         }
       } catch (error) {
         console.error('Failed to import settings:', error);
-        onError('Failed to import settings. Please try again.');
+        onError(t('toasts.failedToImportSettings'));
       }
     };
 
     reader.onerror = () => {
-      onError('Failed to read file. Please try again.');
+      onError(t('toasts.failedToReadFile'));
     };
 
     reader.readAsText(file);
@@ -164,11 +162,11 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
     <div className="flex gap-2">
       <Button onClick={handleExport} variant="outline" size="sm">
         <Download className="h-4 w-4 mr-2" />
-        Export Settings
+        {t('options.manageSettings.importExport.exportButton')}
       </Button>
       <Button onClick={handleImport} variant="outline" size="sm" disabled={disabled}>
         <Upload className="h-4 w-4 mr-2" />
-        Import Settings
+        {t('options.manageSettings.importExport.importButton')}
       </Button>
       <input
         ref={fileInputRef}

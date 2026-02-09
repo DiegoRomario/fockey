@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { RotateCcw } from 'lucide-react';
+import { useT } from '@/shared/i18n/hooks';
 
 interface ResetButtonProps {
   /** Callback when reset is confirmed */
@@ -22,6 +23,7 @@ interface ResetButtonProps {
  * Provides safe reset functionality with user confirmation
  */
 export const ResetButton: React.FC<ResetButtonProps> = ({ onReset, disabled = false }) => {
+  const t = useT();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleConfirmReset = () => {
@@ -38,24 +40,23 @@ export const ResetButton: React.FC<ResetButtonProps> = ({ onReset, disabled = fa
         disabled={disabled}
       >
         <RotateCcw className="h-4 w-4 mr-2" />
-        Reset to Defaults
+        {t('options.manageSettings.resetDialog.reset')}
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset All Settings?</DialogTitle>
+            <DialogTitle>{t('options.manageSettings.resetDialog.title')}</DialogTitle>
             <DialogDescription>
-              This will reset all settings to their default values. All YouTube UI elements will be
-              hidden by default (minimalist mode). This action cannot be undone.
+              {t('options.manageSettings.resetDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
+              {t('options.manageSettings.resetDialog.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleConfirmReset}>
-              Reset to Defaults
+              {t('options.manageSettings.resetDialog.reset')}
             </Button>
           </DialogFooter>
         </DialogContent>

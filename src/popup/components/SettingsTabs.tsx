@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ModuleToggle from './ModuleToggle';
 import { ExtensionSettings } from '@/shared/types/settings';
+import { useT } from '@/shared/i18n/hooks';
 
 interface SettingsTabsProps {
   settings: ExtensionSettings;
@@ -26,12 +27,14 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
   onSearchPageToggle,
   onWatchPageToggle,
 }) => {
+  const t = useT();
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-3">
-        <TabsTrigger value="global">Global</TabsTrigger>
-        <TabsTrigger value="search">Search</TabsTrigger>
-        <TabsTrigger value="watch">Watch</TabsTrigger>
+        <TabsTrigger value="global">{t('popup.youtube.global')}</TabsTrigger>
+        <TabsTrigger value="search">{t('popup.youtube.search')}</TabsTrigger>
+        <TabsTrigger value="watch">{t('popup.youtube.watch')}</TabsTrigger>
       </TabsList>
 
       {/* Scrollable container for tab content */}
@@ -40,64 +43,64 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         <TabsContent value="global" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="global-logo"
-            label="Show YouTube Logo"
-            tooltip="Display the YouTube logo in the top-left corner"
+            label={t('popup.youtube.settings.logo.label')}
+            tooltip={t('popup.youtube.settings.logo.tooltip')}
             checked={settings.youtube.globalNavigation.showLogo}
             onChange={(checked) => onGlobalNavigationToggle('showLogo', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-sidebar"
-            label="Show Sidebar"
-            tooltip="Controls navigation sidebar and hamburger menu"
+            label={t('popup.youtube.settings.sidebar.label')}
+            tooltip={t('popup.youtube.settings.sidebar.tooltip')}
             checked={settings.youtube.globalNavigation.showSidebar}
             onChange={(checked) => onGlobalNavigationToggle('showSidebar', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-profile"
-            label="Show Profile"
-            tooltip="Display your account profile picture"
+            label={t('popup.youtube.settings.profile.label')}
+            tooltip={t('popup.youtube.settings.profile.tooltip')}
             checked={settings.youtube.globalNavigation.showProfile}
             onChange={(checked) => onGlobalNavigationToggle('showProfile', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-notifications"
-            label="Show Notifications Bell"
-            tooltip="Show the notifications bell icon in header"
+            label={t('popup.youtube.settings.notifications.label')}
+            tooltip={t('popup.youtube.settings.notifications.tooltip')}
             checked={settings.youtube.globalNavigation.showNotifications}
             onChange={(checked) => onGlobalNavigationToggle('showNotifications', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-hover-previews"
-            label="Enable Hover Previews"
-            tooltip="Video preview autoplay when hovering over thumbnails"
+            label={t('popup.youtube.settings.hoverPreviews.label')}
+            tooltip={t('popup.youtube.settings.hoverPreviews.tooltip')}
             checked={settings.youtube.globalNavigation.enableHoverPreviews}
             onChange={(checked) => onGlobalNavigationToggle('enableHoverPreviews', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-enable-shorts"
-            label="Enable Shorts"
-            tooltip="Enable YouTube Shorts globally. When disabled (default), all Shorts content is blocked including direct Shorts URLs, Shorts in search results, Shorts tabs on creator profiles, and Shorts in creator profile home tabs."
+            label={t('popup.youtube.settings.shorts.label')}
+            tooltip={t('popup.youtube.settings.shorts.tooltip')}
             checked={settings.youtube.globalNavigation.enableShorts}
             onChange={(checked) => onGlobalNavigationToggle('enableShorts', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-enable-posts"
-            label="Enable Posts"
-            tooltip="Enable YouTube Posts globally. When disabled (default), all Posts content is blocked including direct Posts URLs, Community Posts in search results, Posts tabs on creator profiles, and Posts in creator profile home tabs."
+            label={t('popup.youtube.settings.posts.label')}
+            tooltip={t('popup.youtube.settings.posts.tooltip')}
             checked={settings.youtube.globalNavigation.enablePosts}
             onChange={(checked) => onGlobalNavigationToggle('enablePosts', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="global-blur-thumbnails"
-            label="Blur Thumbnails"
-            tooltip="Blur all video thumbnails across all YouTube pages. When enabled, thumbnails in search results, related videos, and creator profiles are blurred to reduce visual stimulation."
+            label={t('popup.youtube.settings.blurThumbnails.label')}
+            tooltip={t('popup.youtube.settings.blurThumbnails.tooltip')}
             checked={settings.youtube.globalNavigation.blurThumbnails}
             onChange={(checked) => onGlobalNavigationToggle('blurThumbnails', checked)}
             disabled={disabled}
@@ -108,16 +111,16 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         <TabsContent value="search" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="search-mixes"
-            label="Show Mixes/Playlists"
-            tooltip="Auto-generated mixes and user-created playlists"
+            label={t('popup.youtube.settings.mixes.label')}
+            tooltip={t('popup.youtube.settings.mixes.tooltip')}
             checked={settings.youtube.searchPage.showMixes}
             onChange={(checked) => onSearchPageToggle('showMixes', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="search-suggestions"
-            label="Enable Search Suggestions"
-            tooltip="Enable search suggestions (autocomplete dropdown). When disabled (default), the search suggestions dropdown is hidden to reduce distractions and algorithmic nudges."
+            label={t('popup.youtube.settings.searchSuggestions.label')}
+            tooltip={t('popup.youtube.settings.searchSuggestions.tooltip')}
             checked={settings.youtube.searchPage.enableSearchSuggestions}
             onChange={(checked) => onSearchPageToggle('enableSearchSuggestions', checked)}
             disabled={disabled}
@@ -128,64 +131,64 @@ export const SettingsTabs: React.FC<SettingsTabsProps> = ({
         <TabsContent value="watch" className="space-y-0.5 mt-0">
           <ModuleToggle
             id="watch-like-dislike"
-            label="Like/Dislike"
-            tooltip="Thumbs up and thumbs down buttons"
+            label={t('popup.youtube.settings.likeDislike.label')}
+            tooltip={t('popup.youtube.settings.likeDislike.tooltip')}
             checked={settings.youtube.watchPage.showLikeDislike}
             onChange={(checked) => onWatchPageToggle('showLikeDislike', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-subscription-actions"
-            label="Subscription Actions"
-            tooltip="Subscribe, Join, Notifications, See Perks"
+            label={t('popup.youtube.settings.subscriptionActions.label')}
+            tooltip={t('popup.youtube.settings.subscriptionActions.tooltip')}
             checked={settings.youtube.watchPage.showSubscriptionActions}
             onChange={(checked) => onWatchPageToggle('showSubscriptionActions', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-share"
-            label="Share"
-            tooltip="Share video via link or social media"
+            label={t('popup.youtube.settings.share.label')}
+            tooltip={t('popup.youtube.settings.share.tooltip')}
             checked={settings.youtube.watchPage.showShare}
             onChange={(checked) => onWatchPageToggle('showShare', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-comments"
-            label="Comments"
-            tooltip="User comments below the video"
+            label={t('popup.youtube.settings.comments.label')}
+            tooltip={t('popup.youtube.settings.comments.tooltip')}
             checked={settings.youtube.watchPage.showComments}
             onChange={(checked) => onWatchPageToggle('showComments', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-related"
-            label="Related"
-            tooltip="Recommended and related videos"
+            label={t('popup.youtube.settings.related.label')}
+            tooltip={t('popup.youtube.settings.related.tooltip')}
             checked={settings.youtube.watchPage.showRelated}
             onChange={(checked) => onWatchPageToggle('showRelated', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-playlists"
-            label="Playlists"
-            tooltip="When watching a video from a playlist"
+            label={t('popup.youtube.settings.playlists.label')}
+            tooltip={t('popup.youtube.settings.playlists.tooltip')}
             checked={settings.youtube.watchPage.showPlaylists}
             onChange={(checked) => onWatchPageToggle('showPlaylists', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-recommended-video"
-            label="Recommended Video"
-            tooltip="Info Cards during playback"
+            label={t('popup.youtube.settings.recommendedVideo.label')}
+            tooltip={t('popup.youtube.settings.recommendedVideo.tooltip')}
             checked={settings.youtube.watchPage.showRecommendedVideo}
             onChange={(checked) => onWatchPageToggle('showRecommendedVideo', checked)}
             disabled={disabled}
           />
           <ModuleToggle
             id="watch-more-actions"
-            label="More Actions"
-            tooltip="Save, Download, Clip, Thanks, Report, Ask AI, Overflow Menu"
+            label={t('popup.youtube.settings.moreActions.label')}
+            tooltip={t('popup.youtube.settings.moreActions.tooltip')}
             checked={settings.youtube.watchPage.showMoreActions}
             onChange={(checked) => onWatchPageToggle('showMoreActions', checked)}
             disabled={disabled}

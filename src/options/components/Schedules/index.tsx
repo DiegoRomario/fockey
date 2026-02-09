@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useT } from '@/shared/i18n/hooks';
 import { SchedulesList } from './SchedulesList';
 import { EditSchedule } from './EditSchedule';
 import { ScheduleTemplates } from './ScheduleTemplates';
@@ -28,6 +29,7 @@ interface SchedulesProps {
 }
 
 export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
+  const t = useT();
   const [schedules, setSchedules] = useState<BlockingSchedule[]>([]);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<BlockingSchedule | null>(null);
@@ -43,12 +45,12 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       .catch((error) => {
         console.error('Failed to load schedules:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to load schedules',
+          title: t('common.error'),
+          description: t('toasts.failedToLoadSchedules'),
           variant: 'destructive',
         });
       });
-  }, [toast]);
+  }, [toast, t]);
 
   // Check for scheduleId or action in URL and auto-open modal
   useEffect(() => {
@@ -88,8 +90,8 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
     } catch (error) {
       console.error('Failed to load schedules:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load schedules',
+        title: t('common.error'),
+        description: t('toasts.failedToLoadSchedules'),
         variant: 'destructive',
       });
     }
@@ -136,8 +138,8 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   const handleDeleteSchedule = async (scheduleId: string) => {
     if (lockState?.isLocked) {
       toast({
-        title: 'Schedule Locked',
-        description: 'Cannot delete schedules while Lock Mode is active',
+        title: t('toasts.scheduleLocked'),
+        description: t('toasts.scheduleDeleteLocked'),
         variant: 'warning',
       });
       return;
@@ -147,15 +149,15 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       await deleteSchedule(scheduleId);
       await loadSchedules();
       toast({
-        title: 'Schedule Deleted',
-        description: 'The schedule has been deleted successfully',
+        title: t('toasts.scheduleDeleted'),
+        description: t('toasts.scheduleDeleted'),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to delete schedule:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete schedule',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('toasts.failedToLoadSchedules'),
         variant: 'destructive',
       });
     }
@@ -164,8 +166,8 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
   const handleToggleSchedule = async (scheduleId: string, enabled: boolean) => {
     if (lockState?.isLocked) {
       toast({
-        title: 'Schedule Locked',
-        description: 'Cannot modify schedules while Lock Mode is active',
+        title: t('toasts.scheduleLocked'),
+        description: t('toasts.scheduleLocked'),
         variant: 'warning',
       });
       return;
@@ -175,15 +177,15 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       await updateSchedule(scheduleId, { enabled });
       await loadSchedules();
       toast({
-        title: enabled ? 'Schedule Enabled' : 'Schedule Disabled',
-        description: enabled ? 'The schedule is now active' : 'The schedule has been disabled',
+        title: enabled ? t('toasts.scheduleEnabled') : t('toasts.scheduleDisabled'),
+        description: enabled ? t('toasts.scheduleEnabled') : t('toasts.scheduleDisabled'),
         variant: 'success',
       });
     } catch (error) {
       console.error('Failed to toggle schedule:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update schedule',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('toasts.failedToLoadSchedules'),
         variant: 'destructive',
       });
     }
@@ -197,16 +199,16 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
         // Update existing schedule
         await updateSchedule(schedule.id, schedule);
         toast({
-          title: 'Schedule Updated',
-          description: 'Your schedule has been updated successfully',
+          title: t('toasts.scheduleUpdated'),
+          description: t('toasts.scheduleUpdated'),
           variant: 'success',
         });
       } else {
         // Add new schedule (either from scratch or from template)
         await addSchedule(schedule);
         toast({
-          title: 'Schedule Created',
-          description: 'Your schedule has been created successfully',
+          title: t('toasts.scheduleCreated'),
+          description: t('toasts.scheduleCreated'),
           variant: 'success',
         });
       }
@@ -217,8 +219,8 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
     } catch (error) {
       console.error('Failed to save schedule:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save schedule',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('toasts.failedToLoadSchedules'),
         variant: 'destructive',
       });
     }
@@ -251,11 +253,15 @@ export const Schedules: React.FC<SchedulesProps> = ({ lockState }) => {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingSchedule?.id ? 'Edit Schedule' : 'Create Schedule'}</DialogTitle>
+            <DialogTitle>
+              {editingSchedule?.id
+                ? t('options.general.schedules.edit.titleEdit')
+                : t('options.general.schedules.edit.titleCreate')}
+            </DialogTitle>
             <DialogDescription>
               {editingSchedule?.id
-                ? 'Modify your existing blocking schedule'
-                : 'Set up a new time-based blocking schedule'}
+                ? t('options.general.schedules.edit.descriptionEdit')
+                : t('options.general.schedules.edit.descriptionCreate')}
             </DialogDescription>
           </DialogHeader>
           <EditSchedule

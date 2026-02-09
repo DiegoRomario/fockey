@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Lock, LockOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/shared/i18n/hooks';
 import { LockModeState } from '@/shared/types/settings';
 import {
   TimeUnit,
@@ -48,6 +49,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
   onActivate,
   onExtend,
 }) => {
+  const t = useT();
   const { toast } = useToast();
 
   // Form state
@@ -86,7 +88,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
 
     if (error) {
       toast({
-        title: 'Invalid Duration',
+        title: t('toasts.invalidDuration'),
         description: error,
         variant: 'warning',
       });
@@ -100,8 +102,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       await onActivate(durationMs);
 
       toast({
-        title: 'Lock Mode Activated',
-        description: `Settings locked for ${formatDuration(durationMs)}`,
+        title: t('toasts.lockModeActivated', { duration: formatDuration(durationMs) }),
         variant: 'success',
       });
 
@@ -110,7 +111,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       setTimeUnit(TimeUnit.Minutes);
     } catch (error) {
       toast({
-        title: 'Activation Failed',
+        title: t('toasts.activationFailed'),
         description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -125,7 +126,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
 
     if (error) {
       toast({
-        title: 'Invalid Duration',
+        title: t('toasts.invalidDuration'),
         description: error,
         variant: 'warning',
       });
@@ -139,13 +140,12 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
       await onExtend(additionalMs);
 
       toast({
-        title: 'Lock Extended',
-        description: `Lock extended by ${formatDuration(additionalMs)}`,
+        title: t('toasts.lockExtended', { duration: formatDuration(additionalMs) }),
         variant: 'success',
       });
     } catch (error) {
       toast({
-        title: 'Extension Failed',
+        title: t('toasts.extensionFailed'),
         description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -168,11 +168,14 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
             </div>
           )}
           <div>
-            <CardTitle>{lockState.isLocked ? 'Settings are locked' : 'Lock Mode'}</CardTitle>
+            <CardTitle>
+              {lockState.isLocked
+                ? t('options.lockMode.locked.title')
+                : t('options.lockMode.unlocked.title')}
+            </CardTitle>
             {!lockState.isLocked && (
               <CardDescription className="mt-1">
-                Prevent configuration changes for a set period to commit to your settings and stay
-                focused.
+                {t('options.lockMode.unlocked.description')}
               </CardDescription>
             )}
           </div>
@@ -195,21 +198,24 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
                 {formatCountdown(remainingTime)}
               </div>
               <p className="text-sm text-muted-foreground">
-                Unlocks at {formatExpirationTime(lockState.lockEndTime)}
+                {t('options.lockMode.locked.unlocksAt', {
+                  time: formatExpirationTime(lockState.lockEndTime),
+                })}
               </p>
             </div>
 
             {/* Motivational Message */}
             <div className="text-center py-4 px-6 bg-primary/5 rounded-lg border border-primary/20">
               <p className="text-sm text-muted-foreground">
-                Stay focused. Your commitment helps you avoid impulsive changes and maintain
-                productivity.
+                {t('options.lockMode.locked.message')}
               </p>
             </div>
 
             {/* Extension Controls */}
             <div className="space-y-3 pt-2">
-              <Label className="text-sm font-medium">Extend Lock (optional)</Label>
+              <Label className="text-sm font-medium">
+                {t('options.lockMode.locked.extendLabel')}
+              </Label>
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -227,9 +233,15 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={TimeUnit.Minutes}>Minutes</SelectItem>
-                    <SelectItem value={TimeUnit.Hours}>Hours</SelectItem>
-                    <SelectItem value={TimeUnit.Days}>Days</SelectItem>
+                    <SelectItem value={TimeUnit.Minutes}>
+                      {t('options.lockMode.units.minutes')}
+                    </SelectItem>
+                    <SelectItem value={TimeUnit.Hours}>
+                      {t('options.lockMode.units.hours')}
+                    </SelectItem>
+                    <SelectItem value={TimeUnit.Days}>
+                      {t('options.lockMode.units.days')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -239,10 +251,12 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
                 className="w-full"
                 variant="outline"
               >
-                {isExtending ? 'Extending...' : 'Extend Lock'}
+                {isExtending
+                  ? t('options.lockMode.locked.extending')
+                  : t('options.lockMode.locked.extendButton')}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                You can add more time, but cannot shorten or cancel the lock
+                {t('options.lockMode.locked.extendHint')}
               </p>
             </div>
           </>
@@ -250,7 +264,7 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
           // UNLOCKED STATE
           <div className="space-y-4">
             <div className="space-y-3">
-              <Label htmlFor="lock-duration">Lock Duration</Label>
+              <Label htmlFor="lock-duration">{t('options.lockMode.unlocked.durationLabel')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="lock-duration"
@@ -269,14 +283,20 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={TimeUnit.Minutes}>Minutes</SelectItem>
-                    <SelectItem value={TimeUnit.Hours}>Hours</SelectItem>
-                    <SelectItem value={TimeUnit.Days}>Days</SelectItem>
+                    <SelectItem value={TimeUnit.Minutes}>
+                      {t('options.lockMode.units.minutes')}
+                    </SelectItem>
+                    <SelectItem value={TimeUnit.Hours}>
+                      {t('options.lockMode.units.hours')}
+                    </SelectItem>
+                    <SelectItem value={TimeUnit.Days}>
+                      {t('options.lockMode.units.days')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <p className="text-xs text-muted-foreground">
-                Examples: 30 minutes, 2 hours, or 1 day (minimum: 1 minute, maximum: 365 days)
+                {t('options.lockMode.unlocked.durationHint')}
               </p>
             </div>
 
@@ -285,7 +305,9 @@ export const LockModeSection: React.FC<LockModeSectionProps> = ({
               disabled={isActivating || !durationValue}
               className="w-full"
             >
-              {isActivating ? 'Activating...' : 'Activate Lock Mode'}
+              {isActivating
+                ? t('options.lockMode.unlocked.activating')
+                : t('options.lockMode.unlocked.activateButton')}
             </Button>
           </div>
         )}

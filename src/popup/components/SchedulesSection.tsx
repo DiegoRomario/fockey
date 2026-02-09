@@ -29,6 +29,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { BlockingSchedule } from '@/shared/types/settings';
 import { getSchedules, updateSchedule, deleteSchedule } from '@/shared/storage/settings-manager';
 import { cn } from '@/lib/utils';
+import { useT } from '@/shared/i18n/hooks';
 
 interface SchedulesSectionProps {
   onOpenSchedulesSettings: (scheduleId?: string | 'create') => void;
@@ -43,6 +44,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
   onOpenSchedulesSettings,
   disabled = false,
 }) => {
+  const t = useT();
   const [schedules, setSchedules] = useState<BlockingSchedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -92,33 +94,43 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
   };
 
   const formatScheduleDays = (days: number[]): string => {
-    if (days.length === 7) return 'Every day';
-    if (days.length === 5 && days.every((d) => d >= 1 && d <= 5)) return 'Weekdays';
-    if (days.length === 2 && days.includes(0) && days.includes(6)) return 'Weekends';
+    if (days.length === 7) return t('popup.schedules.days.everyDay');
+    if (days.length === 5 && days.every((d) => d >= 1 && d <= 5))
+      return t('popup.schedules.days.weekdays');
+    if (days.length === 2 && days.includes(0) && days.includes(6))
+      return t('popup.schedules.days.weekends');
 
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = [
+      t('popup.schedules.days.sun'),
+      t('popup.schedules.days.mon'),
+      t('popup.schedules.days.tue'),
+      t('popup.schedules.days.wed'),
+      t('popup.schedules.days.thu'),
+      t('popup.schedules.days.fri'),
+      t('popup.schedules.days.sat'),
+    ];
     return days.map((d) => dayNames[d]).join(', ');
   };
 
   const formatScheduleTime = (schedule: BlockingSchedule): string => {
-    if (schedule.timePeriods.length === 0) return 'No time set';
+    if (schedule.timePeriods.length === 0) return t('popup.schedules.time.noTimeSet');
     if (schedule.timePeriods.length === 1) {
       const period = schedule.timePeriods[0];
       if (period.startTime === '00:00' && period.endTime === '23:59') {
-        return 'All day long';
+        return t('popup.schedules.time.allDay');
       }
       return `${period.startTime} - ${period.endTime}`;
     }
-    return `${schedule.timePeriods.length} periods`;
+    return t('popup.schedules.time.periods', { count: schedule.timePeriods.length });
   };
 
   if (isLoading) {
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Schedules</h3>
+          <h3 className="text-sm font-semibold">{t('popup.schedules.title')}</h3>
         </div>
-        <div className="text-xs text-muted-foreground">Loading...</div>
+        <div className="text-xs text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -134,13 +146,15 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
               <Calendar className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <h3 className="font-semibold text-sm">Schedules</h3>
-          <p className="text-xs text-muted-foreground">Time-based blocking</p>
+          <h3 className="font-semibold text-sm">{t('popup.schedules.title')}</h3>
+          <p className="text-xs text-muted-foreground">{t('popup.schedules.description')}</p>
         </div>
 
         {/* Empty State */}
         <div className="rounded-lg border border-dashed bg-muted/30 p-4 text-center space-y-2">
-          <p className="text-xs text-muted-foreground">⚠ No schedules configured</p>
+          <p className="text-xs text-muted-foreground">
+            {t('popup.schedules.noSchedulesConfigured')}
+          </p>
         </div>
         <Button
           onClick={() => onOpenSchedulesSettings('create')}
@@ -150,7 +164,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
           disabled={disabled}
         >
           <Calendar className="mr-2 h-3.5 w-3.5" />
-          Create Schedule
+          {t('popup.schedules.createSchedule')}
         </Button>
       </div>
     );
@@ -161,7 +175,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
     <div className="space-y-2">
       {/* Header with Add button */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Schedules</h3>
+        <h3 className="text-sm font-semibold">{t('popup.schedules.title')}</h3>
         <Button
           onClick={() => onOpenSchedulesSettings('create')}
           variant="outline"
@@ -170,7 +184,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
           disabled={disabled}
         >
           <Plus className="h-3 w-3 mr-1" />
-          <span className="text-xs">Add</span>
+          <span className="text-xs">{t('popup.schedules.add')}</span>
         </Button>
       </div>
 
@@ -212,12 +226,12 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                     {schedule.enabled ? (
                       <>
                         <Pause className="h-3.5 w-3.5" />
-                        <span>Pause</span>
+                        <span>{t('popup.schedules.pause')}</span>
                       </>
                     ) : (
                       <>
                         <Play className="h-3.5 w-3.5" />
-                        <span>Resume</span>
+                        <span>{t('popup.schedules.resume')}</span>
                       </>
                     )}
                   </DropdownMenuItem>
@@ -229,7 +243,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                     className="flex items-center gap-2 text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span>Delete</span>
+                    <span>{t('popup.schedules.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -281,7 +295,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                       <div className="space-y-2">
                         <h4 className="font-semibold text-xs flex items-center gap-2">
                           <Globe className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
-                          Blocked Domains
+                          {t('popup.schedules.rules.domains')}
                         </h4>
                         <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
                           {schedule.blockedDomains.map((domain, index) => (
@@ -319,7 +333,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                       <div className="space-y-2">
                         <h4 className="font-semibold text-xs flex items-center gap-2">
                           <Link className="w-3.5 h-3.5 text-orange-700 dark:text-orange-400" />
-                          URL Keywords
+                          {t('popup.schedules.rules.urlKeywords')}
                         </h4>
                         <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
                           {schedule.urlKeywords.map((keyword, index) => (
@@ -357,7 +371,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                       <div className="space-y-2">
                         <h4 className="font-semibold text-xs flex items-center gap-2">
                           <FileText className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-                          Content Keywords
+                          {t('popup.schedules.rules.contentKeywords')}
                         </h4>
                         <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
                           {schedule.contentKeywords.map((keyword, index) => (
