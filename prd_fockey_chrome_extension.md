@@ -194,7 +194,7 @@ The Shorts Blocking feature provides users with **global control over all YouTub
 - Blocked URL is shown for reference
 - "Go Back" button navigates user to YouTube Home
 - **Shorts are hidden from search results** (no Shorts appear in search)
-- **Shorts tab is hidden on creator profile pages** (tab completely removed)
+- **Shorts tab is disabled on creator profile pages** (visible but unclickable)
 - **Shorts shelves are hidden in creator profile Home tabs** (no Shorts content shown)
 
 **When Shorts are Enabled:**
@@ -213,7 +213,7 @@ The Shorts Blocking feature uses a **single toggle** to control all Shorts-relat
 |--------------|---------------|------------------------|
 | Direct Shorts URLs (`/shorts/...`) | `enableShorts` (Global) | Redirected to block page |
 | Shorts in search results | `enableShorts` (Global) | Hidden from search results |
-| Shorts tab on creator profiles | `enableShorts` (Global) | Tab hidden completely |
+| Shorts tab on creator profiles | `enableShorts` (Global) | Tab disabled (visible but unclickable) |
 | Shorts in creator profile Home tab | `enableShorts` (Global) | Shorts shelves hidden |
 
 #### User Interface
@@ -259,7 +259,7 @@ The Shorts Blocking feature is considered **successfully implemented** when:
 - ✅ Blocked Shorts URLs redirect to the block page with correct message
 - ✅ Block page clearly states "YouTube Shorts are blocked" with instructions
 - ✅ Shorts are hidden from search results when disabled
-- ✅ Shorts tab is hidden on creator profiles when disabled
+- ✅ Shorts tab is disabled on creator profiles when disabled (visible but unclickable)
 - ✅ Shorts shelves are hidden in creator profile Home tabs when disabled
 - ✅ Enabling the toggle allows all Shorts content to function normally across all pages
 - ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
@@ -292,7 +292,7 @@ The Posts Blocking feature provides users with **global control over all YouTube
 - Blocked URL is shown for reference
 - "Go Back" button navigates user to YouTube Home
 - **Community Posts are hidden from search results** (no Posts appear in search)
-- **Posts tab is hidden on creator profile pages** (tab completely removed)
+- **Posts tab is disabled on creator profile pages** (visible but unclickable)
 - **Community Posts are hidden in creator profile Home tabs** (no Posts content shown)
 
 **When Posts are Enabled:**
@@ -311,7 +311,7 @@ The Posts Blocking feature uses a **single toggle** to control all Posts-related
 |--------------|---------------|------------------------|
 | Direct Posts URLs (`/post/...`) | `enablePosts` (Global) | Redirected to block page |
 | Community Posts in search results | `enablePosts` (Global) | Hidden from search results |
-| Posts tab on creator profiles | `enablePosts` (Global) | Tab hidden completely |
+| Posts tab on creator profiles | `enablePosts` (Global) | Tab disabled (visible but unclickable) |
 | Community Posts in creator profile Home tab | `enablePosts` (Global) | Posts hidden |
 
 #### User Interface
@@ -357,7 +357,7 @@ The Posts Blocking feature is considered **successfully implemented** when:
 - ✅ Blocked Posts URLs redirect to the block page with correct message
 - ✅ Block page clearly states "YouTube Posts are blocked"
 - ✅ Community Posts are hidden from search results when disabled
-- ✅ Posts tab is hidden on creator profiles when disabled
+- ✅ Posts tab is disabled on creator profiles when disabled (visible but unclickable)
 - ✅ Community Posts are hidden in creator profile Home tabs when disabled
 - ✅ Enabling the toggle allows all Posts content to function normally across all pages
 - ✅ Toggle appears in both Options page (Global Navigation) and Popup (Global tab)
@@ -666,9 +666,9 @@ The following elements **must be hidden** to maintain the minimalist, distractio
 - Any global navigation elements
 - Any secondary navigation toolbars
 
-**Content Tabs (Hidden by Default):**
-- **Shorts tab** — Hidden completely
-- **Posts / Community tab** — Hidden completely
+**Content Tabs (Disabled by Default):**
+- **Shorts tab** — Disabled (visible but unclickable)
+- **Posts / Community tab** — Disabled (visible but unclickable)
 
 **Content Distractions (Within Visible Tabs):**
 - Shorts-type content in the Videos tab or any other tab
@@ -700,7 +700,7 @@ The following elements **must be hidden** to maintain the minimalist, distractio
 
 **Content Tabs Area:**
 - Standard YouTube channel tabs displayed (Videos, Playlists, Podcasts, etc.)
-- **Shorts and Posts tabs are hidden by default**
+- **Shorts and Posts tabs are disabled by default** (visible but unclickable)
 - Tab bar follows YouTube's native styling and behavior
 - Active tab state preserved
 
@@ -731,9 +731,9 @@ The following elements **must be hidden** to maintain the minimalist, distractio
 - **Live** — Always visible (if present on the channel)
 - **About** — Always visible
 
-**Hidden Tabs (Default):**
-- **Shorts** — Hidden completely by default
-- **Posts / Community** — Hidden completely by default
+**Disabled Tabs (Default):**
+- **Shorts** — Disabled by default (visible but unclickable)
+- **Posts / Community** — Disabled by default (visible but unclickable)
 
 **Content Filtering Within Tabs:**
 - In the **Videos** tab, any Shorts-type content is hidden
@@ -814,7 +814,7 @@ The Creator Profile Page is considered **successfully implemented** when:
 
 - ✅ Only the search bar, channel header (banner, avatar, name, metadata), channel action buttons (Subscribe, Join, Notifications, See Perks), and Videos tab are visible by default
 - ✅ All navigation chrome (logo, sidebar, profile avatar, notifications bell) is hidden by default (controlled by Global Navigation settings)
-- ✅ Shorts and Posts tabs are hidden by default (controlled by global Enable Shorts and Enable Posts toggles)
+- ✅ Shorts and Posts tabs are disabled by default - visible but unclickable (controlled by global Enable Shorts and Enable Posts toggles)
 - ✅ Shorts content is filtered out of all tabs (controlled by global Enable Shorts toggle)
 - ✅ Community posts are filtered out of all tabs (controlled by global Enable Posts toggle)
 - ✅ Channel action buttons (Subscribe, Join, Notifications Bell, See Perks) remain always visible and are not configurable

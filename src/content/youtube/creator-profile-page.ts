@@ -1,7 +1,7 @@
 /**
  * YouTube Creator Profile Page Content Script Module
  * Implements minimalist mode for YouTube channel/creator profile pages
- * Hides navigation chrome, Shorts/Community tabs, action buttons while preserving channel info
+ * Hides navigation chrome, disables Shorts/Community tabs, hides action buttons while preserving channel info
  */
 
 import {
@@ -106,48 +106,44 @@ function generateCreatorProfileCSS(
 ): string {
   const rules: string[] = [];
 
-  // Hide/show Shorts tab based on global settings
+  // Disable/enable Shorts tab based on global settings
   if (!globalNavigation.enableShorts) {
     rules.push(`
-      /* Hide Shorts tab */
+      /* Disable Shorts tab (keep visible but unclickable) */
       ${CREATOR_PROFILE_SELECTORS.SHORTS_TAB} {
-        display: none !important;
+        pointer-events: none !important;
+        opacity: 0.4 !important;
+        cursor: not-allowed !important;
       }
     `);
   } else {
-    // Explicitly show Shorts tab when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Explicitly enable Shorts tab when enabled (overrides critical CSS)
     rules.push(`
-      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Shorts'],
-      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Shorts'],
-      tp-yt-paper-tab[title='Shorts'],
-      ytd-tab-renderer[tab-title='Shorts'] {
-        display: flex !important;
+      ${CREATOR_PROFILE_SELECTORS.SHORTS_TAB} {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
       }
     `);
   }
 
-  // Hide/show Community/Posts tab based on global settings
+  // Disable/enable Community/Posts tab based on global settings
   if (!globalNavigation.enablePosts) {
     rules.push(`
-      /* Hide Community/Posts tab */
+      /* Disable Community/Posts tab (keep visible but unclickable) */
       ${CREATOR_PROFILE_SELECTORS.COMMUNITY_TAB} {
-        display: none !important;
+        pointer-events: none !important;
+        opacity: 0.4 !important;
+        cursor: not-allowed !important;
       }
     `);
   } else {
-    // Explicitly show Community/Posts tab when enabled (overrides critical CSS)
-    // Must match ALL selectors from critical.css
+    // Explicitly enable Community/Posts tab when enabled (overrides critical CSS)
     rules.push(`
-      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Community'],
-      ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Posts'],
-      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Community'],
-      ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Posts'],
-      tp-yt-paper-tab[title='Community'],
-      tp-yt-paper-tab[title='Posts'],
-      ytd-tab-renderer[tab-title='Community'],
-      ytd-tab-renderer[tab-title='Posts'] {
-        display: flex !important;
+      ${CREATOR_PROFILE_SELECTORS.COMMUNITY_TAB} {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
       }
     `);
   }

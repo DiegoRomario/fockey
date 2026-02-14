@@ -182,15 +182,17 @@ ytd-search ytd-statement-banner-renderer {
    CREATOR PROFILE PAGE (Default Hidden Elements)
    ============================================ */
 
-/* Shorts Tab */
+/* Shorts Tab - Disabled by default (visible but unclickable) */
 ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Shorts'],
 ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Shorts'],
 tp-yt-paper-tab[title='Shorts'],
 ytd-tab-renderer[tab-title='Shorts'] {
-  display: none !important;
+  pointer-events: none !important;
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
 }
 
-/* Community/Posts Tab */
+/* Community/Posts Tab - Disabled by default (visible but unclickable) */
 ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Community'],
 ytd-browse[page-subtype='channels'] tp-yt-paper-tab[title='Posts'],
 ytd-browse[page-subtype='channels'] ytd-tab-renderer[tab-title='Community'],
@@ -199,7 +201,9 @@ tp-yt-paper-tab[title='Community'],
 tp-yt-paper-tab[title='Posts'],
 ytd-tab-renderer[tab-title='Community'],
 ytd-tab-renderer[tab-title='Posts'] {
-  display: none !important;
+  pointer-events: none !important;
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
 }
 
 /* Community posts and Shorts in channel tabs (always hidden by default) */
